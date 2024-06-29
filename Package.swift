@@ -32,7 +32,7 @@ let package = Package(
 		.testTarget(name: "PackedSerializeTests", dependencies: ["PackedSerialize"]),
 		.target(
 			name: "Empire",
-			dependencies: ["LMDB"]
+			dependencies: ["LMDB", "PackedSerialize"]
 		),
 		.testTarget(
 			name: "EmpireTests",

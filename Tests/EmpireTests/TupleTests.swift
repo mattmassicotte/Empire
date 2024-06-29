@@ -35,3 +35,25 @@ struct TupleTests {
 		#expect(value.elements.2.value == "to quit")
 	}
 }
+
+extension TupleTests {
+	@Test func serialize() throws {
+		let value = Tuple<String, Int>(("name", "Korben"), ("age", 45))
+
+		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
+
+		var output = buffer
+
+		value.serialize(into: &output)
+
+		var input = UnsafeRawBufferPointer(start: buffer.baseAddress, count: value.serializedLength)
+
+		let result = try Tuple<String, Int>(buffer: &input)
+
+		#expect(result.elements.0.name == "")
+		#expect(result.elements.0.value == "Korben")
+		#expect(result.elements.1.name == "")
+		#expect(result.elements.1.value == 45)
+	}
+}
+

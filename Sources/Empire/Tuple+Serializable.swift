@@ -1,0 +1,29 @@
+import PackedSerialize
+
+// This process is currently lossy: labels are discarded.
+
+extension Tuple: Serializable where repeat each Element: Serializable {
+	public func serialize(into buffer: inout UnsafeMutableRawBufferPointer) {
+		for element in repeat each elements {
+			element.1.serialize(into: &buffer)
+		}
+	}
+
+	public var serializedLength: Int {
+		var length = 0
+
+		for element in repeat each elements {
+			length += element.1.serializedLength
+		}
+
+		return length
+	}
+}
+
+extension Tuple: Deserializable where repeat each Element: Deserializable {
+	public init(buffer: inout UnsafeRawBufferPointer) throws {
+		let unnamedElements: (repeat each Element) = (repeat try (each Element).init(buffer: &buffer))
+
+		self.elements = (repeat (name: "", value: each unnamedElements))
+	}
+}
