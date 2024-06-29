@@ -26,3 +26,6 @@ extension Tuple: Hashable where repeat each Element: Hashable {
 		}
 	}
 }
+
+extension Tuple: Sendable where repeat each Element: Sendable {
+}

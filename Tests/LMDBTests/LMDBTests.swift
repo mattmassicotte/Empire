@@ -50,9 +50,7 @@ struct LMDBTests {
 		try Transaction.with(env: env) { txn in
 			let dbi = try txn.open(name: "mydb")
 
-			#expect(throws: MDBError.recordNotFound) {
-				_ = try txn.getString(dbi: dbi, key: "hello")
-			}
+			#expect(try txn.getString(dbi: dbi, key: "hello") == nil)
 		}
 	}
 
@@ -68,23 +66,29 @@ struct LMDBTests {
 
 			let cursor = try Cursor(transaction: txn, dbi: dbi)
 
-			let aPair = try "a".withMDBVal { key in
+			let aPairOpt = try "a".withMDBVal { key in
 				try cursor.get(key: key, .setRange)
 			}
+
+			let aPair = try #require(aPairOpt)
 
 			#expect(String(mdbVal: aPair.0) == "a")
 			#expect(String(mdbVal: aPair.1) == "h")
 
-			let bPair = try "a".withMDBVal { key in
+			let bPairOpt = try "a".withMDBVal { key in
 				try cursor.get(key: key, .next)
 			}
+
+			let bPair = try #require(bPairOpt)
 
 			#expect(String(mdbVal: bPair.0) == "b")
 			#expect(String(mdbVal: bPair.1) == "i")
 
-			let cPair = try "a".withMDBVal { key in
+			let cPairOpt = try "a".withMDBVal { key in
 				try cursor.get(key: key, .next)
 			}
+
+			let cPair = try #require(cPairOpt)
 
 			#expect(String(mdbVal: cPair.0) == "c")
 			#expect(String(mdbVal: cPair.1) == "j")

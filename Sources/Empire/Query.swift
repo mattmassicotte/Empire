@@ -8,17 +8,6 @@ public enum ComparisonOperator<Value: Comparable> {
 	case lessThan(Value)
 	case lessOrEqual(Value)
 	case within([Value])
-
-	var values: [Value] {
-		switch self {
-		case let .equals(v): [v]
-		case let .greaterThan(v): [v]
-		case let .greaterOrEqual(v): [v]
-		case let .lessThan(v): [v]
-		case let .lessOrEqual(v): [v]
-		case let .within(v): v
-		}
-	}
 }
 
 extension ComparisonOperator: Equatable {

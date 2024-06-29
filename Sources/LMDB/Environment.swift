@@ -3,7 +3,12 @@ import CLMDB
 public enum MDBError: Error, Hashable {
 	case problem
 	case failure(Int, String)
-	case recordNotFound
+
+	init(_ result: Int32) {
+		let string = String(cString: mdb_strerror(result))
+
+		self = MDBError.failure(Int(result), string)
+	}
 
 	static func check(_ operation: () throws -> Int32) throws {
 		let result = try operation()
@@ -11,12 +16,8 @@ public enum MDBError: Error, Hashable {
 		switch result {
 		case 0:
 			return
-		case MDB_NOTFOUND:
-			throw MDBError.recordNotFound
 		default:
-			let string = String(cString: mdb_strerror(result))
-
-			throw MDBError.failure(Int(result), string)
+			throw MDBError(result)
 		}
 	}
 }

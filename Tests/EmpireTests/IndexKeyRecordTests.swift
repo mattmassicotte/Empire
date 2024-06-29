@@ -36,12 +36,12 @@ extension TestRecord: IndexKeyRecord {
 }
 
 extension TestRecord {
-	static func select(in context: TransactionContext, a: String, b: Int) throws -> Self {
+	static func select(in context: TransactionContext, a: String, b: Int) throws -> Self? {
 		try context.select(key: Tuple<String, Int>(a, b))
 	}
 
 	static func select(in context: TransactionContext, a: String, b: ComparisonOperator<Int>) throws -> [Self] {
-		[]
+		try context.select(query: Query(a, last: b))
 	}
 
 	static func select(in context: TransactionContext, a: ComparisonOperator<String>) throws -> [Self] {
@@ -66,10 +66,31 @@ struct IndexKeyRecordTests {
 			try ctx.insert(record)
 		}
 
-		let output: TestRecord = try await store.withTransaction { ctx in
+		let output: TestRecord? = try await store.withTransaction { ctx in
 			try ctx.select(key: Tuple<String, Int>("hello", 42))
 		}
 
 		#expect(output == record)
+	}
+
+	@Test func insertAndSelectRange() async throws {
+		let store = try Store(url: Self.storeURL)
+
+		try await store.withTransaction { ctx in
+			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
+			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
+			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
+		}
+
+		let records = try await store.withTransaction { ctx in
+			try TestRecord.select(in: ctx, a: "hello", b: .greaterOrEqual(41))
+		}
+
+		let expected = [
+			TestRecord(a: "hello", b: 41, c: "b"),
+			TestRecord(a: "hello", b: 42, c: "c"),
+		]
+
+		#expect(records == expected)
 	}
 }

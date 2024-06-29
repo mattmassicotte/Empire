@@ -56,7 +56,7 @@ public struct TransactionContext {
 		try transaction.set(dbi: dbi, keyBuffer: keyData, valueBuffer: fieldsData)
 	}
 
-	public func select<Record: IndexKeyRecord>(key: some Serializable) throws -> sending Record {
+	public func select<Record: IndexKeyRecord>(key: some Serializable) throws -> sending Record? {
 		let keySize = key.serializedSize
 		guard keySize <= keyBuffer.count else {
 			throw StoreError.keyBufferOverflow
@@ -66,11 +66,52 @@ public struct TransactionContext {
 
 		let cursor = try Cursor(transaction: transaction, dbi: dbi)
 
-		let pair = try cursor.get(key: keyVal, .setKey)
+		guard let pair = try cursor.get(key: keyVal, .setKey) else {
+			return nil
+		}
 
 		var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
 		return try Record(&localBuffer)
+	}
+
+	// This should not need the `where Record: Sendable`...
+	// https://github.com/swiftlang/swift/issues/74845
+	public func select<Record: IndexKeyRecord, each Component: QueryComponent, Last: QueryComponent>(
+		query: Query<repeat each Component, Last>
+	) throws -> sending [Record] where Record: Sendable {
+		var records = [Record]()
+
+		switch query.last {
+		case let .equals(value):
+			let key = Tuple(repeat each query.components, value)
+			if let record: Record = try select(key: key) {
+				records.append(record)
+			}
+		case let .greaterOrEqual(value):
+			let key = Tuple(repeat each query.components, value)
+
+			let keySize = key.serializedSize
+			guard keySize <= keyBuffer.count else {
+				throw StoreError.keyBufferOverflow
+			}
+
+			let keyVal = MDB_val(key, using: keyBuffer)
+
+			let cursor = try Cursor(transaction: transaction, dbi: dbi)
+
+			try cursor.getRange(startingAt: keyVal, forwards: true) { pair in
+				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
+
+				records.append(try Record(&localBuffer))
+
+				return true
+			}
+		default:
+			fatalError("not yet")
+		}
+
+		return records
 	}
 }
 

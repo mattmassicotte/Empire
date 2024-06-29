@@ -77,26 +77,33 @@ public struct Transaction {
 }
 
 extension Transaction {
-	public func get(dbi: MDB_dbi, key: MDB_val) throws -> MDB_val {
+	public func get(dbi: MDB_dbi, key: MDB_val) throws -> MDB_val? {
 		var localKey = key
 		var localVal = MDB_val()
 
-		try MDBError.check { mdb_get(txn, dbi, &localKey, &localVal) }
+		let result = mdb_get(txn, dbi, &localKey, &localVal)
+		switch result {
+		case 0:
+			break
+		case MDB_NOTFOUND:
+			return nil
+		default:
+			throw MDBError(result)
+		}
 
 		return localVal
 	}
 
-	public func get(dbi: MDB_dbi, key: String) throws -> MDB_val {
+	public func get(dbi: MDB_dbi, key: String) throws -> MDB_val? {
 		try key.withMDBVal { keyVal in
 			try get(dbi: dbi, key: keyVal)
 		}
 	}
 
-	public func getString(dbi: MDB_dbi, key: MDB_val) throws -> String {
-		var localKey = key
-		var localVal = MDB_val()
-
-		try MDBError.check { mdb_get(txn, dbi, &localKey, &localVal) }
+	public func getString(dbi: MDB_dbi, key: MDB_val) throws -> String? {
+		guard let localVal = try get(dbi: dbi, key: key) else {
+			return nil
+		}
 
 		guard let string = String(mdbVal: localVal) else {
 			throw MDBError.problem
@@ -105,7 +112,7 @@ extension Transaction {
 		return string
 	}
 
-	public func getString(dbi: MDB_dbi, key: String) throws -> String {
+	public func getString(dbi: MDB_dbi, key: String) throws -> String? {
 		try key.withMDBVal { keyVal in
 			try getString(dbi: dbi, key: keyVal)
 		}
