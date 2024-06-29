@@ -12,28 +12,13 @@ public struct Transaction {
 		guard txn != nil else { throw MDBError.problem }
 	}
 
-	public static func with(env: Environment, block: (inout Transaction) throws -> Void) throws {
+	public static func with<T>(env: Environment, block: (inout Transaction) throws -> T) throws -> T {
 		var transaction = try Transaction(env: env)
 
 		try transaction.begin()
 
 		do {
-			try block(&transaction)
-			try transaction.commit()
-		} catch {
-			transaction.abort()
-
-			throw error
-		}
-	}
-
-	public static func with<T>(env: Environment, block: (inout Transaction) async throws -> sending T) async throws -> sending T {
-		var transaction = try Transaction(env: env)
-
-		try transaction.begin()
-
-		do {
-			let value = try await block(&transaction)
+			let value = try block(&transaction)
 			try transaction.commit()
 
 			return value
@@ -43,6 +28,27 @@ public struct Transaction {
 			throw error
 		}
 	}
+
+//	public static func with<T>(
+//		isolation: isolated (any Actor)? = #isolation,
+//		env: Environment,
+//		@_inheritActorContext block: sending (inout Transaction) async throws -> sending T
+//	) async throws -> sending T {
+//		var transaction = try Transaction(env: env)
+//
+//		try transaction.begin()
+//
+//		do {
+//			let value = try await block(&transaction)
+//			try transaction.commit()
+//
+//			return value
+//		} catch {
+//			transaction.abort()
+//
+//			throw error
+//		}
+//	}
 
 	public mutating func begin() throws {
 		guard txn != nil else { throw MDBError.problem }

@@ -27,3 +27,22 @@ extension Tuple: Deserializable where repeat each Element: Deserializable {
 		self.elements = (repeat (name: "", value: each unnamedElements))
 	}
 }
+
+extension UnnamedTuple: Serializable where repeat each Element: Serializable {
+	public func serialize(into buffer: inout UnsafeMutableRawBufferPointer) {
+		for element in repeat each elements {
+			element.serialize(into: &buffer)
+		}
+	}
+
+	public var serializedSize: Int {
+		var length = 0
+
+		for element in repeat each elements {
+			length += element.serializedSize
+		}
+
+		return length
+	}
+}
+
