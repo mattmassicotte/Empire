@@ -5,11 +5,11 @@ import PackageDescription
 let package = Package(
 	name: "Empire",
 	platforms: [
-		.macOS(.v11),
-		.iOS(.v14),
-		.macCatalyst(.v14),
-		.watchOS(.v7),
-		.tvOS(.v14),
+		.macOS(.v14),
+		.iOS(.v17),
+		.macCatalyst(.v17),
+		.watchOS(.v10),
+		.tvOS(.v17),
 		.visionOS(.v1),
 	],
 	products: [
