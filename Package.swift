@@ -4,6 +4,14 @@ import PackageDescription
 
 let package = Package(
 	name: "Empire",
+	platforms: [
+		.macOS(.v11),
+		.iOS(.v14),
+		.macCatalyst(.v14),
+		.watchOS(.v7),
+		.tvOS(.v14),
+		.visionOS(.v1),
+	],
 	products: [
 		.library(name: "Empire", targets: ["Empire"]),
 		.library(name: "LMDB", targets: ["LMDB"]),
@@ -20,6 +28,8 @@ let package = Package(
 		),
 		.target(name: "LMDB", dependencies: ["CLMDB"]),
 		.testTarget(name: "LMDBTests", dependencies: ["LMDB"]),
+		.target(name: "PackedSerialize"),
+		.testTarget(name: "PackedSerializeTests", dependencies: ["PackedSerialize"]),
 		.target(
 			name: "Empire",
 			dependencies: ["LMDB"]
