@@ -9,11 +9,11 @@ extension Tuple: Serializable where repeat each Element: Serializable {
 		}
 	}
 
-	public var serializedLength: Int {
+	public var serializedSize: Int {
 		var length = 0
 
 		for element in repeat each elements {
-			length += element.1.serializedLength
+			length += element.1.serializedSize
 		}
 
 		return length

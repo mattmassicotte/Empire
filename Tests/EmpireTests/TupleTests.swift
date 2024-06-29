@@ -46,7 +46,7 @@ extension TupleTests {
 
 		value.serialize(into: &output)
 
-		var input = UnsafeRawBufferPointer(start: buffer.baseAddress, count: value.serializedLength)
+		var input = UnsafeRawBufferPointer(start: buffer.baseAddress, count: value.serializedSize)
 
 		let result = try Tuple<String, Int>(buffer: &input)
 

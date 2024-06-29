@@ -1,10 +1,10 @@
 public protocol Serializable {
-	var serializedLength: Int { get }
+	var serializedSize: Int { get }
 	func serialize(into buffer: inout UnsafeMutableRawBufferPointer)
 }
 
 extension Int: Serializable {
-	public var serializedLength: Int {
+	public var serializedSize: Int {
 		bitWidth / 8
 	}
 
@@ -17,10 +17,10 @@ extension Int: Serializable {
 }
 
 extension String: Serializable {
-	public var serializedLength: Int {
+	public var serializedSize: Int {
 		let length = utf8.count
 
-		return length.serializedLength + length
+		return length.serializedSize + length
 	}
 
 	public func serialize(into buffer: inout UnsafeMutableRawBufferPointer) {
