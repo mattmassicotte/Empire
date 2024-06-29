@@ -2,9 +2,9 @@ import Testing
 
 import Empire
 
-struct TupleTests {
+struct LabelledTupleTests {
 	@Test func oneValueTuple() throws {
-		let value = Tuple<Int>(("age", 45))
+		let value = LabelledTuple<Int>(("age", 45))
 
 		#expect(value.elements == ("age", 45))
 		#expect(value.elements.name == "age")
@@ -12,7 +12,7 @@ struct TupleTests {
 	}
 
 	@Test func twoValueTuple() throws {
-		let value = Tuple<String, Int>(("name", "Korben"), ("age", 45))
+		let value = LabelledTuple<String, Int>(("name", "Korben"), ("age", 45))
 
 		// I do not understand why this doesn't work when the one above does
 		// #expect(value.elements.0 == ("name", "Korben"))
@@ -25,7 +25,7 @@ struct TupleTests {
 	}
 
 	@Test func threeValueTuple() throws {
-		let value = Tuple<String, Int, String>(("name", "Korben"), ("age", 45), ("goal", "to quit"))
+		let value = LabelledTuple<String, Int, String>(("name", "Korben"), ("age", 45), ("goal", "to quit"))
 
 		#expect(value.elements.0.name == "name")
 		#expect(value.elements.0.value == "Korben")
@@ -36,9 +36,9 @@ struct TupleTests {
 	}
 }
 
-extension TupleTests {
+extension LabelledTupleTests {
 	@Test func serialize() throws {
-		let value = Tuple<String, Int>(("name", "Korben"), ("age", 45))
+		let value = LabelledTuple<String, Int>(("name", "Korben"), ("age", 45))
 
 		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
 
@@ -48,7 +48,7 @@ extension TupleTests {
 
 		var input = UnsafeRawBufferPointer(start: buffer.baseAddress, count: value.serializedSize)
 
-		let result = try Tuple<String, Int>(buffer: &input)
+		let result = try LabelledTuple<String, Int>(buffer: &input)
 
 		#expect(result.elements.0.name == "")
 		#expect(result.elements.0.value == "Korben")

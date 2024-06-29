@@ -35,6 +35,20 @@ extension TestRecord: IndexKeyRecord {
 	}
 }
 
+extension TestRecord {
+	static func select(in context: TransactionContext, a: String, b: Int) throws -> Self {
+		try context.select(key: Tuple<String, Int>(a, b))
+	}
+
+	static func select(in context: TransactionContext, a: String, b: ComparisonOperator<Int>) throws -> [Self] {
+		[]
+	}
+
+	static func select(in context: TransactionContext, a: ComparisonOperator<String>) throws -> [Self] {
+		[]
+	}
+}
+
 struct IndexKeyRecordTests {
 	static let storeURL = URL(fileURLWithPath: "/tmp/store", isDirectory: true)
 
@@ -53,7 +67,7 @@ struct IndexKeyRecordTests {
 		}
 
 		let output: TestRecord = try await store.withTransaction { ctx in
-			try ctx.select(key: UnnamedTuple<String, Int>("hello", 42))
+			try ctx.select(key: Tuple<String, Int>("hello", 42))
 		}
 
 		#expect(output == record)
