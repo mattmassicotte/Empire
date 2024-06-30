@@ -41,6 +41,13 @@ let package = Package(
 				.product(name: "SwiftCompilerPlugin", package: "swift-syntax")
 			]
 		),
+		.testTarget(
+			name: "EmpireMacrosTests",
+			dependencies: [
+				"EmpireMacros",
+				.product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
+			]
+		),
 		.target(
 			name: "Empire",
 			dependencies: ["LMDB", "EmpireMacros", "PackedSerialize"]

@@ -4,17 +4,13 @@ import Testing
 import Empire
 
 @IndexKeyRecord("a", "b")
-fileprivate struct TestRecord: Hashable {
+struct TestRecord: Hashable {
 	let a: String
 	let b: Int
 	var c: String
 }
 
 extension TestRecord {
-	static func select(in context: TransactionContext, a: String, b: Int) throws -> Self? {
-		try context.select(key: Tuple<String, Int>(a, b))
-	}
-
 	static func select(in context: TransactionContext, a: String, b: ComparisonOperator<Int>) throws -> [Self] {
 		try context.select(query: Query(a, last: b))
 	}
