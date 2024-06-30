@@ -16,9 +16,6 @@ Empire is an experiment in persistence.
 > [!CAUTION]
 > This is still a WIP. Lots of stuff doesn't work right.
 
-> [!WARNING]
-> Type-safe query generation currently crashes the compiler. I'm trying to produce a reduced bug report.
-
 ```swift
 import Empire
 
@@ -41,7 +38,6 @@ let records = try await store.withTransaction { ctx in
 
 print(record.first!) // Person(name: "Leeloo", age: 2000)
 ```
-
 
 ## Integration
 
@@ -82,6 +78,33 @@ store.select(lastName: .lessThan("Zorg"), firstName: .lessThanOrEqual("Jean-Bapt
 The code generated for a `@IndexKeyRecord` type makes it a compile-time error to write invalid queries.
 
 As a consequence of a limited query capability, you must model your data by starting with the queries you need to support. This can require denormalization, which may or may not be appropriate for your expected number of records.
+
+## Query Generation Workaround
+
+Current, the macro that generates type-safe queries crashes the compiler. I'm trying to produce a reduced bug report, as I've been unable to find a workaround. Here's how you construct them manually in the meantime.
+
+```swift
+@IndexKeyRecord("lastName", "firstName")
+struct Person {
+    let lastName: String
+    let firstName: String
+    let age: Int
+}
+
+extension Person {
+    static func select(in context: TransactionContext, lastName: String, firstName: String) throws -> [Self] {
+        try context.select(query: Query(lastName, last: firstName))
+    }
+
+    static func select(in context: TransactionContext, lastName: String, firstName: ComparisonOperator<String>) throws -> [Self] {
+        try context.select(query: Query(lastName, last: firstName))
+    }
+
+    static func select(in context: TransactionContext, lastName: ComparisonOperator<String>) throws -> [Self] {
+        try context.select(query: Query(last: lastName))
+    }
+}
+```
 
 ## Questions
 
