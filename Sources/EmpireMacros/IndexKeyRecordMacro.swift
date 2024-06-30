@@ -29,7 +29,8 @@ public struct IndexKeyRecordMacro: ExtensionMacro {
 		let args = try RecordMacroArguments(type: type, declaration: declaration, keyMemberNames: keyMemberNames)
 
 		return [
-			try extensionDecl(argument: args)
+			try extensionDecl(argument: args),
+			try dataManipulationExtensionDecl(argument: args),
 		]
 	}
 
@@ -57,14 +58,17 @@ public struct IndexKeyRecordMacro: ExtensionMacro {
 
 extension IndexKeyRecordMacro {
 	/// Have to preserve types and order
-	private static func schemaHashcodeAccessor(members: [PatternBindingSyntax]) -> DeclSyntax {
+	private static func schemaHashcodeAccessor(members: [PatternBindingSyntax]) throws -> VariableDeclSyntax {
 		let output = members.map { $0.description }.joined(separator: ",")
 
 		let schemaHash = output.checksum
+		let literal = IntegerLiteralExprSyntax(schemaHash)
 
-		return """
-static var schemaHashValue: Int { \(raw: schemaHash) }
+		return try VariableDeclSyntax(
+			"""
+static var schemaHashValue: Int { \(literal) }
 """
+		)
 	}
 
 	private static func extensionDecl(
@@ -94,23 +98,41 @@ static var schemaHashValue: Int { \(raw: schemaHash) }
 			.map { "self.\($0) = try \($1)(buffer: &buffer.valueBuffer)" }
 			.joined(separator: "\n")
 
-		return try ExtensionDeclSyntax(
+		let serializeFunction = try FunctionDeclSyntax(
 			"""
+public func serialize(into buffer: inout SerializationBuffer) {
+	\(raw: keySerialize)
+	\(raw: fieldsSerialize)
+}
+"""
+		)
+
+		let indexKeySerializedSizeVar = try VariableDeclSyntax(
+"""
+public var indexKeySerializedSize: Int {
+	\(raw: keySize)
+}
+"""
+		)
+
+		let fieldsSerializedSizeVar = try VariableDeclSyntax(
+"""
+public var fieldsSerializedSize: Int {
+	\(raw: fieldSize)
+}
+"""
+		)
+
+		return try ExtensionDeclSyntax(
+	"""
 extension \(argument.type.trimmed): IndexKeyRecord {
-	\(raw: schemaHashcodeAccessor(members: argument.members))
+	\(try schemaHashcodeAccessor(members: argument.members))
 
-	public var indexKeySerializedSize: Int {
-		\(raw: keySize)
-	}
+	\(indexKeySerializedSizeVar)
 
-	public var fieldsSerializedSize: Int {
-		\(raw: fieldSize)
-	}
+	\(fieldsSerializedSizeVar)
 
-	public func serialize(into buffer: inout SerializationBuffer) {
-		\(raw: keySerialize)
-		\(raw: fieldsSerialize)
-	}
+	\(serializeFunction)
 
 	public init(_ buffer: inout DeserializationBuffer) throws {
 		\(raw: keyInit)
@@ -121,4 +143,45 @@ extension \(argument.type.trimmed): IndexKeyRecord {
 		)
 	}
 
+	private static func dataManipulationExtensionDecl(
+		argument: RecordMacroArguments<some TypeSyntaxProtocol, some DeclGroupSyntax>
+	) throws -> ExtensionDeclSyntax {
+		var expandedPairs = [[(String, String)]]()
+
+		let pairs = argument.primaryKeyTypeNamePairs
+
+		for count in 1...pairs.count {
+			let prefix = Array(pairs.prefix(count))
+			let comparsionPrefix = prefix.replacingLast { ($0.0, "ComparisonOperator<\($0.1)>") }
+
+			expandedPairs.append(prefix)
+			expandedPairs.append(comparsionPrefix)
+		}
+
+		var statements = [String]()
+		
+		for pairList in expandedPairs {
+			let queryParams = Array(pairList.map { $0.0 })
+				.joined(separator: ", ")
+			let lastParam = pairList.last!.0
+			let selectArguments = pairList.map { "\($0.0): \($0.1)" }.joined(separator: ", ")
+
+			let statement = """
+	public static func select(in context: TransactionContext, \(selectArguments)) throws -> [Self] {
+		try context.select(query: Query(\(queryParams), last: \(lastParam)))
+	}
+"""
+//			statements.append(statement)
+		}
+
+		let string = statements.joined(separator: "\n")
+
+		return try ExtensionDeclSyntax(
+   """
+extension \(argument.type.trimmed) {
+\(raw: string)
+}
+"""
+		)
+	}
 }

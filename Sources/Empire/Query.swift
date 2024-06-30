@@ -29,3 +29,4 @@ public struct Query<each Component: QueryComponent, Last: QueryComponent> {
 		self.last = last
 	}
 }
+
