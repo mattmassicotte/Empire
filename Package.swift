@@ -1,6 +1,7 @@
 // swift-tools-version: 6.0
 
 import PackageDescription
+import CompilerPluginSupport
 
 let package = Package(
 	name: "Empire",
@@ -16,6 +17,9 @@ let package = Package(
 		.library(name: "Empire", targets: ["Empire"]),
 		.library(name: "LMDB", targets: ["LMDB"]),
 	],
+	dependencies: [
+		.package(url: "https://github.com/apple/swift-syntax.git", from: "600.0.0-latest"),
+	],
 	targets: [
 		.target(
 			name: "CLMDB",
@@ -30,9 +34,16 @@ let package = Package(
 		.testTarget(name: "LMDBTests", dependencies: ["LMDB"]),
 		.target(name: "PackedSerialize"),
 		.testTarget(name: "PackedSerializeTests", dependencies: ["PackedSerialize"]),
+		.macro(
+			name: "EmpireMacros",
+			dependencies: [
+				.product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+				.product(name: "SwiftCompilerPlugin", package: "swift-syntax")
+			]
+		),
 		.target(
 			name: "Empire",
-			dependencies: ["LMDB", "PackedSerialize"]
+			dependencies: ["LMDB", "EmpireMacros", "PackedSerialize"]
 		),
 		.testTarget(
 			name: "EmpireTests",

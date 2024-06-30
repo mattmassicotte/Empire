@@ -3,6 +3,7 @@ import Testing
 
 import Empire
 
+@IndexKeyRecord("a", "b")
 fileprivate struct TestRecord: Hashable {
 	let a: String
 	let b: Int
