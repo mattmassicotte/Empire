@@ -2,10 +2,9 @@
 	extension,
 	conformances: IndexKeyRecord,
 	names:
-		named(PrimaryKey),
-		named(Fields),
-		named(primaryKey),
-		named(fields),
+		named(indexKeySerializedSize),
+		named(fieldsSerializedSize),
+		named(serialize),
 		named(init),
 		named(schemaHashValue),
 		named(select)

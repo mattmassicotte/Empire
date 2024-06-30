@@ -10,32 +10,6 @@ fileprivate struct TestRecord: Hashable {
 	var c: String
 }
 
-extension TestRecord: IndexKeyRecord {
-	static var schemaHashValue: Int {
-		42
-	}
-	
-	var indexKeySerializedSize: Int {
-		a.serializedSize + b.serializedSize
-	}
-
-	var fieldsSerializedSize: Int {
-		c.serializedSize
-	}
-	
-	func serialize(into buffer: inout SerializationBuffer) {
-		a.serialize(into: &buffer.keyBuffer)
-		b.serialize(into: &buffer.keyBuffer)
-		c.serialize(into: &buffer.valueBuffer)
-	}
-	
-	init(_ buffer: inout DeserializationBuffer) throws {
-		self.a = try String(buffer: &buffer.keyBuffer)
-		self.b = try Int(buffer: &buffer.keyBuffer)
-		self.c = try String(buffer: &buffer.valueBuffer)
-	}
-}
-
 extension TestRecord {
 	static func select(in context: TransactionContext, a: String, b: Int) throws -> Self? {
 		try context.select(key: Tuple<String, Int>(a, b))
@@ -46,7 +20,7 @@ extension TestRecord {
 	}
 
 	static func select(in context: TransactionContext, a: ComparisonOperator<String>) throws -> [Self] {
-		[]
+		try context.select(query: Query(last: a))
 	}
 }
 
