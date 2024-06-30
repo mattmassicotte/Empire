@@ -73,7 +73,7 @@ struct IndexKeyRecordTests {
 		#expect(output == record)
 	}
 
-	@Test func insertAndSelectRange() async throws {
+	@Test func selectGreaterOrEqual() async throws {
 		let store = try Store(url: Self.storeURL)
 
 		try await store.withTransaction { ctx in
@@ -84,6 +84,50 @@ struct IndexKeyRecordTests {
 
 		let records = try await store.withTransaction { ctx in
 			try TestRecord.select(in: ctx, a: "hello", b: .greaterOrEqual(41))
+		}
+
+		let expected = [
+			TestRecord(a: "hello", b: 41, c: "b"),
+			TestRecord(a: "hello", b: 42, c: "c"),
+		]
+
+		#expect(records == expected)
+	}
+
+	@Test func selectRange() async throws {
+		let store = try Store(url: Self.storeURL)
+
+		try await store.withTransaction { ctx in
+			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
+			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
+			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
+			try ctx.insert(TestRecord(a: "hello", b: 43, c: "d"))
+		}
+
+		let records = try await store.withTransaction { ctx in
+			try TestRecord.select(in: ctx, a: "hello", b: .range(41..<43))
+		}
+
+		let expected = [
+			TestRecord(a: "hello", b: 41, c: "b"),
+			TestRecord(a: "hello", b: 42, c: "c"),
+		]
+
+		#expect(records == expected)
+	}
+
+	@Test func selectClosedRange() async throws {
+		let store = try Store(url: Self.storeURL)
+
+		try await store.withTransaction { ctx in
+			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
+			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
+			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
+			try ctx.insert(TestRecord(a: "hello", b: 43, c: "d"))
+		}
+
+		let records = try await store.withTransaction { ctx in
+			try TestRecord.select(in: ctx, a: "hello", b: .closedRange(41...42))
 		}
 
 		let expected = [

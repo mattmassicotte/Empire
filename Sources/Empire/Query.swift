@@ -8,6 +8,8 @@ public enum ComparisonOperator<Value: Comparable> {
 	case lessThan(Value)
 	case lessOrEqual(Value)
 	case within([Value])
+	case range(Range<Value>)
+	case closedRange(ClosedRange<Value>)
 }
 
 extension ComparisonOperator: Equatable {

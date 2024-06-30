@@ -57,20 +57,13 @@ public struct TransactionContext {
 	}
 
 	public func select<Record: IndexKeyRecord>(key: some Serializable) throws -> sending Record? {
-		let keySize = key.serializedSize
-		guard keySize <= keyBuffer.count else {
-			throw StoreError.keyBufferOverflow
-		}
+		let keyVal = try MDB_val(key, using: keyBuffer)
 
-		let keyVal = MDB_val(key, using: keyBuffer)
-
-		let cursor = try Cursor(transaction: transaction, dbi: dbi)
-
-		guard let pair = try cursor.get(key: keyVal, .setKey) else {
+		guard let valueVal = try transaction.get(dbi: dbi, key: keyVal) else {
 			return nil
 		}
 
-		var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
+		var localBuffer = DeserializationBuffer(key: keyVal, value: valueVal)
 
 		return try Record(&localBuffer)
 	}
@@ -80,38 +73,59 @@ public struct TransactionContext {
 	public func select<Record: IndexKeyRecord, each Component: QueryComponent, Last: QueryComponent>(
 		query: Query<repeat each Component, Last>
 	) throws -> sending [Record] where Record: Sendable {
-		var records = [Record]()
-
 		switch query.last {
 		case let .equals(value):
 			let key = Tuple(repeat each query.components, value)
 			if let record: Record = try select(key: key) {
-				records.append(record)
+				return [record]
 			}
 		case let .greaterOrEqual(value):
 			let key = Tuple(repeat each query.components, value)
+			let keyVal = try MDB_val(key, using: keyBuffer)
+			let query = Cursor.Query(key: keyVal, forward: true)
 
-			let keySize = key.serializedSize
-			guard keySize <= keyBuffer.count else {
-				throw StoreError.keyBufferOverflow
-			}
+			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
 
-			let keyVal = MDB_val(key, using: keyBuffer)
-
-			let cursor = try Cursor(transaction: transaction, dbi: dbi)
-
-			try cursor.getRange(startingAt: keyVal, forwards: true) { pair in
+			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
-				records.append(try Record(&localBuffer))
+				return try Record(&localBuffer)
+			}
+		case let .range(range):
+			let key = Tuple(repeat each query.components, range.lowerBound)
+			let keyVal = try MDB_val(key, using: keyBuffer)
+			let endKey = Tuple(repeat each query.components, range.upperBound)
+			let endKeyVal = try MDB_val(endKey, using: valueBuffer)
 
-				return true
+			let query = Cursor.Query(key: keyVal, forward: true, endKey: endKeyVal, inclusive: false)
+
+			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
+
+			return try cursor.map { pair in
+				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
+
+				return try Record(&localBuffer)
+			}
+		case let .closedRange(range):
+			let key = Tuple(repeat each query.components, range.lowerBound)
+			let keyVal = try MDB_val(key, using: keyBuffer)
+			let endKey = Tuple(repeat each query.components, range.upperBound)
+			let endKeyVal = try MDB_val(endKey, using: valueBuffer)
+
+			let query = Cursor.Query(key: keyVal, forward: true, endKey: endKeyVal, inclusive: true)
+
+			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
+
+			return try cursor.map { pair in
+				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
+
+				return try Record(&localBuffer)
 			}
 		default:
 			fatalError("not yet")
 		}
 
-		return records
+		return []
 	}
 }
 

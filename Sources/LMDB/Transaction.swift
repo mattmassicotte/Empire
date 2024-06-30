@@ -1,5 +1,11 @@
 import CLMDB
 
+public enum KeyComparisonResult {
+	case descending
+	case equal
+	case ascending
+}
+
 public struct Transaction {
 	var txn: OpaquePointer?
 	private let env: Environment

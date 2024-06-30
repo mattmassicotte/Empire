@@ -4,8 +4,12 @@ import PackedSerialize
 import CLMDB
 
 extension MDB_val {
-	init<Value: Serializable>(_ value: Value, using buffer: UnsafeMutableRawBufferPointer) {
+	init<Value: Serializable>(_ value: Value, using buffer: UnsafeMutableRawBufferPointer) throws {
 		let size = value.serializedSize
+
+		guard size <= buffer.count else {
+			throw StoreError.keyBufferOverflow
+		}
 
 		var localBuffer = buffer
 
@@ -14,3 +18,4 @@ extension MDB_val {
 		self.init(mv_size: size, mv_data: buffer.baseAddress)
 	}
 }
+
