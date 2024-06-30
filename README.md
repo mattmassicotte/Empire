@@ -28,8 +28,8 @@ struct Person {
 let store = try Store(path: "/path/to/store")
 
 try await store.withTransaction { ctx in
-	try ctx.insert(Person(name: "Korben", age: 45))
-	try ctx.insert(Person(name: "Leeloo", age: 2000))
+    try ctx.insert(Person(name: "Korben", age: 45))
+    try ctx.insert(Person(name: "Leeloo", age: 2000))
 }
 	
 let records = try await store.withTransaction { ctx in
