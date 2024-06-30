@@ -16,6 +16,9 @@ Empire is an experiment in persistence.
 > [!CAUTION]
 > This is still a WIP. Lots of stuff doesn't work right.
 
+> [!WARNING]
+> Type-safe query generation currently crashes the compiler. I'm trying to produce a reduced bug report.
+
 ```swift
 import Empire
 

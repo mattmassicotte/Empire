@@ -158,30 +158,34 @@ extension \(argument.type.trimmed): IndexKeyRecord {
 			expandedPairs.append(comparsionPrefix)
 		}
 
-		var statements = [String]()
-		
+		var selectFunctions = [FunctionDeclSyntax]()
+
 		for pairList in expandedPairs {
-			let queryParams = Array(pairList.map { $0.0 })
+			let queryArguments = pairList
+				.map { $0.0 }
+				.replacingLast { "last: \($0)" }
 				.joined(separator: ", ")
-			let lastParam = pairList.last!.0
+
 			let selectArguments = pairList.map { "\($0.0): \($0.1)" }.joined(separator: ", ")
 
-			let statement = """
-	public static func select(in context: TransactionContext, \(selectArguments)) throws -> [Self] {
-		try context.select(query: Query(\(queryParams), last: \(lastParam)))
-	}
+			let funcDecl = try FunctionDeclSyntax(
 """
-//			statements.append(statement)
-		}
-
-		let string = statements.joined(separator: "\n")
-
-		return try ExtensionDeclSyntax(
-   """
-extension \(argument.type.trimmed) {
-\(raw: string)
+public static func select(in context: TransactionContext, \(raw: selectArguments)) throws -> [Self] {
+	try context.select(query: Query(\(raw: queryArguments)))
 }
 """
+			)
+
+//			selectFunctions.append(funcDecl)
+		}
+
+		return ExtensionDeclSyntax(
+			extendedType: argument.type,
+			memberBlock: MemberBlockSyntax(
+				members: MemberBlockItemListSyntax(
+					selectFunctions.map { MemberBlockItemSyntax(decl: $0) }
+				)
+			)
 		)
 	}
 }
