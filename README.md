@@ -13,7 +13,32 @@ Empire is an experiment in persistence.
 - Built for Swift 6 
 - Backed by a sorted-key index data store ([LMDB][LMDB])
 
-> Warning: This is still a WIP.
+> [!CAUTION]
+> This is still a WIP. Lots of stuff doesn't work right.
+
+```swift
+import Empire
+
+@IndexKeyRecord("name")
+struct Person {
+    let name: String
+    let age: Int
+}
+
+let store = try Store(path: "/path/to/store")
+
+try await store.withTransaction { ctx in
+	try ctx.insert(Person(name: "Korben", age: 45))
+	try ctx.insert(Person(name: "Leeloo", age: 2000))
+}
+	
+let records = try await store.withTransaction { ctx in
+    try Person.select(in: ctx, name: .lessThan("Zorg"))
+}
+
+print(record.first!) // Person(name: "Leeloo", age: 2000)
+```
+
 
 ## Integration
 
@@ -23,11 +48,11 @@ dependencies: [
 ]
 ```
 
-## Data Modelling and Queries
+## Data Modeling and Queries
 
 Empire uses a data model that is **extremely** different from a traditional SQL-backed data store. It is pretty unforgiving and can be a challenge, even if you are familiar with it.
 
-Conceptually, you can think of every record as being split into two tuples: the "index key" and "fields". Queries are **only** possible on components of the index key. Further, the ordering of key components matters. Only the last component of a query can be a non-equality comparsion. If you want to look for a range of a key component, you must restrict all previous components.
+Conceptually, you can think of every record as being split into two tuples: the "index key" and "fields". Queries are **only** possible on components of the index key. Further, the ordering of key components matters. Only the last component of a query can be a non-equality comparison. If you want to look for a range of a key component, you must restrict all previous components.
 
 ```swift
 @IndexKeyRecord("lastName", "firstName")
