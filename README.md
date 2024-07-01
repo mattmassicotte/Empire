@@ -14,7 +14,7 @@ Empire is an experiment in persistence.
 - Backed by a sorted-key index data store ([LMDB][LMDB])
 
 > [!CAUTION]
-> This is still a WIP. Lots of stuff doesn't work right.
+> This is still a WIP
 
 ```swift
 import Empire
@@ -22,7 +22,7 @@ import Empire
 @IndexKeyRecord("name")
 struct Person {
     let name: String
-    let age: UInt
+    let age: Int
 }
 
 let store = try Store(path: "/path/to/store")
@@ -117,6 +117,43 @@ Fields: `String`, `UInt`, `Int`, `UUID`
 ## `IndexKeyRecord` Conformance
 
 The `@IndexKeyRecord` macro expands to a protocol conformance to the `IndexKeyRecord` protocol. You you can use this directly, but it isn't easy. You have to handle binary serialization and deserialization of all your fields. It's also critical that you version your type's serialization format.
+
+```swift
+@IndexKeyRecord("name")
+struct Person {
+    let name: String
+    let age: Int
+}
+
+// Equivalent to this:
+extension Person: IndexKeyRecord {
+    static var schemaVersion: Int {
+        1
+    }
+
+    public var indexKeySerializedSize: Int {
+        name.serializedSize
+    }
+
+    public var fieldsSerializedSize: Int {
+        age.serializedSize
+    }
+
+    public func serialize(into buffer: inout SerializationBuffer) {
+        name.serialize(into: &buffer.keyBuffer)
+        age.serialize(into: &buffer.valueBuffer)
+    }
+
+    public init(_ buffer: inout DeserializationBuffer) throws {
+        self.name = try String(buffer: &buffer.keyBuffer)
+        self.age = try UInt(buffer: &buffer.valueBuffer)
+    }
+}
+
+extension Person {
+    // this will eventually have queries once I figure out a workaround
+}
+```
 
 ## Issues
 
