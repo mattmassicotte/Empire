@@ -10,11 +10,11 @@ Empire is an experiment in persistence.
 
 - Schema is defined by your types
 - Macro-based API that is both typesafe and low-overhead
-- Built for Swift 6 
+- Built for Swift 6 (Built June 22 or later, not yet available with Xcode 16 beta)
 - Backed by a sorted-key index data store ([LMDB][LMDB])
 
 > [!CAUTION]
-> This is still a WIP
+> This is still a WIP.
 
 ```swift
 import Empire
