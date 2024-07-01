@@ -15,15 +15,15 @@ struct KeyOnlyRecord: Hashable {
 	let key: UInt
 }
 
-extension TestRecord {
-	static func select(in context: TransactionContext, a: String, b: ComparisonOperator<UInt>) throws -> [Self] {
-		try context.select(query: Query(a, last: b))
-	}
-
-	static func select(in context: TransactionContext, a: ComparisonOperator<String>) throws -> [Self] {
-		try context.select(query: Query(last: a))
-	}
-}
+//extension TestRecord {
+//	static func select(in context: TransactionContext, a: String, b: ComparisonOperator<UInt>) throws -> [Self] {
+//		try context.select(query: Query(a, last: b))
+//	}
+//
+//	static func select(in context: TransactionContext, a: ComparisonOperator<String>) throws -> [Self] {
+//		try context.select(query: Query(last: a))
+//	}
+//}
 
 struct IndexKeyRecordTests {
 	static let storeURL = URL(fileURLWithPath: "/tmp/store", isDirectory: true)

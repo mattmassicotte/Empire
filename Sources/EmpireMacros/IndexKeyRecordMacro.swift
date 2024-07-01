@@ -183,7 +183,7 @@ public static func select(in context: TransactionContext, \(raw: selectArguments
 """
 			)
 
-//			selectFunctions.append(funcDecl)
+			selectFunctions.append(funcDecl)
 		}
 
 		return ExtensionDeclSyntax(
