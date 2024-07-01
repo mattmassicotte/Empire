@@ -2,7 +2,7 @@ import PackedSerialize
 
 /// Requirements for a type stored in an Empire database.
 public protocol IndexKeyRecord {
-	static var schemaHashValue: Int { get }
+	static var schemaVersion: Int { get }
 
 	var indexKeySerializedSize: Int { get }
 	var fieldsSerializedSize: Int { get }

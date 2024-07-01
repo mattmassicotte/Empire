@@ -9,7 +9,7 @@ import PackedSerialize
 		named(fieldsSerializedSize),
 		named(serialize),
 		named(init),
-		named(schemaHashValue),
+		named(schemaVersion),
 		named(select)
 )
 public macro IndexKeyRecord(
