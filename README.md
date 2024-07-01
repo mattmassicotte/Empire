@@ -111,6 +111,7 @@ extension Person {
 Right now, there are limits what the kinds of types that can be used for fields and keys.
 
 Keys: `String`, `UInt`, `UUID`
+
 Fields: `String`, `UInt`, `Int`, `UUID`
 
 ## `IndexKeyRecord` Conformance
