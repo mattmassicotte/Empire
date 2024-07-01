@@ -106,6 +106,13 @@ extension Person {
 }
 ```
 
+## Type Limitations
+
+Right now, there are limits what the kinds of types that can be used for fields and keys.
+
+Keys: `String`, `UInt`, `UUID`
+Fields: `String`, `UInt`, `Int`, `UUID`
+
 ## `IndexKeyRecord` Conformance
 
 The `@IndexKeyRecord` macro expands to a protocol conformance to the `IndexKeyRecord` protocol. You you can use this directly, but it isn't easy. You have to handle binary serialization and deserialization of all your fields. It's also critical that you version your type's serialization format.
@@ -114,7 +121,6 @@ The `@IndexKeyRecord` macro expands to a protocol conformance to the `IndexKeyRe
 
 This is still very much a work in progress. There are a bunch of issues right now.
 
-- Binary serialization is only supported for `String` and `UInt`
 - Arbitrary key sorting is not supported
 - Not all `ComparsionOperators` are implemented yet
 - Macro-based query generation is hitting a compiler bug (I'm pretty sure)

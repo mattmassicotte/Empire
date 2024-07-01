@@ -16,6 +16,19 @@ struct PackedSerializeTests {
 		#expect(try UInt(buffer: &outputBuffer) == 142)
 	}
 
+	@Test func serializeInt() throws {
+		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
+		var inputBuffer = buffer
+
+		42.serialize(into: &inputBuffer)
+		142.serialize(into: &inputBuffer)
+
+		var outputBuffer = UnsafeRawBufferPointer(buffer)
+
+		#expect(try Int(buffer: &outputBuffer) == 42)
+		#expect(try Int(buffer: &outputBuffer) == 142)
+	}
+
 	@Test func serializeString() throws {
 		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
 		var inputBuffer = buffer
@@ -29,3 +42,23 @@ struct PackedSerializeTests {
 		#expect(try String(buffer: &outputBuffer) == "goodbye")
 	}
 }
+
+#if canImport(Foundation)
+import Foundation
+
+extension PackedSerializeTests {
+	@Test func serializeUUID() throws {
+		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
+		var inputBuffer = buffer
+
+		let uuid = UUID()
+
+		uuid.serialize(into: &inputBuffer)
+
+		var outputBuffer = UnsafeRawBufferPointer(buffer)
+
+		#expect(try UUID(buffer: &outputBuffer) == uuid)
+	}
+}
+
+#endif

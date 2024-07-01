@@ -10,6 +10,12 @@ extension String: IndexKeyComparable {
 extension UInt: IndexKeyComparable {
 }
 
+#if canImport(Foundation)
+import Foundation
+extension UUID: IndexKeyComparable {
+}
+#endif
+
 public enum ComparisonOperator<Value: IndexKeyComparable> {
 	case equals(Value)
 	case greaterThan(Value)

@@ -10,6 +10,11 @@ struct TestRecord: Hashable {
 	var c: String
 }
 
+@IndexKeyRecord("key")
+struct KeyOnlyRecord: Hashable {
+	let key: UInt
+}
+
 extension TestRecord {
 	static func select(in context: TransactionContext, a: String, b: ComparisonOperator<UInt>) throws -> [Self] {
 		try context.select(query: Query(a, last: b))

@@ -78,9 +78,16 @@ static var schemaVersion: Int { \(literal) }
 			.map { "\($0).serializedSize" }
 			.joined(separator: " +\n")
 
-		let fieldSize = argument.fieldMemberNames
-			.map { "\($0).serializedSize" }
-			.joined(separator: " +\n")
+		// handle no fields
+		let fieldSize: String
+
+		if argument.fieldMemberNames.isEmpty {
+			fieldSize = "0"
+		} else {
+			fieldSize = argument.fieldMemberNames
+				.map { "\($0).serializedSize" }
+				.joined(separator: " +\n")
+		}
 
 		let keySerialize = argument.keyMemberNames
 			.map { "\($0).serialize(into: &buffer.keyBuffer)" }

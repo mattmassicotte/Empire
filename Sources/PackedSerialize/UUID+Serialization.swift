@@ -1,21 +1,24 @@
-extension UInt: Serializable {
+#if canImport(Foundation)
+import Foundation
+
+extension UUID: Serializable {
 	public var serializedSize: Int {
-		bitWidth / 8
+		MemoryLayout<uuid_t>.size
 	}
 
 	public func serialize(into buffer: inout UnsafeMutableRawBufferPointer) {
-		withUnsafeBytes(of: self.bigEndian) { ptr in
+		withUnsafeBytes(of: self.uuid) { ptr in
 			buffer.copyMemory(from: ptr)
 			buffer = UnsafeMutableRawBufferPointer(rebasing: buffer[ptr.count...])
 		}
 	}
 }
 
-extension UInt: Deserializable {
+extension UUID: Deserializable {
 	public init(buffer: inout UnsafeRawBufferPointer) throws {
-		var value: UInt = 0
+		var value: uuid_t = (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
 
-		let data = UnsafeRawBufferPointer(start: buffer.baseAddress, count: MemoryLayout<UInt>.size)
+		let data = UnsafeRawBufferPointer(start: buffer.baseAddress, count: MemoryLayout<uuid_t>.size)
 
 		withUnsafeMutableBytes(of: &value) { ptr in
 			ptr.copyMemory(from: data)
@@ -23,6 +26,8 @@ extension UInt: Deserializable {
 
 		buffer = UnsafeRawBufferPointer(rebasing: buffer[8...])
 
-		self.init(bigEndian: value)
+		self.init(uuid: value)
 	}
 }
+
+#endif
