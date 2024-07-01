@@ -5,6 +5,7 @@ import SwiftSyntaxMacros
 struct Plugin: CompilerPlugin {
 	let providingMacros: [Macro.Type] = [
 		IndexKeyRecordMacro.self,
+		CloudKitRecordMacro.self,
 	]
 }
 

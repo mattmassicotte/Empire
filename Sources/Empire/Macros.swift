@@ -13,3 +13,10 @@ public macro IndexKeyRecord(
 	_ first: StaticString,
 	_ remaining: StaticString...
 ) = #externalMacro(module: "EmpireMacros", type: "IndexKeyRecordMacro")
+
+@attached(
+	extension,
+	names:
+		named(doThing)
+)
+public macro CloudKitRecord() = #externalMacro(module: "EmpireMacros", type: "CloudKitRecordMacro")
