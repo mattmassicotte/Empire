@@ -79,6 +79,18 @@ public struct TransactionContext {
 			if let record: Record = try select(key: key) {
 				return [record]
 			}
+		case let .greaterThan(value):
+			let key = Tuple(repeat each query.components, value)
+			let keyVal = try MDB_val(key, using: keyBuffer)
+			let query = Cursor.Query(key: keyVal, forward: true)
+
+			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
+
+			return try cursor.map { pair in
+				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
+
+				return try Record(&localBuffer)
+			}
 		case let .greaterOrEqual(value):
 			let key = Tuple(repeat each query.components, value)
 			let keyVal = try MDB_val(key, using: keyBuffer)

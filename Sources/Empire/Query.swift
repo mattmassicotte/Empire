@@ -1,7 +1,16 @@
 import LMDB
 import PackedSerialize
 
-public enum ComparisonOperator<Value: Comparable> {
+public protocol IndexKeyComparable: Comparable {
+}
+
+extension String: IndexKeyComparable {
+}
+
+extension UInt: IndexKeyComparable {
+}
+
+public enum ComparisonOperator<Value: IndexKeyComparable> {
 	case equals(Value)
 	case greaterThan(Value)
 	case greaterOrEqual(Value)
@@ -18,7 +27,7 @@ extension ComparisonOperator: Equatable {
 extension ComparisonOperator: Hashable where Value: Hashable {
 }
 
-public typealias QueryComponent = Comparable & Serializable
+public typealias QueryComponent = IndexKeyComparable & Serializable
 
 public struct Query<each Component: QueryComponent, Last: QueryComponent> {
 	public let last: ComparisonOperator<Last>

@@ -1,3 +1,6 @@
+@_exported
+import PackedSerialize
+
 @attached(
 	extension,
 	conformances: IndexKeyRecord,

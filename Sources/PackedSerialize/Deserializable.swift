@@ -6,12 +6,12 @@ enum DeserializeError: Error {
 	case invalidLength
 }
 
-extension Int: Deserializable {
+extension UInt: Deserializable {
 	public init(buffer: inout UnsafeRawBufferPointer) throws {
-		var value: Int = 0
-		
-		let data = UnsafeRawBufferPointer(start: buffer.baseAddress, count: 8)
-		
+		var value: UInt = 0
+
+		let data = UnsafeRawBufferPointer(start: buffer.baseAddress, count: MemoryLayout<Int>.size)
+
 		withUnsafeMutableBytes(of: &value) { ptr in
 			ptr.copyMemory(from: data)
 		}
@@ -24,7 +24,7 @@ extension Int: Deserializable {
 
 extension String: Deserializable {
 	public init(buffer: inout UnsafeRawBufferPointer) throws {
-		let length = try Int(buffer: &buffer)
+		let length = Int(try UInt(buffer: &buffer))
 		guard length >= 0 else {
 			throw DeserializeError.invalidLength
 		}
@@ -42,3 +42,19 @@ extension String: Deserializable {
 		}
 	}
 }
+
+//extension Float: Deserializable {
+//	public init(buffer: inout UnsafeRawBufferPointer) throws {
+//		var value: UInt32 = 0
+//
+//		let data = UnsafeRawBufferPointer(start: buffer.baseAddress, count: MemoryLayout<UInt32>.size)
+//
+//		withUnsafeMutableBytes(of: &value) { ptr in
+//			ptr.copyMemory(from: data)
+//		}
+//
+//		buffer = UnsafeRawBufferPointer(rebasing: buffer[8...])
+//
+//		self.init(bitPattern: value.bigEndian)
+//	}
+//}

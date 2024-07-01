@@ -38,7 +38,7 @@ struct LabelledTupleTests {
 
 extension LabelledTupleTests {
 	@Test func serialize() throws {
-		let value = LabelledTuple<String, Int>(("name", "Korben"), ("age", 45))
+		let value = LabelledTuple<String, UInt>(("name", "Korben"), ("age", 45))
 
 		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
 
@@ -48,7 +48,7 @@ extension LabelledTupleTests {
 
 		var input = UnsafeRawBufferPointer(start: buffer.baseAddress, count: value.serializedSize)
 
-		let result = try LabelledTuple<String, Int>(buffer: &input)
+		let result = try LabelledTuple<String, UInt>(buffer: &input)
 
 		#expect(result.elements.0.name == "")
 		#expect(result.elements.0.value == "Korben")

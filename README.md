@@ -22,7 +22,7 @@ import Empire
 @IndexKeyRecord("name")
 struct Person {
     let name: String
-    let age: Int
+    let age: UInt
 }
 
 let store = try Store(path: "/path/to/store")
@@ -81,7 +81,7 @@ As a consequence of a limited query capability, you must model your data by star
 
 ## Query Generation Workaround
 
-Current, the macro that generates type-safe queries crashes the compiler. I'm trying to produce a reduced bug report, as I've been unable to find a workaround. Here's how you construct them manually in the meantime.
+Currently, the macro that generates type-safe queries crashes the compiler. I'm trying to produce a reduced bug report, as I've been unable to find a workaround. Here's how you construct them manually in the meantime.
 
 ```swift
 @IndexKeyRecord("lastName", "firstName")
@@ -105,6 +105,15 @@ extension Person {
     }
 }
 ```
+
+## Issues
+
+This is still very much a work in progress. There are a bunch of issues right now.
+
+- Binary serialization is only supported for `String` and `UInt`
+- Arbitrary key sorting is not supported
+- Not all `ComparsionOperators` are implemented yet
+- Macro-based query generation is hitting a compiler bug (I'm pretty sure)
 
 ## Questions
 

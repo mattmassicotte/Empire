@@ -21,8 +21,6 @@ public struct Transaction {
 	public static func with<T>(env: Environment, block: (inout Transaction) throws -> T) throws -> T {
 		var transaction = try Transaction(env: env)
 
-		try transaction.begin()
-
 		do {
 			let value = try block(&transaction)
 			try transaction.commit()
@@ -33,33 +31,6 @@ public struct Transaction {
 
 			throw error
 		}
-	}
-
-//	public static func with<T>(
-//		isolation: isolated (any Actor)? = #isolation,
-//		env: Environment,
-//		@_inheritActorContext block: sending (inout Transaction) async throws -> sending T
-//	) async throws -> sending T {
-//		var transaction = try Transaction(env: env)
-//
-//		try transaction.begin()
-//
-//		do {
-//			let value = try await block(&transaction)
-//			try transaction.commit()
-//
-//			return value
-//		} catch {
-//			transaction.abort()
-//
-//			throw error
-//		}
-//	}
-
-	public mutating func begin() throws {
-		guard txn != nil else { throw MDBError.problem }
-
-		try MDBError.check { mdb_txn_begin(env.internalEnv, nil, 0, &txn) }
 	}
 
 	public func commit() throws {
@@ -77,6 +48,9 @@ public struct Transaction {
 		try name.withCString { nameStr in
 			try MDBError.check { mdb_dbi_open(txn, nameStr, dbFlags, &dbi) }
 		}
+
+		// here's where a comparator should be used...
+//		try MDBError.check { mdb_set_compare(txn, dbi, comparator) }
 
 		return dbi
 	}

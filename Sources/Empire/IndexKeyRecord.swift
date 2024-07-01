@@ -10,3 +10,4 @@ public protocol IndexKeyRecord {
 	func serialize(into buffer: inout SerializationBuffer)
 	init(_ buffer: inout DeserializationBuffer) throws
 }
+

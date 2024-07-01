@@ -6,12 +6,12 @@ import Empire
 @IndexKeyRecord("a", "b")
 struct TestRecord: Hashable {
 	let a: String
-	let b: Int
+	let b: UInt
 	var c: String
 }
 
 extension TestRecord {
-	static func select(in context: TransactionContext, a: String, b: ComparisonOperator<Int>) throws -> [Self] {
+	static func select(in context: TransactionContext, a: String, b: ComparisonOperator<UInt>) throws -> [Self] {
 		try context.select(query: Query(a, last: b))
 	}
 
@@ -38,7 +38,7 @@ struct IndexKeyRecordTests {
 		}
 
 		let output: TestRecord? = try await store.withTransaction { ctx in
-			try ctx.select(key: Tuple<String, Int>("hello", 42))
+			try ctx.select(key: Tuple<String, UInt>("hello", 42))
 		}
 
 		#expect(output == record)

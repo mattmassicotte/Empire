@@ -3,7 +3,7 @@ public protocol Serializable {
 	func serialize(into buffer: inout UnsafeMutableRawBufferPointer)
 }
 
-extension Int: Serializable {
+extension UInt: Serializable {
 	public var serializedSize: Int {
 		bitWidth / 8
 	}
@@ -20,14 +20,14 @@ extension String: Serializable {
 	public var serializedSize: Int {
 		let length = utf8.count
 
-		return length.serializedSize + length
+		return UInt(length).serializedSize + length
 	}
 
 	public func serialize(into buffer: inout UnsafeMutableRawBufferPointer) {
 		let length = utf8.count
 
 		// write the length
-		length.serialize(into: &buffer)
+		UInt(length).serialize(into: &buffer)
 
 		// write the data
 		withCString { ptr in
@@ -38,3 +38,16 @@ extension String: Serializable {
 		buffer = UnsafeMutableRawBufferPointer(rebasing: buffer[length...])
 	}
 }
+
+//extension Float: Serializable {
+//	public var serializedSize: Int {
+//		bitPattern.bitWidth / 8
+//	}
+//
+//	public func serialize(into buffer: inout UnsafeMutableRawBufferPointer) {
+//		withUnsafeBytes(of: self.bitPattern) { ptr in
+//			buffer.copyMemory(from: ptr)
+//			buffer = UnsafeMutableRawBufferPointer(rebasing: buffer[ptr.count...])
+//		}
+//	}
+//}
