@@ -34,7 +34,7 @@ jobs:
         with:
           submodules: true
       - name: Test platform ${{ matrix.destination }}
-        run: set -o pipefail && xcodebuild -scheme NSUI -destination "${{ matrix.destination }}" test | xcbeautify
+        run: set -o pipefail && xcodebuild -scheme Empire-Package -destination "${{ matrix.destination }}" test | xcbeautify
 
   linux_test:
     name: Test Linux
@@ -47,6 +47,6 @@ jobs:
       - name: Install swiftly
         run: curl -L https://swiftlang.github.io/swiftly/swiftly-install.sh | bash -s -- -y
       - name: Install the latest Swift toolchain
-        run: swiftly install latest
+        run: swiftly install 6.0-snapshot
       - name: Test
         run: swift test --enable-experimental-swift-testing
