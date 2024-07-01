@@ -128,3 +128,18 @@ extension Transaction {
 		}
 	}
 }
+
+extension Transaction {
+	public func delete(dbi: MDB_dbi, key: MDB_val) throws {
+		var localKey = key
+		var localVal = MDB_val()
+
+		try MDBError.check { mdb_del(txn, dbi, &localKey, &localVal) }
+	}
+
+	public func delete(dbi: MDB_dbi, key: String) throws {
+		try key.withMDBVal { keyVal in
+			try delete(dbi: dbi, key: keyVal)
+		}
+	}
+}

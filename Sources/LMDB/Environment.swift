@@ -2,6 +2,7 @@ import CLMDB
 
 public enum MDBError: Error, Hashable {
 	case problem
+	case recordNotFound
 	case failure(Int, String)
 
 	init(_ result: Int32) {
@@ -16,6 +17,8 @@ public enum MDBError: Error, Hashable {
 		switch result {
 		case 0:
 			return
+		case MDB_NOTFOUND:
+			throw MDBError.recordNotFound
 		default:
 			throw MDBError(result)
 		}

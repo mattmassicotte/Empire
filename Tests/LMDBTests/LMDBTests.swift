@@ -53,6 +53,35 @@ struct LMDBTests {
 			#expect(try txn.getString(dbi: dbi, key: "hello") == nil)
 		}
 	}
+
+	@Test func deleteKey() throws {
+		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
+
+		try Transaction.with(env: env) { txn in
+			let dbi = try txn.open(name: "mydb")
+
+			try txn.set(dbi: dbi, key: "hello", value: "goodbye")
+			let value = try txn.getString(dbi: dbi, key: "hello")
+
+			#expect(value == "goodbye")
+
+			try txn.delete(dbi: dbi, key: "hello")
+
+			#expect(try txn.getString(dbi: dbi, key: "hello") == nil)
+		}
+	}
+
+	@Test func deleteMissingKey() throws {
+		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
+
+		try Transaction.with(env: env) { txn in
+			let dbi = try txn.open(name: "mydb")
+
+			#expect(throws: MDBError.recordNotFound) {
+				try txn.delete(dbi: dbi, key: "hello")
+			}
+		}
+	}
 }
 
 extension LMDBTests {

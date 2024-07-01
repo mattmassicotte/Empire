@@ -114,3 +114,22 @@ struct IndexKeyRecordTests {
 		#expect(records == expected)
 	}
 }
+
+extension IndexKeyRecordTests {
+	@Test func delete() async throws {
+		let record = TestRecord(a: "hello", b: 42, c: "goodbye")
+
+		let store = try Store(url: Self.storeURL)
+
+		try await store.withTransaction { ctx in
+			try ctx.insert(record)
+			try ctx.delete(record)
+		}
+
+		let output = try await store.withTransaction { ctx in
+			try TestRecord.select(in: ctx, a: "hello", b: .equals(42))
+		}
+
+		#expect(output == [])
+	}
+}
