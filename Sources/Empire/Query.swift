@@ -10,6 +10,9 @@ extension String: IndexKeyComparable {
 extension UInt: IndexKeyComparable {
 }
 
+extension Int: IndexKeyComparable {
+}
+
 #if canImport(Foundation)
 import Foundation
 extension UUID: IndexKeyComparable {

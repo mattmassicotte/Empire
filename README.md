@@ -100,9 +100,7 @@ Your types **are** the schema. The type's data is serialized directly to a binar
 
 Right now, there are limits what the kinds of types that can be used for fields and keys.
 
-Keys: `String`, `UInt`, `UUID`
-
-Fields: `String`, `UInt`, `Int`, `UUID`
+Supported Types: `String`, `UInt`, `Int`, `UUID`
 
 ## Query Generation Workaround
 

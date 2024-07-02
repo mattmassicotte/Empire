@@ -20,13 +20,19 @@ struct PackedSerializeTests {
 		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
 		var inputBuffer = buffer
 
+		(-42).serialize(into: &inputBuffer)
 		42.serialize(into: &inputBuffer)
 		142.serialize(into: &inputBuffer)
+		(Int.min + 1).serialize(into: &inputBuffer)
+		Int.max.serialize(into: &inputBuffer)
 
 		var outputBuffer = UnsafeRawBufferPointer(buffer)
 
+		#expect(try Int(buffer: &outputBuffer) == -42)
 		#expect(try Int(buffer: &outputBuffer) == 42)
 		#expect(try Int(buffer: &outputBuffer) == 142)
+		#expect(try Int(buffer: &outputBuffer) == (Int.min + 1))
+		#expect(try Int(buffer: &outputBuffer) == Int.max)
 	}
 
 	@Test func serializeString() throws {

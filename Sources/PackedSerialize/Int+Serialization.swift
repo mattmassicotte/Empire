@@ -1,29 +1,36 @@
+// Shifts the signed value into the unsigned range by adding Int.max. This preserves binary comparable sort ordering.
+// Shifted_UInt = Signed + Signed.max + 1
+// Signed = Shifted_UInt - Signed.max + 1
+// However, easier say than done in a way that does not overflow
+
 extension Int: Serializable {
 	public var serializedSize: Int {
 		bitWidth / 8
 	}
 
 	public func serialize(into buffer: inout UnsafeMutableRawBufferPointer) {
-		withUnsafeBytes(of: self.bigEndian) { ptr in
-			buffer.copyMemory(from: ptr)
-			buffer = UnsafeMutableRawBufferPointer(rebasing: buffer[ptr.count...])
+		let shifted: UInt
+
+		if self >= 0 {
+			shifted = UInt(self) + UInt(Int.max) + 1
+		} else {
+			shifted = UInt(self + Int.max + 1)
 		}
+
+		shifted.serialize(into: &buffer)
 	}
 }
 
 extension Int: Deserializable {
 	public init(buffer: inout UnsafeRawBufferPointer) throws {
-		var value: Int = 0
+		let shifted = try UInt(buffer: &buffer)
+		let max = UInt(Int.max) + 1
 
-		let data = UnsafeRawBufferPointer(start: buffer.baseAddress, count: MemoryLayout<Int>.size)
-
-		withUnsafeMutableBytes(of: &value) { ptr in
-			ptr.copyMemory(from: data)
+		if shifted > max {
+			self = Int(shifted - max)
+		} else {
+			self = Int(max - shifted) * -1
 		}
-
-		buffer = UnsafeRawBufferPointer(rebasing: buffer[8...])
-
-		self.init(bigEndian: value)
 	}
 }
 
