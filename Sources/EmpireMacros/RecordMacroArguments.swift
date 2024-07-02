@@ -1,6 +1,24 @@
 import SwiftCompilerPlugin
 import SwiftSyntax
 
+extension DeclGroupSyntax {
+	var propertyMembers: [PatternBindingSyntax] {
+		memberBlock.members
+			.compactMap {
+				$0.decl.as(VariableDeclSyntax.self)
+			}
+			.compactMap {
+				$0.bindings.first
+			}
+	}
+
+	var propertyMemberNames: [String] {
+		propertyMembers.compactMap {
+			$0.pattern.as(IdentifierPatternSyntax.self)?.identifier.text
+		}
+	}
+}
+
 struct RecordMacroArguments<Type: TypeSyntaxProtocol, Declaration: DeclGroupSyntax> {
 	let type: Type
 	let declaration: Declaration

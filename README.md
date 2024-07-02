@@ -15,6 +15,7 @@ Empire is an experiment in persistence.
 - Schema is defined by your types
 - Macro-based API that is both typesafe and low-overhead
 - Built for Swift 6 (Built June 22 or later, not yet available with Xcode 16 beta)
+- Support for CloudKit's `CKRecord`
 - Backed by a sorted-key index data store ([LMDB][LMDB])
 
 > [!CAUTION]
@@ -31,13 +32,13 @@ struct Person {
 
 let store = try Store(path: "/path/to/store")
 
-try await store.withTransaction { ctx in
-    try ctx.insert(Person(name: "Korben", age: 45))
-    try ctx.insert(Person(name: "Leeloo", age: 2000))
+try await store.withTransaction { context in
+    try context.insert(Person(name: "Korben", age: 45))
+    try context.insert(Person(name: "Leeloo", age: 2000))
 }
 	
-let records = try await store.withTransaction { ctx in
-    try Person.select(in: ctx, name: .lessThan("Zorg"))
+let records = try await store.withTransaction { context in
+    try Person.select(in: context, name: .lessThan("Zorg"))
 }
 
 print(record.first!) // Person(name: "Leeloo", age: 2000)
@@ -66,7 +67,7 @@ Conceptually, you can think of every record as being split into two tuples: the 
 
 ### Keys
 
-The index key is a criticial component of your record. Queries are **only** possible on components of the index key.
+The index key is a critical component of your record. Queries are **only** possible on components of the index key.
 
 ```swift
 @IndexKeyRecord("lastName", "firstName")
@@ -142,7 +143,9 @@ struct Person {
 
 // Equivalent to this:
 extension Person: IndexKeyRecord {
-    static var schemaVersion: Int {
+    public typealias IndexKey = Tuple<String, Int>
+
+    public static var schemaVersion: Int {
         1
     }
 
@@ -152,6 +155,10 @@ extension Person: IndexKeyRecord {
 
     public var fieldsSerializedSize: Int {
         age.serializedSize
+    }
+
+    public var indexKey: IndexKey {
+        Tuple(name)
     }
 
     public func serialize(into buffer: inout SerializationBuffer) {
@@ -168,6 +175,43 @@ extension Person: IndexKeyRecord {
 extension Person {
     // this will eventually have queries once I figure out a workaround
 }
+```
+
+## `CloudKitRecord` Conformance
+
+Empire also supports CloudKit's `CKRecord` type via the `CloudKitRecord` macro. You can also use the associated protocol independently.
+
+```swift
+@CloudKitRecord
+struct Person {
+    let name: String
+    let age: Int
+}
+
+// Equivalent to this:
+extension Person: CloudKitRecord {
+    init(ckRecord: CKRecord) throws {
+        try ckRecord.validateRecordType(Self.ckRecordType)
+
+        self.name = try ckRecord.getTypedValue(for: "name")
+        self.age = try ckRecord.getTypedValue(for: "age")
+    }
+
+    func ckRecord(with recordId: CKRecord.ID) -> CKRecord {
+        let record = CKRecord(recordType: Self.ckRecordType, recordID: recordId)
+
+        record["name"] = name
+        record["age"] = age
+
+        return record
+    }
+}
+```
+
+Optionally, you can override `ckRecordType` to customize the name of the CloudKit record used. If your type also uses `IndexKeyRecord`, you get access to:
+
+```swift
+func ckRecord(in zoneId: CKRecordZone.ID)
 ```
 
 ## Questions

@@ -5,8 +5,10 @@ import PackedSerialize
 	extension,
 	conformances: IndexKeyRecord,
 	names:
+		named(IndexKey),
 		named(indexKeySerializedSize),
 		named(fieldsSerializedSize),
+		named(indexKey),
 		named(serialize),
 		named(init),
 		named(schemaVersion),
@@ -19,7 +21,9 @@ public macro IndexKeyRecord(
 
 @attached(
 	extension,
+	conformances: CloudKitRecord,
 	names:
-		named(doThing)
+		named(ckRecord),
+		named(init)
 )
 public macro CloudKitRecord() = #externalMacro(module: "EmpireMacros", type: "CloudKitRecordMacro")

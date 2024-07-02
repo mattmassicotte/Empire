@@ -10,36 +10,46 @@ struct CloudKitTestRecord: Hashable {
 	var c: String
 }
 
-extension CloudKitTestRecord {
-	static var ckRecordType: String {
-		String(describing: Self.self)
-	}
-
-	func renderCKRecord(in zone: String, owner: String) -> CKRecord {
-		let zoneId = CKRecordZone.ID(zoneName: zone, ownerName: owner)
-
-		let recordId = CKRecord.ID(recordName: "abc", zoneID: zoneId)
-
-		return renderCKRecord(with: recordId)
-	}
-
-	func renderCKRecord(with recordId: CKRecord.ID) -> CKRecord {
-		let record = CKRecord(recordType: Self.ckRecordType, recordID: recordId)
-
-//		namedPrimaryKey.write(to: record)
-
-		return record
-	}
+@CloudKitRecord
+@IndexKeyRecord("a", "b")
+struct IndexKeyCloudKitRecord: Hashable {
+	let a: String
+	let b: Int
+	var c: String
 }
 
 struct CloudKitRecordTests {
 	@Test func encode() async throws {
-		let record = CloudKitTestRecord(a: "a", b: 1, c: "c")
-		let ckRecord = record.renderCKRecord(in: "zone", owner: "owner")
+		let zone = CKRecordZone.ID(zoneName: "zone", ownerName: "owner")
+		let recordId = CKRecord.ID(recordName: "ABC", zoneID: zone)
 
-		withKnownIssue("Not quite implemented correctly yet", isIntermittent: false) {
-			#expect(ckRecord.recordType == "AnotherRecord")
-			#expect(ckRecord["a"] == "foo")
-		}
+		let record = CloudKitTestRecord(a: "foo", b: 1, c: "bar")
+		let ckRecord = record.ckRecord(with: recordId)
+
+		#expect(ckRecord.recordType == "CloudKitTestRecord")
+		#expect(ckRecord["a"] == record.a)
+		#expect(ckRecord["b"] == record.b)
+		#expect(ckRecord["c"] == record.c)
+
+		let decodedRecord = try CloudKitTestRecord(ckRecord: ckRecord)
+
+		#expect(decodedRecord == record)
+	}
+
+	@Test func encodeIndexKeyRecord() async throws {
+		let zone = CKRecordZone.ID(zoneName: "zone", ownerName: "owner")
+
+		let record = IndexKeyCloudKitRecord(a: "foo", b: 1, c: "bar")
+		let ckRecord = record.ckRecord(in: zone)
+
+		#expect(ckRecord.recordType == "IndexKeyCloudKitRecord")
+		#expect(ckRecord.recordID.recordName == "foo1")
+		#expect(ckRecord["a"] == record.a)
+		#expect(ckRecord["b"] == record.b)
+		#expect(ckRecord["c"] == record.c)
+
+		let decodedRecord = try IndexKeyCloudKitRecord(ckRecord: ckRecord)
+
+		#expect(decodedRecord == record)
 	}
 }

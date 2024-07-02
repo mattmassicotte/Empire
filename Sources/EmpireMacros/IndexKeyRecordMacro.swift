@@ -78,6 +78,9 @@ static var schemaVersion: Int { \(literal) }
 			.map { "\($0).serializedSize" }
 			.joined(separator: " +\n")
 
+		let keyTupleArguments = argument.keyMemberNames
+			.joined(separator: ", ")
+
 		// handle no fields
 		let fieldSize: String
 
@@ -100,6 +103,10 @@ static var schemaVersion: Int { \(literal) }
 		let keyInit = argument.primaryKeyTypeNamePairs
 			.map { "self.\($0) = try \($1)(buffer: &buffer.keyBuffer)" }
 			.joined(separator: "\n")
+
+		let keyTypes = argument.primaryKeyTypeNamePairs
+			.map { $1 }
+			.joined(separator: ", ")
 
 		let fieldsInit = argument.fieldTypeNamePairs
 			.map { "self.\($0) = try \($1)(buffer: &buffer.valueBuffer)" }
@@ -133,11 +140,17 @@ public var fieldsSerializedSize: Int {
 		return try ExtensionDeclSyntax(
 	"""
 extension \(argument.type.trimmed): IndexKeyRecord {
+	public typealias IndexKey = Tuple<\(raw: keyTypes)>
+
 	\(try schemaHashcodeAccessor(members: argument.members))
 
 	\(indexKeySerializedSizeVar)
 
 	\(fieldsSerializedSizeVar)
+
+	public var indexKey: IndexKey {
+		Tuple(\(raw: keyTupleArguments))
+	}
 
 	\(serializeFunction)
 
