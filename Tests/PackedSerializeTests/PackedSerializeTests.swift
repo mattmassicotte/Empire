@@ -70,6 +70,22 @@ extension PackedSerializeTests {
 		#expect(try UUID(buffer: &outputBuffer) == uuidA)
 		#expect(try UUID(buffer: &outputBuffer) == uuidB)
 	}
+
+	@Test func serializeData() throws {
+		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
+		var inputBuffer = buffer
+
+		let dataA = Data([1,2,3,4])
+		let dataB = Data([0xfa, 0xdb, 0xcc, 0xbd])
+
+		dataA.serialize(into: &inputBuffer)
+		dataB.serialize(into: &inputBuffer)
+
+		var outputBuffer = UnsafeRawBufferPointer(buffer)
+
+		#expect(try Data(buffer: &outputBuffer) == dataA)
+		#expect(try Data(buffer: &outputBuffer) == dataB)
+	}
 }
 
 #endif
