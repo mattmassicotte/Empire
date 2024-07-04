@@ -9,11 +9,13 @@ struct PackedSerializeTests {
 
 		UInt(42).serialize(into: &inputBuffer)
 		UInt(142).serialize(into: &inputBuffer)
+		UInt(0).serialize(into: &inputBuffer)
 
 		var outputBuffer = UnsafeRawBufferPointer(buffer)
 
 		#expect(try UInt(buffer: &outputBuffer) == 42)
 		#expect(try UInt(buffer: &outputBuffer) == 142)
+		#expect(try UInt(buffer: &outputBuffer) == 0)
 	}
 
 	@Test func serializeInt() throws {
@@ -57,13 +59,16 @@ extension PackedSerializeTests {
 		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
 		var inputBuffer = buffer
 
-		let uuid = UUID()
+		let uuidA = UUID()
+		let uuidB = UUID()
 
-		uuid.serialize(into: &inputBuffer)
+		uuidA.serialize(into: &inputBuffer)
+		uuidB.serialize(into: &inputBuffer)
 
 		var outputBuffer = UnsafeRawBufferPointer(buffer)
 
-		#expect(try UUID(buffer: &outputBuffer) == uuid)
+		#expect(try UUID(buffer: &outputBuffer) == uuidA)
+		#expect(try UUID(buffer: &outputBuffer) == uuidB)
 	}
 }
 

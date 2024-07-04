@@ -1,6 +1,6 @@
 extension UInt: Serializable {
 	public var serializedSize: Int {
-		bitWidth / 8
+		MemoryLayout<UInt>.size
 	}
 
 	public func serialize(into buffer: inout UnsafeMutableRawBufferPointer) {
@@ -14,14 +14,15 @@ extension UInt: Serializable {
 extension UInt: Deserializable {
 	public init(buffer: inout UnsafeRawBufferPointer) throws {
 		var value: UInt = 0
+		let size = MemoryLayout<UInt>.size
 
-		let data = UnsafeRawBufferPointer(start: buffer.baseAddress, count: MemoryLayout<UInt>.size)
+		let data = UnsafeRawBufferPointer(start: buffer.baseAddress, count: size)
 
 		withUnsafeMutableBytes(of: &value) { ptr in
 			ptr.copyMemory(from: data)
 		}
 
-		buffer = UnsafeRawBufferPointer(rebasing: buffer[8...])
+		buffer = UnsafeRawBufferPointer(rebasing: buffer[size...])
 
 		self.init(bigEndian: value)
 	}

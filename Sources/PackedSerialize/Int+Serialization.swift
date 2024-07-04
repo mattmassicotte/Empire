@@ -5,7 +5,7 @@
 
 extension Int: Serializable {
 	public var serializedSize: Int {
-		bitWidth / 8
+		MemoryLayout<Int>.size
 	}
 
 	public func serialize(into buffer: inout UnsafeMutableRawBufferPointer) {

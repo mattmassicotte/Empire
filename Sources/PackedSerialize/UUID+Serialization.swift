@@ -17,17 +17,17 @@ extension UUID: Serializable {
 extension UUID: Deserializable {
 	public init(buffer: inout UnsafeRawBufferPointer) throws {
 		var value: uuid_t = (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+		let size = MemoryLayout<uuid_t>.size
 
-		let data = UnsafeRawBufferPointer(start: buffer.baseAddress, count: MemoryLayout<uuid_t>.size)
+		let data = UnsafeRawBufferPointer(start: buffer.baseAddress, count: size)
 
 		withUnsafeMutableBytes(of: &value) { ptr in
 			ptr.copyMemory(from: data)
 		}
 
-		buffer = UnsafeRawBufferPointer(rebasing: buffer[8...])
+		buffer = UnsafeRawBufferPointer(rebasing: buffer[size...])
 
 		self.init(uuid: value)
 	}
 }
-
 #endif
