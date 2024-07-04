@@ -30,7 +30,7 @@ public struct DeserializationBuffer {
 }
 
 public actor Store {
-	@TaskLocal private nonisolated static var taskStore: Store?
+	@TaskLocal private static var taskStore: Store?
 
 	private var environment: Environment
 	private var dbi = [String: MDB_dbi]()
