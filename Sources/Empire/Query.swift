@@ -17,6 +17,9 @@ extension Int: IndexKeyComparable {
 import Foundation
 extension UUID: IndexKeyComparable {
 }
+
+extension Date: IndexKeyComparable {
+}
 #endif
 
 public enum ComparisonOperator<Value: IndexKeyComparable> {

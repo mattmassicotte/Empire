@@ -86,6 +86,23 @@ extension PackedSerializeTests {
 		#expect(try Data(buffer: &outputBuffer) == dataA)
 		#expect(try Data(buffer: &outputBuffer) == dataB)
 	}
+
+	@Test func serializeDate() throws {
+		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
+		var inputBuffer = buffer
+
+		// rounding is important because this serialization only has precision to the millisecond
+		let dateA = Date(timeIntervalSince1970:Date.now.timeIntervalSince1970.rounded(.down))
+		let dateB = Date(timeIntervalSince1970: 0.0)
+
+		dateA.serialize(into: &inputBuffer)
+		dateB.serialize(into: &inputBuffer)
+
+		var outputBuffer = UnsafeRawBufferPointer(buffer)
+
+		#expect(try Date(buffer: &outputBuffer) == dateA)
+		#expect(try Date(buffer: &outputBuffer) == dateB)
+	}
 }
 
 #endif
