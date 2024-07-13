@@ -18,7 +18,7 @@ let package = Package(
 		.library(name: "LMDB", targets: ["LMDB"]),
 	],
 	dependencies: [
-		.package(url: "https://github.com/apple/swift-syntax.git", from: "600.0.0-latest"),
+		.package(url: "https://github.com/swiftlang/swift-syntax.git", from: "600.0.0-latest"),
 	],
 	targets: [
 		.target(
