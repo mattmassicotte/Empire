@@ -10,6 +10,14 @@ struct CloudKitTestRecord: Hashable {
 	var c: String
 }
 
+/// Validates that a CloudKitRecord can be public.
+@CloudKitRecord
+public struct PublicCloudKitTestRecord: Hashable {
+	let a: String
+	let b: Int
+	var c: String
+}
+
 @CloudKitRecord
 @IndexKeyRecord("a", "b")
 struct IndexKeyCloudKitRecord: Hashable {

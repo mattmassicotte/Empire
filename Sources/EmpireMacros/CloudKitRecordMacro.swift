@@ -28,13 +28,13 @@ public struct CloudKitRecordMacro: ExtensionMacro {
 		let ext = try ExtensionDeclSyntax(
  """
 extension \(type.trimmed): CloudKitRecord {
-	init(ckRecord: CKRecord) throws {
+	public init(ckRecord: CKRecord) throws {
 		try ckRecord.validateRecordType(Self.ckRecordType)
 
 		\(raw: initers)
 	}
 
-	func ckRecord(with recordId: CKRecord.ID) -> CKRecord {
+	public func ckRecord(with recordId: CKRecord.ID) -> CKRecord {
 		let record = CKRecord(recordType: Self.ckRecordType, recordID: recordId)
 
 		\(raw: setters)

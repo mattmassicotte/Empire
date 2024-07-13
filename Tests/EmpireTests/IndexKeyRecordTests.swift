@@ -15,6 +15,12 @@ struct KeyOnlyRecord: Hashable {
 	let key: UInt
 }
 
+/// Validates that a IndexKeyRecord can be public.
+@IndexKeyRecord("key")
+public struct PublicModel {
+	let key: Int
+}
+
 extension TestRecord {
 	static func select(in context: TransactionContext, a: String, b: ComparisonOperator<UInt>) throws -> [Self] {
 		try context.select(query: Query(a, last: b))
