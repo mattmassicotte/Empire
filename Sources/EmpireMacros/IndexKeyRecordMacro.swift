@@ -66,7 +66,7 @@ extension IndexKeyRecordMacro {
 
 		return try VariableDeclSyntax(
 			"""
-static var schemaVersion: Int { \(literal) }
+public static var schemaVersion: Int { \(literal) }
 """
 		)
 	}
