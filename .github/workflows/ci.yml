@@ -34,7 +34,7 @@ jobs:
         with:
           submodules: true
       - name: Test platform ${{ matrix.destination }}
-        run: set -o pipefail && xcodebuild -scheme Empire-Package -destination "${{ matrix.destination }}" test | xcbeautify
+        run: xcodebuild -scheme Empire-Package -destination "${{ matrix.destination }}" test
 
   linux_test:
     name: Test Linux
