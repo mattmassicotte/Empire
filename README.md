@@ -193,14 +193,14 @@ struct Person {
 
 // Equivalent to this:
 extension Person: CloudKitRecord {
-    init(ckRecord: CKRecord) throws {
+    public init(ckRecord: CKRecord) throws {
         try ckRecord.validateRecordType(Self.ckRecordType)
 
         self.name = try ckRecord.getTypedValue(for: "name")
         self.age = try ckRecord.getTypedValue(for: "age")
     }
 
-    func ckRecord(with recordId: CKRecord.ID) -> CKRecord {
+    public func ckRecord(with recordId: CKRecord.ID) -> CKRecord {
         let record = CKRecord(recordType: Self.ckRecordType, recordID: recordId)
 
         record["name"] = name
