@@ -3,21 +3,35 @@ import CLMDB
 public struct Cursor: Sequence, IteratorProtocol {
 	public typealias Element = (MDB_val, MDB_val)
 
-	public struct Query {
-		public let key: MDB_val
-		public let forward: Bool
-		public let endKey: (MDB_val, inclusive: Bool)?
+	public enum Query {
+		case greater(MDB_val)
+		case greaterOrEqual(MDB_val)
+		case less(MDB_val)
+		case lessOrEqual(MDB_val)
+		case range(MDB_val, MDB_val, inclusive: Bool = false)
 
-		public init(key: MDB_val, forward: Bool, endKey: MDB_val, inclusive: Bool) {
-			self.key = key
-			self.forward = forward
-			self.endKey = (endKey, inclusive)
+		public var key: MDB_val {
+			switch self {
+			case let .greater(key):
+				key
+			case let .greaterOrEqual(key):
+				key
+			case let .less(key):
+				key
+			case let .lessOrEqual(key):
+				key
+			case let .range(start, _, _):
+				start
+			}
 		}
 
-		public init(key: MDB_val, forward: Bool = true) {
-			self.key = key
-			self.forward = forward
-			self.endKey = nil
+		public var forward: Bool {
+			switch self {
+			case .greater, .greaterOrEqual, .range:
+				true
+			case .less, .lessOrEqual:
+				false
+			}
 		}
 	}
 
@@ -75,13 +89,13 @@ public struct Cursor: Sequence, IteratorProtocol {
 	}
 
 	private func endConditionReached(key: MDB_val) -> Bool {
-		guard let ending = query.endKey else {
+		guard case let .range(_, endKey, inclusive) = query else {
 			return false
 		}
 
-		let comparison = compare(keyA: key, keyB: ending.0)
+		let comparison = compare(keyA: key, keyB: endKey)
 
-		if comparison == 0 && ending.1 == false {
+		if comparison == 0 && inclusive == false {
 			return true
 		}
 
@@ -106,7 +120,14 @@ public struct Cursor: Sequence, IteratorProtocol {
 			case .notStarted:
 				self.state = .started
 
-				return try get(key: query.key, operation: MDB_SET_RANGE)
+				let initial = try get(key: query.key, operation: MDB_SET_RANGE)
+
+				switch query {
+				case .less, .greater:
+					return next()
+				case .greaterOrEqual, .lessOrEqual, .range:
+					return initial
+				}
 			case .started:
 				let op = query.forward ? MDB_NEXT : MDB_PREV
 

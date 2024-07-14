@@ -58,7 +58,7 @@ extension TransactionContext {
 		case let .greaterThan(value):
 			let key = Tuple(repeat each query.components, value)
 			let keyVal = try MDB_val(key, using: keyBuffer)
-			let query = Cursor.Query(key: keyVal, forward: true)
+			let query = Cursor.Query.greater(keyVal)
 
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
 
@@ -70,7 +70,31 @@ extension TransactionContext {
 		case let .greaterOrEqual(value):
 			let key = Tuple(repeat each query.components, value)
 			let keyVal = try MDB_val(key, using: keyBuffer)
-			let query = Cursor.Query(key: keyVal, forward: true)
+			let query = Cursor.Query.greaterOrEqual(keyVal)
+
+			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
+
+			return try cursor.map { pair in
+				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
+
+				return try Record(&localBuffer)
+			}
+		case let .lessThan(value):
+			let key = Tuple(repeat each query.components, value)
+			let keyVal = try MDB_val(key, using: keyBuffer)
+			let query = Cursor.Query.less(keyVal)
+
+			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
+
+			return try cursor.map { pair in
+				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
+
+				return try Record(&localBuffer)
+			}
+		case let .lessOrEqual(value):
+			let key = Tuple(repeat each query.components, value)
+			let keyVal = try MDB_val(key, using: keyBuffer)
+			let query = Cursor.Query.lessOrEqual(keyVal)
 
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
 
@@ -85,7 +109,7 @@ extension TransactionContext {
 			let endKey = Tuple(repeat each query.components, range.upperBound)
 			let endKeyVal = try MDB_val(endKey, using: valueBuffer)
 
-			let query = Cursor.Query(key: keyVal, forward: true, endKey: endKeyVal, inclusive: false)
+			let query = Cursor.Query.range(keyVal, endKeyVal, inclusive: false)
 
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
 
@@ -100,7 +124,7 @@ extension TransactionContext {
 			let endKey = Tuple(repeat each query.components, range.upperBound)
 			let endKeyVal = try MDB_val(endKey, using: valueBuffer)
 
-			let query = Cursor.Query(key: keyVal, forward: true, endKey: endKeyVal, inclusive: true)
+			let query = Cursor.Query.range(keyVal, endKeyVal, inclusive: true)
 
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
 

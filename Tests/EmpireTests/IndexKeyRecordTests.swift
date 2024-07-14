@@ -55,6 +55,27 @@ struct IndexKeyRecordTests {
 		#expect(output == record)
 	}
 
+	@Test func selectGreater() async throws {
+		let store = try Store(url: Self.storeURL)
+
+		try await store.withTransaction { ctx in
+			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
+			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
+			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
+		}
+
+		let records = try await store.withTransaction { ctx in
+			try TestRecord.select(in: ctx, a: "hello", b: .greaterThan(40))
+		}
+
+		let expected = [
+			TestRecord(a: "hello", b: 41, c: "b"),
+			TestRecord(a: "hello", b: 42, c: "c"),
+		]
+
+		#expect(records == expected)
+	}
+
 	@Test func selectGreaterOrEqual() async throws {
 		let store = try Store(url: Self.storeURL)
 
@@ -71,6 +92,48 @@ struct IndexKeyRecordTests {
 		let expected = [
 			TestRecord(a: "hello", b: 41, c: "b"),
 			TestRecord(a: "hello", b: 42, c: "c"),
+		]
+
+		#expect(records == expected)
+	}
+
+	@Test func selectLessThan() async throws {
+		let store = try Store(url: Self.storeURL)
+
+		try await store.withTransaction { ctx in
+			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
+			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
+			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
+		}
+
+		let records = try await store.withTransaction { ctx in
+			try TestRecord.select(in: ctx, a: "hello", b: .lessThan(42))
+		}
+
+		let expected = [
+			TestRecord(a: "hello", b: 41, c: "b"),
+			TestRecord(a: "hello", b: 40, c: "a"),
+		]
+
+		#expect(records == expected)
+	}
+
+	@Test func selectLessThanOrEqual() async throws {
+		let store = try Store(url: Self.storeURL)
+
+		try await store.withTransaction { ctx in
+			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
+			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
+			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
+		}
+
+		let records = try await store.withTransaction { ctx in
+			try TestRecord.select(in: ctx, a: "hello", b: .lessOrEqual(41))
+		}
+
+		let expected = [
+			TestRecord(a: "hello", b: 41, c: "b"),
+			TestRecord(a: "hello", b: 40, c: "a"),
 		]
 
 		#expect(records == expected)
