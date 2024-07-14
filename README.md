@@ -135,7 +135,7 @@ extension Person {
 
 ## `IndexKeyRecord` Conformance
 
-The `@IndexKeyRecord` macro expands to a protocol conformance to the `IndexKeyRecord` protocol. You you can use this directly, but it isn't easy. You have to handle binary serialization and deserialization of all your fields. It's also critical that you version your type's serialization format.
+The `@IndexKeyRecord` macro expands to a protocol conformance to the `IndexKeyRecord` protocol. You can use this directly, but it isn't easy. You have to handle binary serialization and deserialization of all your fields. It's also critical that you version your type's serialization format.
 
 ```swift
 @IndexKeyRecord("name")
