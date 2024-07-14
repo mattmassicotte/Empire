@@ -47,7 +47,6 @@ print(record.first!) // Person(name: "Leeloo", age: 2000)
 Limitations:
 
 - Arbitrary key sorting is not yet supported, and could end up being impossible
-- Not all `ComparsionOperators` are implemented yet
 - Macro-based query generation is hitting a compiler bug (https://github.com/swiftlang/swift/issues/74865)
 - Lots of Swift types don't yet support serialization, and even less support efficient sorting/queries
 

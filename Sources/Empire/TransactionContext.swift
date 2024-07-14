@@ -133,8 +133,16 @@ extension TransactionContext {
 
 				return try Record(&localBuffer)
 			}
-		default:
-			fatalError("not yet")
+		case let .within(values):
+			return try values.map { value in
+				let key = Tuple(repeat each query.components, value)
+
+				guard let record: Record = try select(key: key) else {
+					throw MDBError.recordNotFound
+				}
+
+				return record
+			}
 		}
 
 		return []
