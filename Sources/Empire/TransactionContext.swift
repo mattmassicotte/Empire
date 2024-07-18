@@ -58,7 +58,7 @@ extension TransactionContext {
 		case let .greaterThan(value):
 			let key = Tuple(repeat each query.components, value)
 			let keyVal = try MDB_val(key, using: keyBuffer)
-			let query = Cursor.Query.greater(keyVal)
+			let query = LMDB.Query(comparsion: .greater(keyVal))
 
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
 
@@ -70,7 +70,7 @@ extension TransactionContext {
 		case let .greaterOrEqual(value):
 			let key = Tuple(repeat each query.components, value)
 			let keyVal = try MDB_val(key, using: keyBuffer)
-			let query = Cursor.Query.greaterOrEqual(keyVal)
+			let query = LMDB.Query(comparsion: .greaterOrEqual(keyVal))
 
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
 
@@ -82,7 +82,7 @@ extension TransactionContext {
 		case let .lessThan(value):
 			let key = Tuple(repeat each query.components, value)
 			let keyVal = try MDB_val(key, using: keyBuffer)
-			let query = Cursor.Query.less(keyVal)
+			let query = LMDB.Query(comparsion: .less(keyVal))
 
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
 
@@ -94,7 +94,7 @@ extension TransactionContext {
 		case let .lessOrEqual(value):
 			let key = Tuple(repeat each query.components, value)
 			let keyVal = try MDB_val(key, using: keyBuffer)
-			let query = Cursor.Query.lessOrEqual(keyVal)
+			let query = LMDB.Query(comparsion: .lessOrEqual(keyVal))
 
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
 
@@ -109,7 +109,7 @@ extension TransactionContext {
 			let endKey = Tuple(repeat each query.components, range.upperBound)
 			let endKeyVal = try MDB_val(endKey, using: valueBuffer)
 
-			let query = Cursor.Query.range(keyVal, endKeyVal, inclusive: false)
+			let query = LMDB.Query(comparsion: .range(keyVal, endKeyVal, inclusive: false))
 
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
 
@@ -124,7 +124,7 @@ extension TransactionContext {
 			let endKey = Tuple(repeat each query.components, range.upperBound)
 			let endKeyVal = try MDB_val(endKey, using: valueBuffer)
 
-			let query = Cursor.Query.range(keyVal, endKeyVal, inclusive: true)
+			let query = LMDB.Query(comparsion: .range(keyVal, endKeyVal, inclusive: true))
 
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
 

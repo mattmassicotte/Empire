@@ -1,43 +1,53 @@
 import CLMDB
 
-public struct Cursor: Sequence, IteratorProtocol {
-	public typealias Element = (MDB_val, MDB_val)
+public enum ComparsionOperator {
+	case greater(MDB_val)
+	case greaterOrEqual(MDB_val)
+	case less(MDB_val)
+	case lessOrEqual(MDB_val)
+	case range(MDB_val, MDB_val, inclusive: Bool = false)
 
-	public enum Query {
-		case greater(MDB_val)
-		case greaterOrEqual(MDB_val)
-		case less(MDB_val)
-		case lessOrEqual(MDB_val)
-		case range(MDB_val, MDB_val, inclusive: Bool = false)
-
-		public var key: MDB_val {
-			switch self {
-			case let .greater(key):
-				key
-			case let .greaterOrEqual(key):
-				key
-			case let .less(key):
-				key
-			case let .lessOrEqual(key):
-				key
-			case let .range(start, _, _):
-				start
-			}
-		}
-
-		public var forward: Bool {
-			switch self {
-			case .greater, .greaterOrEqual, .range:
-				true
-			case .less, .lessOrEqual:
-				false
-			}
+	public var key: MDB_val {
+		switch self {
+		case let .greater(key):
+			key
+		case let .greaterOrEqual(key):
+			key
+		case let .less(key):
+			key
+		case let .lessOrEqual(key):
+			key
+		case let .range(start, _, _):
+			start
 		}
 	}
 
+	public var forward: Bool {
+		switch self {
+		case .greater, .greaterOrEqual, .range:
+			true
+		case .less, .lessOrEqual:
+			false
+		}
+	}
+}
+
+public struct Query {
+	public let comparsion: ComparsionOperator
+	public let limit: Int?
+
+	public init(comparsion: ComparsionOperator, limit: Int? = nil) {
+		self.comparsion = comparsion
+		self.limit = limit
+	}
+}
+
+public struct Cursor: Sequence, IteratorProtocol {
+	public typealias Element = (MDB_val, MDB_val)
+
 	private enum State: Hashable {
 		case notStarted
-		case started
+		case started(Int)
 		case completed
 	}
 
@@ -89,7 +99,9 @@ public struct Cursor: Sequence, IteratorProtocol {
 	}
 
 	private func endConditionReached(key: MDB_val) -> Bool {
-		guard case let .range(_, endKey, inclusive) = query else {
+		let op = query.comparsion
+
+		guard case let .range(_, endKey, inclusive) = op else {
 			return false
 		}
 
@@ -100,12 +112,12 @@ public struct Cursor: Sequence, IteratorProtocol {
 		}
 
 		// a < b
-		if comparison < 0 && query.forward == false {
+		if comparison < 0 && op.forward == false {
 			return true
 		}
 
 		// a > b
-		if comparison > 0 && query.forward == true {
+		if comparison > 0 && op.forward == true {
 			return true
 		}
 
@@ -113,25 +125,32 @@ public struct Cursor: Sequence, IteratorProtocol {
 	}
 
 	public mutating func next() -> Element? {
+		let comparsionOp = query.comparsion
+
 		do {
 			switch state {
 			case .completed:
 				break
 			case .notStarted:
-				self.state = .started
+				self.state = .started(1)
 
-				let initial = try get(key: query.key, operation: MDB_SET_RANGE)
+				let initial = try get(key: comparsionOp.key, operation: MDB_SET_RANGE)
 
-				switch query {
+				switch comparsionOp {
 				case .less, .greater:
 					return next()
 				case .greaterOrEqual, .lessOrEqual, .range:
 					return initial
 				}
-			case .started:
-				let op = query.forward ? MDB_NEXT : MDB_PREV
+			case let .started(count):
+				if let limit = query.limit, count == limit {
+					self.state = .completed
+					break
+				}
 
-				guard let pair = try get(key: query.key, operation: op) else {
+				let op = comparsionOp.forward ? MDB_NEXT : MDB_PREV
+
+				guard let pair = try get(key: comparsionOp.key, operation: op) else {
 					self.state = .completed
 					break
 				}
@@ -140,6 +159,8 @@ public struct Cursor: Sequence, IteratorProtocol {
 					self.state = .completed
 					break
 				}
+
+				self.state = .started(count + 1)
 
 				return pair
 			}
