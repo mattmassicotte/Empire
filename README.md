@@ -47,7 +47,7 @@ print(record.first!) // Person(name: "Leeloo", age: 2000)
 Limitations:
 
 - Arbitrary key sorting is not yet supported, and could end up being impossible
-- Macro-based query generation is hitting a compiler bug (https://github.com/swiftlang/swift/issues/74865)
+- Macro-based query generation is hitting a [compiler bug][]
 - Lots of Swift types don't yet support serialization, and even less support efficient sorting/queries
 
 ## Integration
@@ -92,7 +92,7 @@ store.select(lastName: .lessThan("Zorg"), firstName: .lessThanOrEqual("Jean-Bapt
 
 The code generated for a `@IndexKeyRecord` type makes it a compile-time error to write invalid queries.
 
-As a consequence of a limited query capability, you must model your data by starting with the queries you need to support. This can require denormalization, which may or may not be appropriate for your expected number of records.
+As a consequence of the limited query capability, you must model your data by starting with the queries you need to support. This can require denormalization, which may or may not be appropriate for your expected number of records.
 
 ### Format
 
@@ -107,7 +107,7 @@ Supported Types: `String`, `UInt`, `Int`, `UUID`, `Data`, `Date`
 
 ## Query Generation Workaround
 
-Currently, the macro that generates type-safe queries crashes the compiler. I'm trying to produce a reduced bug report, as I've been unable to find a workaround. Here's how you construct them manually in the meantime.
+Currently, the macro that generates type-safe queries [crashes the compiler][compiler bug]. Here's how you construct them manually in the meantime.
 
 ```swift
 @IndexKeyRecord("lastName", "firstName")
@@ -181,7 +181,7 @@ extension Person {
 
 ## `CloudKitRecord` Conformance
 
-Empire also supports CloudKit's `CKRecord` type via the `CloudKitRecord` macro. You can also use the associated protocol independently.
+Empire supports CloudKit's `CKRecord` type via the `CloudKitRecord` macro. You can also use the associated protocol independently.
 
 ```swift
 @CloudKitRecord
@@ -247,3 +247,4 @@ By participating in this project you agree to abide by the [Contributor Code of 
 [documentation]: https://swiftpackageindex.com/mattmassicotte/Empire/main/documentation
 [documentation badge]: https://img.shields.io/badge/Documentation-DocC-blue
 [LMDB]: https://www.symas.com/lmdb
+[compiler bug]: https://github.com/swiftlang/swift/issues/74865
