@@ -14,7 +14,7 @@ Empire is an experiment in persistence.
 
 - Schema is defined by your types
 - Macro-based API that is both typesafe and low-overhead
-- Built for Swift 6 (Built June 22 or later, not yet available with Xcode 16 beta)
+- Built for Swift 6 (or at least that's the idea - currently cannot be compiled by Xcode 16b4 and crashes more recent stuff)
 - Support for CloudKit's `CKRecord`
 - Backed by a sorted-key index data store ([LMDB][LMDB])
 
