@@ -13,12 +13,12 @@ public struct Transaction {
 	public init(env: Environment) throws {
 		self.env = env
 
-		try MDBError.check { mdb_txn_begin(env.internalEnv, nil, 0, &txn) }
+		try MDBError.check { mdb_txn_begin(env.internalEnv.pointer, nil, 0, &txn) }
 
 		guard txn != nil else { throw MDBError.problem }
 	}
 
-	public static func with<T>(env: Environment, block: (inout Transaction) throws -> T) throws -> T {
+	public static func with<T>(env: Environment, block: (inout Transaction) throws -> T) throws -> sending T {
 		var transaction = try Transaction(env: env)
 
 		do {

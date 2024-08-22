@@ -3,6 +3,7 @@ import Testing
 
 import LMDB
 
+@Suite(.serialized)
 struct LMDBTests {
 	static let storeURL = URL(fileURLWithPath: "/tmp/store", isDirectory: true)
 
@@ -248,6 +249,4 @@ extension LMDBTests {
 			}
 		}
 	}
-
 }
-

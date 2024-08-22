@@ -25,11 +25,21 @@ public enum MDBError: Error, Hashable {
 	}
 }
 
-public final class Environment {
-	public var internalEnv: OpaquePointer!
+struct SendableOpaquePointer: @unchecked Sendable {
+	let pointer: OpaquePointer
+}
+
+public final class Environment: Sendable {
+	let internalEnv: SendableOpaquePointer
 
 	public init() throws {
-		try MDBError.check { mdb_env_create(&internalEnv) }
+		var ptr: OpaquePointer? = nil
+
+		try MDBError.check { mdb_env_create(&ptr) }
+
+		guard let ptr else { throw MDBError.problem }
+
+		self.internalEnv = SendableOpaquePointer(pointer: ptr)
 	}
 
 	public convenience init(path: String, maxDatabases: Int? = nil) throws {
@@ -43,19 +53,19 @@ public final class Environment {
 	}
 
 	deinit {
-		mdb_env_close(internalEnv)
+		mdb_env_close(internalEnv.pointer)
 	}
 
 	public func setMaxDatabases(_ value: Int) throws {
-		try MDBError.check { mdb_env_set_maxdbs(internalEnv, UInt32(value)) }
+		try MDBError.check { mdb_env_set_maxdbs(internalEnv.pointer, UInt32(value)) }
 	}
 
-	public func open(path: String) throws {
+	private func open(path: String) throws {
 		let envFlags = UInt32(MDB_NOTLS | MDB_NOLOCK)
 		let envMode: mdb_mode_t = S_IRUSR | S_IWUSR
 
 		try path.withCString { pathStr in
-			try MDBError.check { mdb_env_open(internalEnv, pathStr, envFlags, envMode) }
+			try MDBError.check { mdb_env_open(internalEnv.pointer, pathStr, envFlags, envMode) }
 		}
 	}
 
@@ -63,7 +73,7 @@ public final class Environment {
 		var str: UnsafePointer<Int8>? = nil
 
 		guard
-			mdb_env_get_path(internalEnv, &str) == 0,
+			mdb_env_get_path(internalEnv.pointer, &str) == 0,
 			let str
 		else {
 			return ""
@@ -73,7 +83,7 @@ public final class Environment {
 	}
 
 	public var maximumKeySize: Int {
-		Int(mdb_env_get_maxkeysize(internalEnv))
+		Int(mdb_env_get_maxkeysize(internalEnv.pointer))
 	}
 }
 

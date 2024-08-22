@@ -32,7 +32,7 @@ public struct DeserializationBuffer {
 public actor Store {
 	@TaskLocal private static var taskStore: Store?
 
-	private var environment: Environment
+	private let environment: Environment
 	private var dbi = [String: MDB_dbi]()
 	private var keyBuffer: UnsafeMutableRawBufferPointer
 	private var valueBuffer: UnsafeMutableRawBufferPointer
@@ -61,8 +61,10 @@ public actor Store {
 		return value
 	}
 
-	public func withTransaction<T>(_ block: sending (TransactionContext) throws -> sending T) async throws -> sending T {
-		return try Transaction.with(env: environment) { txn in
+	// I would like to lift the Sendable requirement, but the compiler will not let me right now
+	// https://github.com/swiftlang/swift/issues/75473
+	public func withTransaction<T: Sendable>(_ block: sending (TransactionContext) throws -> sending T) async throws -> sending T {
+		let value = try Transaction.with(env: environment) { txn in
 			let dbi = try activeDBI(for: "mydb", txn)
 
 			let context = TransactionContext(
@@ -74,6 +76,8 @@ public actor Store {
 
 			return try block(context)
 		}
+
+		return value
 	}
 }
 
