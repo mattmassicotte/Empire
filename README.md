@@ -18,8 +18,8 @@ Empire is an experiment in persistence.
 - Support for CloudKit's `CKRecord`
 - Backed by a sorted-key index data store ([LMDB][LMDB])
 
-> [!CAUTION]
-> This is still a WIP.
+> [!WARNING]
+> This library is still pretty new and doesn't have great deal of real-world testing yet.
 
 ```swift
 import Empire
