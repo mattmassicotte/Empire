@@ -57,5 +57,5 @@ let package = Package(
 			dependencies: ["Empire"]
 		),
 	],
-	swiftLanguageVersions: [.v6]
+	swiftLanguageModes: [.v6]
 )
