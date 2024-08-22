@@ -17,18 +17,8 @@ struct KeyOnlyRecord: Hashable {
 
 /// Validates that a IndexKeyRecord can be public.
 @IndexKeyRecord("key")
-public struct PublicModel {
+public struct PublicModel: Sendable {
 	let key: Int
-}
-
-extension TestRecord {
-	static func select(in context: TransactionContext, a: String, b: ComparisonOperator<UInt>) throws -> [Self] {
-		try context.select(query: Query(a, last: b))
-	}
-
-	static func select(in context: TransactionContext, a: ComparisonOperator<String>) throws -> [Self] {
-		try context.select(query: Query(last: a))
-	}
 }
 
 @Suite(.serialized)
@@ -54,6 +44,22 @@ struct IndexKeyRecordTests {
 		}
 
 		#expect(output == record)
+	}
+
+	@Test func insertAndSelectSingleRecord() async throws {
+		let record = TestRecord(a: "hello", b: 42, c: "goodbye")
+
+		let store = try Store(url: Self.storeURL)
+
+		try await store.withTransaction { ctx in
+			try ctx.insert(record)
+		}
+
+		let records = try await store.withTransaction { ctx in
+			try TestRecord.select(in: ctx, a: "hello", b: 42)
+		}
+
+		#expect(records == [record])
 	}
 
 	@Test func insertAndSelectCopy() async throws {
@@ -234,9 +240,7 @@ extension IndexKeyRecordTests {
 		}
 
 		let records: [TestRecord] = try await store.withTransaction { ctx in
-			let query = Query<String, UInt>("hello", last: .greaterThan(40), limit: 1)
-
-			return try ctx.select(query: query)
+			try TestRecord.select(in: ctx, limit: 1, a: "hello", b: .greaterThan(40))
 		}
 
 		let expected = [

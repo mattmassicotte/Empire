@@ -166,38 +166,77 @@ extension \(argument.type.trimmed): IndexKeyRecord {
 	private static func dataManipulationExtensionDecl(
 		argument: RecordMacroArguments<some TypeSyntaxProtocol, some DeclGroupSyntax>
 	) throws -> ExtensionDeclSyntax {
-		var expandedPairs = [[(String, String)]]()
-
 		let pairs = argument.primaryKeyTypeNamePairs
-
-		for count in 1...pairs.count {
-			let prefix = Array(pairs.prefix(count))
-			let comparsionPrefix = prefix.replacingLast { ($0.0, "ComparisonOperator<\($0.1)>") }
-
-			expandedPairs.append(prefix)
-			expandedPairs.append(comparsionPrefix)
-		}
 
 		var selectFunctions = [FunctionDeclSyntax]()
 
-		for pairList in expandedPairs {
-			let queryArguments = pairList
-				.map { $0.0 }
-				.replacingLast { "last: \($0)" }
-				.joined(separator: ", ")
+		for (pair, index) in zip(pairs, pairs.indices) {
+			let prefix = pairs.prefix(index)
+			let prefixParams = prefix.map({ "\($0.0): \($0.1)" })
 
-			let selectArguments = pairList.map { "\($0.0): \($0.1)" }.joined(separator: ", ")
+			let comparisonParams = prefixParams + ["\(pair.0): ComparisonOperator<\(pair.1)>"]
+			let comparisonParamString = comparisonParams.joined(separator: ", ")
 
-			let funcDecl = try FunctionDeclSyntax(
+			let comparisonArgs = prefix.map({ $0.0 }) + ["last: \(pair.0)"]
+			let comparsionArgString = comparisonArgs.joined(separator: ", ")
+
+			let comparisonFuncDecl = try FunctionDeclSyntax(
 """
-public static func select(in context: TransactionContext, \(raw: selectArguments)) throws -> [Self] {
-	try context.select(query: Query(\(raw: queryArguments)))
+public static func select(in context: TransactionContext, limit: Int? = nil, \(raw: comparisonParamString)) throws -> [Self] {
+	try context.select(query: Query(\(raw: comparsionArgString), limit: limit))
 }
 """
 			)
 
-//			selectFunctions.append(funcDecl)
+			selectFunctions.append(comparisonFuncDecl)
+
+			let equalityParams = prefixParams + ["\(pair.0): \(pair.1)"]
+			let equalityParamString = equalityParams.joined(separator: ", ")
+
+			let equalityArgs = prefix.map({ $0.0 }) + ["last: .equals(\(pair.0))"]
+			let equalityArgString = equalityArgs.joined(separator: ", ")
+
+			let equalityFuncDecl = try FunctionDeclSyntax(
+"""
+public static func select(in context: TransactionContext, limit: Int? = nil, \(raw: equalityParamString)) throws -> [Self] {
+	try context.select(query: Query(\(raw: equalityArgString), limit: limit))
+}
+"""
+			)
+
+			selectFunctions.append(equalityFuncDecl)
+
 		}
+
+
+//		for count in 1...pairs.count {
+//			let prefix = Array(pairs.prefix(count))
+//			let comparsionPrefix = prefix.replacingLast { ($0.0, "ComparisonOperator<\($0.1)>") }
+//
+//			expandedPairs.append(prefix)
+//			expandedPairs.append(comparsionPrefix)
+//		}
+//
+//		var selectFunctions = [FunctionDeclSyntax]()
+//
+//		for pairList in expandedPairs {
+//			let queryArguments = pairList
+//				.map { $0.0 }
+//				.replacingLast { "last: \($0)" }
+//				.joined(separator: ", ")
+//
+//			let selectArguments = pairList.map { "\($0.0): \($0.1)" }.joined(separator: ", ")
+//
+//			let funcDecl = try FunctionDeclSyntax(
+//"""
+//public static func select(in context: TransactionContext, limit: Int? = nil, \(raw: selectArguments)) throws -> [Self] {
+//	try context.select(query: Query(\(raw: queryArguments), limit: limit))
+//}
+//"""
+//			)
+//
+//			selectFunctions.append(funcDecl)
+//		}
 
 		return ExtensionDeclSyntax(
 			extendedType: argument.type,

@@ -36,7 +36,7 @@ try await store.withTransaction { context in
     try context.insert(Person(name: "Korben", age: 45))
     try context.insert(Person(name: "Leeloo", age: 2000))
 }
-	
+
 let records = try await store.withTransaction { context in
     try Person.select(in: context, name: .lessThan("Zorg"))
 }
@@ -47,7 +47,6 @@ print(record.first!) // Person(name: "Leeloo", age: 2000)
 Limitations:
 
 - Arbitrary key sorting is not yet supported, and could end up being impossible
-- Macro-based query generation is hitting a [compiler bug][]
 - Lots of Swift types don't yet support serialization, and even less support efficient sorting/queries
 
 ## Integration
@@ -96,7 +95,7 @@ As a consequence of the limited query capability, you must model your data by st
 
 ### Manual Queries
 
-It is possible to manually construct queries to get a little more power. Here's how you limit the number of returned records.
+It is possible to manually construct queries to get a little more power and flexibility. Here's how you limit the number of returned records.
 
 ```swift
 let records = try await store.withTransaction { context in
@@ -116,33 +115,6 @@ Supported Types: `String`, `UInt`, `Int`, `UUID`, `Data`, `Date`
 
 > [!Note]
 > `Date` encoding is lossy and only preserves accuracy down to the millisecond.
-
-## Query Generation Workaround
-
-Currently, the macro that generates type-safe queries [crashes the compiler][compiler bug]. Here's how you construct them manually in the meantime.
-
-```swift
-@IndexKeyRecord("lastName", "firstName")
-struct Person {
-    let lastName: String
-    let firstName: String
-    let age: Int
-}
-
-extension Person {
-    static func select(in context: TransactionContext, lastName: String, firstName: String) throws -> [Self] {
-        try context.select(query: Query(lastName, last: firstName))
-    }
-
-    static func select(in context: TransactionContext, lastName: String, firstName: ComparisonOperator<String>) throws -> [Self] {
-        try context.select(query: Query(lastName, last: firstName))
-    }
-
-    static func select(in context: TransactionContext, lastName: ComparisonOperator<String>) throws -> [Self] {
-        try context.select(query: Query(last: lastName))
-    }
-}
-```
 
 ## `IndexKeyRecord` Conformance
 
@@ -262,4 +234,3 @@ By participating in this project you agree to abide by the [Contributor Code of 
 [matrix badge]: https://img.shields.io/matrix/chimehq%3Amatrix.org?label=Matrix
 [discord]: https://discord.gg/esFpX6sErJ
 [LMDB]: https://www.symas.com/lmdb
-[compiler bug]: https://github.com/swiftlang/swift/issues/74865
