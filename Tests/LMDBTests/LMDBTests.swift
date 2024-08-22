@@ -86,7 +86,7 @@ struct LMDBTests {
 }
 
 extension LMDBTests {
-	@Test func forwardScanCursor() throws {
+	@Test func greaterOrEqual() throws {
 		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
 
 		try Transaction.with(env: env) { txn in
@@ -119,7 +119,7 @@ extension LMDBTests {
 		}
 	}
 
-	@Test func forwardScanCursorWithLimit() throws {
+	@Test func greaterOrEqualWithLimit() throws {
 		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
 
 		try Transaction.with(env: env) { txn in
@@ -147,6 +147,39 @@ extension LMDBTests {
 				try #require(values.count == 2)
 				#expect(values[0] == ("a", "1"))
 				#expect(values[1] == ("b", "2"))
+			}
+		}
+	}
+
+	@Test
+	func greaterWithLimit() throws {
+		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
+
+		try Transaction.with(env: env) { txn in
+			let dbi = try txn.open(name: "mydb")
+
+			try txn.set(dbi: dbi, key: "c", value: "3")
+			try txn.set(dbi: dbi, key: "a", value: "1")
+			try txn.set(dbi: dbi, key: "b", value: "2")
+
+			try "a".withMDBVal { searchKey in
+				let query = Query(comparsion: .greater(searchKey), limit: 2)
+				let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
+
+				let values: [(String, String)] = cursor.compactMap {
+					guard
+						let key = String(mdbVal: $0.0),
+						let value = String(mdbVal: $0.1)
+					else {
+						return nil
+					}
+
+					return (key, value)
+				}
+
+				try #require(values.count == 2)
+				#expect(values[0] == ("b", "2"))
+				#expect(values[1] == ("c", "3"))
 			}
 		}
 	}

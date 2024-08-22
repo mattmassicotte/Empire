@@ -132,14 +132,14 @@ public struct Cursor: Sequence, IteratorProtocol {
 			case .completed:
 				break
 			case .notStarted:
-				self.state = .started(1)
-
 				let initial = try get(key: comparsionOp.key, operation: MDB_SET_RANGE)
 
 				switch comparsionOp {
 				case .less, .greater:
+					self.state = .started(0)
 					return next()
 				case .greaterOrEqual, .lessOrEqual, .range:
+					self.state = .started(1)
 					return initial
 				}
 			case let .started(count):
