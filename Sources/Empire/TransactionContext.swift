@@ -44,7 +44,32 @@ extension TransactionContext {
 		return try Record(&localBuffer)
 	}
 
-	// This should not need the `where Record: Sendable`...
+	/// Perform a select and copy the resulting data into a new Record.
+	///
+	/// This version is useful if the underlying IndexKeyRecord is not Sendable but you want to transfer it out of a transaction context.
+	public func selectCopy<Record: IndexKeyRecord>(key: some Serializable) throws -> sending Record? {
+		let keyVal = try MDB_val(key, using: keyBuffer)
+
+		guard let valueVal = try transaction.get(dbi: dbi, key: keyVal) else {
+			return nil
+		}
+
+		let keyData = keyVal.bufferPointer.copyToByteArray()
+		let valueData = valueVal.bufferPointer.copyToByteArray()
+
+		return try keyData.withUnsafeBufferPointer { keyBuffer in
+			try valueData.withUnsafeBufferPointer { valueBuffer in
+				var localBuffer = DeserializationBuffer(
+					keyBuffer: UnsafeRawBufferPointer(keyBuffer),
+					valueBuffer: UnsafeRawBufferPointer(valueBuffer)
+				)
+
+				return try Record(&localBuffer)
+			}
+		}
+	}
+
+	// I think this can be further improved with a copying version. But, that may also be affected by:
 	// https://github.com/swiftlang/swift/issues/74845
 	public func select<Record: IndexKeyRecord, each Component: QueryComponent, Last: QueryComponent>(
 		query: Query<repeat each Component, Last>

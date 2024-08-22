@@ -31,6 +31,7 @@ extension TestRecord {
 	}
 }
 
+@Suite(.serialized)
 struct IndexKeyRecordTests {
 	static let storeURL = URL(fileURLWithPath: "/tmp/store", isDirectory: true)
 
@@ -50,6 +51,22 @@ struct IndexKeyRecordTests {
 
 		let output: TestRecord? = try await store.withTransaction { ctx in
 			try ctx.select(key: Tuple<String, UInt>("hello", 42))
+		}
+
+		#expect(output == record)
+	}
+
+	@Test func insertAndSelectCopy() async throws {
+		let record = TestRecord(a: "hello", b: 42, c: "goodbye")
+
+		let store = try Store(url: Self.storeURL)
+
+		try await store.withTransaction { ctx in
+			try ctx.insert(record)
+		}
+
+		let output: TestRecord? = try await store.withTransaction { ctx in
+			try ctx.selectCopy(key: Tuple<String, UInt>("hello", 42))
 		}
 
 		#expect(output == record)
