@@ -32,7 +32,7 @@ extension TransactionContext {
 }
 
 extension TransactionContext {
-	public func select<Record: IndexKeyRecord>(key: some Serializable) throws -> sending Record? {
+	public func select<Record: IndexKeyRecord>(key: some Serializable) throws -> Record? {
 		let keyVal = try MDB_val(key, using: keyBuffer)
 
 		guard let valueVal = try transaction.get(dbi: dbi, key: keyVal) else {
