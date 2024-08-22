@@ -44,9 +44,16 @@ public typealias QueryComponent = IndexKeyComparable & Serializable
 public struct Query<each Component: QueryComponent, Last: QueryComponent> {
 	public let last: ComparisonOperator<Last>
 	public let components: (repeat each Component)
+	public let limit: Int?
 
-	public init(_ value: repeat each Component, last: ComparisonOperator<Last>) {
+	public init(_ value: repeat each Component, last: ComparisonOperator<Last>, limit: Int? = nil) {
 		self.components = (repeat each value)
 		self.last = last
+		self.limit = limit
 	}
+}
+
+public enum QueryError: Error {
+	case limitInvalid(Int)
+	case unsupportedQuery
 }

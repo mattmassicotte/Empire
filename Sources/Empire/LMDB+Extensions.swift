@@ -18,4 +18,3 @@ extension MDB_val {
 		self.init(mv_size: size, mv_data: buffer.baseAddress)
 	}
 }
-

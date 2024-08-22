@@ -74,84 +74,62 @@ extension TransactionContext {
 	public func select<Record: IndexKeyRecord, each Component: QueryComponent, Last: QueryComponent>(
 		query: Query<repeat each Component, Last>
 	) throws -> sending [Record] where Record: Sendable {
+		let bufferPair = SerializationBuffer(keyBuffer: keyBuffer, valueBuffer: valueBuffer)
+
 		switch query.last {
 		case let .equals(value):
 			let key = Tuple(repeat each query.components, value)
 			if let record: Record = try select(key: key) {
 				return [record]
 			}
-		case let .greaterThan(value):
-			let key = Tuple(repeat each query.components, value)
-			let keyVal = try MDB_val(key, using: keyBuffer)
-			let query = LMDB.Query(comparsion: .greater(keyVal))
-
-			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
+		case .greaterThan:
+			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair)
+			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
 
 			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
 				return try Record(&localBuffer)
 			}
-		case let .greaterOrEqual(value):
-			let key = Tuple(repeat each query.components, value)
-			let keyVal = try MDB_val(key, using: keyBuffer)
-			let query = LMDB.Query(comparsion: .greaterOrEqual(keyVal))
-
-			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
+		case .greaterOrEqual:
+			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair)
+			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
 
 			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
 				return try Record(&localBuffer)
 			}
-		case let .lessThan(value):
-			let key = Tuple(repeat each query.components, value)
-			let keyVal = try MDB_val(key, using: keyBuffer)
-			let query = LMDB.Query(comparsion: .less(keyVal))
-
-			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
+		case .lessThan:
+			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair)
+			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
 
 			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
 				return try Record(&localBuffer)
 			}
-		case let .lessOrEqual(value):
-			let key = Tuple(repeat each query.components, value)
-			let keyVal = try MDB_val(key, using: keyBuffer)
-			let query = LMDB.Query(comparsion: .lessOrEqual(keyVal))
-
-			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
+		case .lessOrEqual:
+			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair)
+			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
 
 			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
 				return try Record(&localBuffer)
 			}
-		case let .range(range):
-			let key = Tuple(repeat each query.components, range.lowerBound)
-			let keyVal = try MDB_val(key, using: keyBuffer)
-			let endKey = Tuple(repeat each query.components, range.upperBound)
-			let endKeyVal = try MDB_val(endKey, using: valueBuffer)
-
-			let query = LMDB.Query(comparsion: .range(keyVal, endKeyVal, inclusive: false))
-
-			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
+		case .range:
+			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair)
+			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
 
 			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
 				return try Record(&localBuffer)
 			}
-		case let .closedRange(range):
-			let key = Tuple(repeat each query.components, range.lowerBound)
-			let keyVal = try MDB_val(key, using: keyBuffer)
-			let endKey = Tuple(repeat each query.components, range.upperBound)
-			let endKeyVal = try MDB_val(endKey, using: valueBuffer)
-
-			let query = LMDB.Query(comparsion: .range(keyVal, endKeyVal, inclusive: true))
-
-			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: query)
+		case .closedRange:
+			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair)
+			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
 
 			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)

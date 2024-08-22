@@ -224,6 +224,30 @@ struct IndexKeyRecordTests {
 }
 
 extension IndexKeyRecordTests {
+	@Test func selectGreaterWithLimit() async throws {
+		let store = try Store(url: Self.storeURL)
+
+		try await store.withTransaction { ctx in
+			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
+			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
+			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
+		}
+
+		let records: [TestRecord] = try await store.withTransaction { ctx in
+			let query = Query<String, UInt>("hello", last: .greaterThan(40), limit: 1)
+
+			return try ctx.select(query: query)
+		}
+
+		let expected = [
+			TestRecord(a: "hello", b: 41, c: "b"),
+		]
+
+		#expect(records == expected)
+	}
+}
+
+extension IndexKeyRecordTests {
 	@Test func delete() async throws {
 		let record = TestRecord(a: "hello", b: 42, c: "goodbye")
 
