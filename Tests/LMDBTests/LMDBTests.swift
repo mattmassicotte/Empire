@@ -97,7 +97,7 @@ extension LMDBTests {
 			try txn.set(dbi: dbi, key: "b", value: "2")
 
 			try "a".withMDBVal { searchKey in
-				let query = Query(comparsion: .greaterOrEqual(searchKey))
+				let query = Query(comparison: .greaterOrEqual(searchKey))
 				let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
 
 				let values: [(String, String)] = cursor.compactMap {
@@ -130,7 +130,7 @@ extension LMDBTests {
 			try txn.set(dbi: dbi, key: "b", value: "2")
 
 			try "a".withMDBVal { searchKey in
-				let query = Query(comparsion: .greaterOrEqual(searchKey), limit: 2)
+				let query = Query(comparison: .greaterOrEqual(searchKey), limit: 2)
 				let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
 
 				let values: [(String, String)] = cursor.compactMap {
@@ -163,7 +163,7 @@ extension LMDBTests {
 			try txn.set(dbi: dbi, key: "b", value: "2")
 
 			try "a".withMDBVal { searchKey in
-				let query = Query(comparsion: .greater(searchKey), limit: 2)
+				let query = Query(comparison: .greater(searchKey), limit: 2)
 				let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
 
 				let values: [(String, String)] = cursor.compactMap {
@@ -195,7 +195,7 @@ extension LMDBTests {
 			try txn.set(dbi: dbi, key: "b", value: "2")
 
 			try "b".withMDBVal { searchKey in
-				let query = Query(comparsion: .less(searchKey))
+				let query = Query(comparison: .less(searchKey))
 				let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
 
 				let values: [(String, String)] = cursor.compactMap {
@@ -228,7 +228,7 @@ extension LMDBTests {
 
 			try "a".withMDBVal { searchKey in
 				try "b".withMDBVal { endKey in
-					let query = Query(comparsion: .range(searchKey, endKey, inclusive: true))
+					let query = Query(comparison: .range(searchKey, endKey, inclusive: true))
 					let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
 					
 					let values: [(String, String)] = cursor.compactMap {
@@ -262,7 +262,7 @@ extension LMDBTests {
 
 			try "a".withMDBVal { searchKey in
 				try "b".withMDBVal { endKey in
-					let query = Query(comparsion: .range(searchKey, endKey, inclusive: false))
+					let query = Query(comparison: .range(searchKey, endKey, inclusive: false))
 					let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
 
 					let values: [(String, String)] = cursor.compactMap {

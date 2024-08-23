@@ -154,7 +154,7 @@ extension TransactionContext {
 
 extension TransactionContext {
 	public func delete<Record: IndexKeyRecord>(_ record: Record) throws {
-		// TODO: this could be optmized to just find the key
+		// TODO: this could be optimized to just find the key
 		let keySize = record.indexKeySerializedSize
 		guard keySize <= keyBuffer.count else {
 			throw StoreError.keyBufferOverflow

@@ -178,12 +178,12 @@ extension \(argument.type.trimmed): IndexKeyRecord {
 			let comparisonParamString = comparisonParams.joined(separator: ", ")
 
 			let comparisonArgs = prefix.map({ $0.0 }) + ["last: \(pair.0)"]
-			let comparsionArgString = comparisonArgs.joined(separator: ", ")
+			let comparisonArgString = comparisonArgs.joined(separator: ", ")
 
 			let comparisonFuncDecl = try FunctionDeclSyntax(
 """
 public static func select(in context: TransactionContext, limit: Int? = nil, \(raw: comparisonParamString)) throws -> [Self] {
-	try context.select(query: Query(\(raw: comparsionArgString), limit: limit))
+	try context.select(query: Query(\(raw: comparisonArgString), limit: limit))
 }
 """
 			)
@@ -211,10 +211,10 @@ public static func select(in context: TransactionContext, limit: Int? = nil, \(r
 
 //		for count in 1...pairs.count {
 //			let prefix = Array(pairs.prefix(count))
-//			let comparsionPrefix = prefix.replacingLast { ($0.0, "ComparisonOperator<\($0.1)>") }
+//			let comparisonPrefix = prefix.replacingLast { ($0.0, "ComparisonOperator<\($0.1)>") }
 //
 //			expandedPairs.append(prefix)
-//			expandedPairs.append(comparsionPrefix)
+//			expandedPairs.append(comparisonPrefix)
 //		}
 //
 //		var selectFunctions = [FunctionDeclSyntax]()
