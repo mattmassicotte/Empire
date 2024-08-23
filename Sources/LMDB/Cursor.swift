@@ -1,6 +1,6 @@
 import CLMDB
 
-public enum ComparsionOperator {
+public enum ComparisonOperator {
 	case greater(MDB_val)
 	case greaterOrEqual(MDB_val)
 	case less(MDB_val)
@@ -33,11 +33,11 @@ public enum ComparsionOperator {
 }
 
 public struct Query {
-	public let comparsion: ComparsionOperator
+	public let comparison: ComparisonOperator
 	public let limit: Int?
 
-	public init(comparsion: ComparsionOperator, limit: Int? = nil) {
-		self.comparsion = comparsion
+	public init(comparison: ComparisonOperator, limit: Int? = nil) {
+		self.comparison = comparison
 		self.limit = limit
 	}
 }
@@ -99,7 +99,7 @@ public struct Cursor: Sequence, IteratorProtocol {
 	}
 
 	private func endConditionReached(key: MDB_val) -> Bool {
-		let op = query.comparsion
+		let op = query.comparison
 
 		guard case let .range(_, endKey, inclusive) = op else {
 			return false
@@ -125,16 +125,16 @@ public struct Cursor: Sequence, IteratorProtocol {
 	}
 
 	public mutating func next() -> Element? {
-		let comparsionOp = query.comparsion
+		let comparisonOp = query.comparison
 
 		do {
 			switch state {
 			case .completed:
 				break
 			case .notStarted:
-				let initial = try get(key: comparsionOp.key, operation: MDB_SET_RANGE)
+				let initial = try get(key: comparisonOp.key, operation: MDB_SET_RANGE)
 
-				switch comparsionOp {
+				switch comparisonOp {
 				case .less, .greater:
 					self.state = .started(0)
 					return next()
@@ -148,9 +148,9 @@ public struct Cursor: Sequence, IteratorProtocol {
 					break
 				}
 
-				let op = comparsionOp.forward ? MDB_NEXT : MDB_PREV
+				let op = comparisonOp.forward ? MDB_NEXT : MDB_PREV
 
-				guard let pair = try get(key: comparsionOp.key, operation: op) else {
+				guard let pair = try get(key: comparisonOp.key, operation: op) else {
 					self.state = .completed
 					break
 				}
