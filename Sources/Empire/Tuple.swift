@@ -50,6 +50,12 @@ extension Tuple: Serializable where repeat each Element: Serializable {
 	}
 }
 
+extension Tuple: Deserializable where repeat each Element: Deserializable {
+	public init(buffer: inout UnsafeRawBufferPointer) throws {
+		self.elements = (repeat try (each Element).init(buffer: &buffer))
+	}
+}
+
 extension Tuple: Comparable where repeat each Element: Comparable {
 	public static func < (lhs: Tuple<repeat each Element>, rhs: Tuple<repeat each Element>) -> Bool {
 		for (left, right) in repeat (each lhs.elements, each rhs.elements) {
