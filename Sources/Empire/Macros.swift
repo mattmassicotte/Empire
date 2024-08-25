@@ -6,12 +6,13 @@ import PackedSerialize
 	conformances: IndexKeyRecord,
 	names:
 		named(IndexKey),
-		named(indexKeySerializedSize),
+		named(Fields),
 		named(fieldsSerializedSize),
 		named(indexKey),
 		named(serialize),
 		named(init),
-		named(schemaVersion),
+		named(fieldsVersion),
+		named(keyPrefix),
 		named(select)
 )
 public macro IndexKeyRecord(

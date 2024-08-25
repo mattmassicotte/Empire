@@ -7,6 +7,8 @@ enum StoreError: Error {
 	case noActiveStore
 	case keyBufferOverflow
 	case valueBufferOverflow
+	case recordPrefixMismatch(String, Int, Int)
+	case migrationUnsupported(String, Int, Int)
 }
 
 public struct SerializationBuffer {

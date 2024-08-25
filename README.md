@@ -113,13 +113,14 @@ struct Person {
 // Equivalent to this:
 extension Person: IndexKeyRecord {
     public typealias IndexKey = Tuple<String, Int>
+    public associatedtype Fields: Tuple<Int>
 
-    public static var schemaVersion: Int {
+    public static var keyPrefix: Int {
         1
     }
 
-    public var indexKeySerializedSize: Int {
-        name.serializedSize
+    public static var fieldsVersion: Int {
+        1
     }
 
     public var fieldsSerializedSize: Int {

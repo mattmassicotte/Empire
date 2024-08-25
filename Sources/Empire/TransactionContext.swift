@@ -10,17 +10,23 @@ public struct TransactionContext {
 
 extension TransactionContext {
 	public func insert<Record: IndexKeyRecord>(_ record: Record) throws {
-		let keySize = record.indexKeySerializedSize
+		let prefix = Record.keyPrefix
+		let version = Record.fieldsVersion
+
+		let keySize = record.indexKey.serializedSize + prefix.serializedSize
 		guard keySize <= keyBuffer.count else {
 			throw StoreError.keyBufferOverflow
 		}
 
-		let valueSize = record.fieldsSerializedSize
+		let valueSize = record.fieldsSerializedSize + version.serializedSize
 		guard valueSize <= valueBuffer.count else {
 			throw StoreError.valueBufferOverflow
 		}
 
 		var localBuffer = SerializationBuffer(keyBuffer: keyBuffer, valueBuffer: valueBuffer)
+
+		prefix.serialize(into: &localBuffer.keyBuffer)
+		version.serialize(into: &localBuffer.valueBuffer)
 
 		record.serialize(into: &localBuffer)
 
@@ -33,13 +39,25 @@ extension TransactionContext {
 
 extension TransactionContext {
 	public func select<Record: IndexKeyRecord>(key: some Serializable) throws -> Record? {
-		let keyVal = try MDB_val(key, using: keyBuffer)
+		let prefix = Record.keyPrefix
+
+		let keyVal = try MDB_val(key, prefix: prefix, using: keyBuffer)
 
 		guard let valueVal = try transaction.get(dbi: dbi, key: keyVal) else {
 			return nil
 		}
 
 		var localBuffer = DeserializationBuffer(key: keyVal, value: valueVal)
+
+		let readPrefix = try Int(buffer: &localBuffer.keyBuffer)
+		if prefix != readPrefix {
+			throw StoreError.recordPrefixMismatch(String(describing: Record.self), prefix, readPrefix)
+		}
+
+		let version = try Int(buffer: &localBuffer.valueBuffer)
+		if version != Record.fieldsVersion {
+			throw StoreError.migrationUnsupported(String(describing: Record.self), Record.fieldsVersion, version)
+		}
 
 		return try Record(&localBuffer)
 	}
@@ -48,7 +66,8 @@ extension TransactionContext {
 	///
 	/// This version is useful if the underlying IndexKeyRecord is not Sendable but you want to transfer it out of a transaction context.
 	public func selectCopy<Record: IndexKeyRecord>(key: some Serializable) throws -> sending Record? {
-		let keyVal = try MDB_val(key, using: keyBuffer)
+		let prefix = Record.keyPrefix
+		let keyVal = try MDB_val(key, prefix: prefix, using: keyBuffer)
 
 		guard let valueVal = try transaction.get(dbi: dbi, key: keyVal) else {
 			return nil
@@ -64,6 +83,16 @@ extension TransactionContext {
 					valueBuffer: UnsafeRawBufferPointer(valueBuffer)
 				)
 
+				let readPrefix = try Int(buffer: &localBuffer.keyBuffer)
+				if prefix != readPrefix {
+					throw StoreError.recordPrefixMismatch(String(describing: Record.self), prefix, readPrefix)
+				}
+
+				let version = try Int(buffer: &localBuffer.valueBuffer)
+				if version != Record.fieldsVersion {
+					throw StoreError.migrationUnsupported(String(describing: Record.self), Record.fieldsVersion, version)
+				}
+
 				return try Record(&localBuffer)
 			}
 		}
@@ -74,6 +103,7 @@ extension TransactionContext {
 	public func select<Record: IndexKeyRecord, each Component: QueryComponent, Last: QueryComponent>(
 		query: Query<repeat each Component, Last>
 	) throws -> sending [Record] where Record: Sendable {
+		let prefix = Record.keyPrefix
 		let bufferPair = SerializationBuffer(keyBuffer: keyBuffer, valueBuffer: valueBuffer)
 
 		switch query.last {
@@ -83,56 +113,74 @@ extension TransactionContext {
 				return [record]
 			}
 		case .greaterThan:
-			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair)
+			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
 
 			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
+
+				_ = try Int(buffer: &localBuffer.keyBuffer)
+				_ = try Int(buffer: &localBuffer.valueBuffer)
 
 				return try Record(&localBuffer)
 			}
 		case .greaterOrEqual:
-			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair)
+			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
 
 			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
+
+				_ = try Int(buffer: &localBuffer.keyBuffer)
+				_ = try Int(buffer: &localBuffer.valueBuffer)
 
 				return try Record(&localBuffer)
 			}
 		case .lessThan:
-			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair)
+			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
 
 			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
+
+				_ = try Int(buffer: &localBuffer.keyBuffer)
+				_ = try Int(buffer: &localBuffer.valueBuffer)
 
 				return try Record(&localBuffer)
 			}
 		case .lessOrEqual:
-			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair)
+			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
 
 			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
+
+				_ = try Int(buffer: &localBuffer.keyBuffer)
+				_ = try Int(buffer: &localBuffer.valueBuffer)
 
 				return try Record(&localBuffer)
 			}
 		case .range:
-			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair)
+			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
 
 			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
+
+				_ = try Int(buffer: &localBuffer.keyBuffer)
+				_ = try Int(buffer: &localBuffer.valueBuffer)
 
 				return try Record(&localBuffer)
 			}
 		case .closedRange:
-			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair)
+			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
 
 			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
+
+				_ = try Int(buffer: &localBuffer.keyBuffer)
+				_ = try Int(buffer: &localBuffer.valueBuffer)
 
 				return try Record(&localBuffer)
 			}
@@ -154,18 +202,24 @@ extension TransactionContext {
 
 extension TransactionContext {
 	public func delete<Record: IndexKeyRecord>(_ record: Record) throws {
+		let prefix = Record.keyPrefix
+		let version = Record.fieldsVersion
+
 		// TODO: this could be optimized to just find the key
-		let keySize = record.indexKeySerializedSize
+		let keySize = record.indexKey.serializedSize + prefix.serializedSize
 		guard keySize <= keyBuffer.count else {
 			throw StoreError.keyBufferOverflow
 		}
 
-		let valueSize = record.fieldsSerializedSize
+		let valueSize = record.fieldsSerializedSize + version.serializedSize
 		guard valueSize <= valueBuffer.count else {
 			throw StoreError.valueBufferOverflow
 		}
 
 		var localBuffer = SerializationBuffer(keyBuffer: keyBuffer, valueBuffer: valueBuffer)
+
+		prefix.serialize(into: &localBuffer.keyBuffer)
+		version.serialize(into: &localBuffer.valueBuffer)
 
 		record.serialize(into: &localBuffer)
 

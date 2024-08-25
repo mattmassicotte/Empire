@@ -57,8 +57,23 @@ public struct IndexKeyRecordMacro: ExtensionMacro {
 }
 
 extension IndexKeyRecordMacro {
+	private static func keyPrefixAccessor(
+		argument: RecordMacroArguments<some TypeSyntaxProtocol, some DeclGroupSyntax>
+	) throws -> VariableDeclSyntax {
+		let output = argument.type.trimmedDescription
+
+		let schemaHash = output.checksum
+		let literal = IntegerLiteralExprSyntax(schemaHash)
+
+		return try VariableDeclSyntax(
+			"""
+public static var keyPrefix: Int { \(literal) }
+"""
+		)
+	}
+
 	/// Have to preserve types and order
-	private static func schemaHashcodeAccessor(members: [PatternBindingSyntax]) throws -> VariableDeclSyntax {
+	private static func fieldsVersionAccessor(members: [PatternBindingSyntax]) throws -> VariableDeclSyntax {
 		let output = members.map { $0.description }.joined(separator: ",")
 
 		let schemaHash = output.checksum
@@ -66,7 +81,7 @@ extension IndexKeyRecordMacro {
 
 		return try VariableDeclSyntax(
 			"""
-public static var schemaVersion: Int { \(literal) }
+public static var fieldsVersion: Int { \(literal) }
 """
 		)
 	}
@@ -107,6 +122,8 @@ public static var schemaVersion: Int { \(literal) }
 		let keyTypes = argument.primaryKeyTypeNamePairs
 			.map { $1 }
 			.joined(separator: ", ")
+		let fieldTypes = argument.fieldMemberTypeNames
+			.joined(separator: ", ")
 
 		let fieldsInit = argument.fieldTypeNamePairs
 			.map { "self.\($0) = try \($1)(buffer: &buffer.valueBuffer)" }
@@ -117,14 +134,6 @@ public static var schemaVersion: Int { \(literal) }
 public func serialize(into buffer: inout SerializationBuffer) {
 	\(raw: keySerialize)
 	\(raw: fieldsSerialize)
-}
-"""
-		)
-
-		let indexKeySerializedSizeVar = try VariableDeclSyntax(
-"""
-public var indexKeySerializedSize: Int {
-	\(raw: keySize)
 }
 """
 		)
@@ -141,10 +150,10 @@ public var fieldsSerializedSize: Int {
 	"""
 extension \(argument.type.trimmed): IndexKeyRecord {
 	public typealias IndexKey = Tuple<\(raw: keyTypes)>
+	public typealias Fields = Tuple<\(raw: fieldTypes)>
 
-	\(try schemaHashcodeAccessor(members: argument.members))
-
-	\(indexKeySerializedSizeVar)
+	\(try keyPrefixAccessor(argument: argument))
+	\(try fieldsVersionAccessor(members: argument.members))
 
 	\(fieldsSerializedSizeVar)
 
