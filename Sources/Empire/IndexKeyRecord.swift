@@ -2,7 +2,7 @@ import PackedSerialize
 
 /// Requirements for a type stored in an Empire database.
 public protocol IndexKeyRecord {
-	associatedtype IndexKey: Serializable & IndexKeyComparable
+	associatedtype IndexKey: Serializable & Deserializable & IndexKeyComparable
 
 	static var schemaVersion: Int { get }
 
