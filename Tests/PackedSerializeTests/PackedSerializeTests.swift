@@ -49,6 +49,19 @@ struct PackedSerializeTests {
 		#expect(try String(buffer: &outputBuffer) == "hello")
 		#expect(try String(buffer: &outputBuffer) == "goodbye")
 	}
+
+	@Test func deserializeStringWithInvalidLength() throws {
+		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
+		var inputBuffer = buffer
+
+		UInt.max.serialize(into: &inputBuffer)
+
+		var outputBuffer = UnsafeRawBufferPointer(buffer)
+
+		#expect(throws: (any Error).self, performing: {
+			try String(buffer: &outputBuffer)
+		})
+	}
 }
 
 #if canImport(Foundation)

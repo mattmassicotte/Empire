@@ -23,7 +23,12 @@ extension String: Serializable {
 
 extension String: Deserializable {
 	public init(buffer: inout UnsafeRawBufferPointer) throws {
-		let length = Int(try UInt(buffer: &buffer))
+		let codedLength = try UInt(buffer: &buffer)
+		if codedLength >= Int.max {
+			throw DeserializeError.invalidLength
+		}
+
+		let length = Int(codedLength)
 		guard length >= 0 else {
 			throw DeserializeError.invalidLength
 		}
