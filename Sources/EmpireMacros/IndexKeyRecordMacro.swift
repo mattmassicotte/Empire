@@ -208,36 +208,6 @@ public static func select(in context: TransactionContext, limit: Int? = nil, \(r
 
 		}
 
-
-//		for count in 1...pairs.count {
-//			let prefix = Array(pairs.prefix(count))
-//			let comparisonPrefix = prefix.replacingLast { ($0.0, "ComparisonOperator<\($0.1)>") }
-//
-//			expandedPairs.append(prefix)
-//			expandedPairs.append(comparisonPrefix)
-//		}
-//
-//		var selectFunctions = [FunctionDeclSyntax]()
-//
-//		for pairList in expandedPairs {
-//			let queryArguments = pairList
-//				.map { $0.0 }
-//				.replacingLast { "last: \($0)" }
-//				.joined(separator: ", ")
-//
-//			let selectArguments = pairList.map { "\($0.0): \($0.1)" }.joined(separator: ", ")
-//
-//			let funcDecl = try FunctionDeclSyntax(
-//"""
-//public static func select(in context: TransactionContext, limit: Int? = nil, \(raw: selectArguments)) throws -> [Self] {
-//	try context.select(query: Query(\(raw: queryArguments), limit: limit))
-//}
-//"""
-//			)
-//
-//			selectFunctions.append(funcDecl)
-//		}
-
 		return ExtensionDeclSyntax(
 			extendedType: argument.type,
 			memberBlock: MemberBlockSyntax(
