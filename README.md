@@ -3,6 +3,7 @@
 [![Build Status][build status badge]][build status]
 [![Platforms][platforms badge]][platforms]
 [![Documentation][documentation badge]][documentation]
+[![Matrix][matrix badge]][matrix]
 
 </div>
 
@@ -205,7 +206,7 @@ User data is important. This library has a bunch of tests, but it has no real-wo
 
 ## Contributing and Collaboration
 
-I would love to hear from you! Issues or pull requests work great. Both a [Matrix space][matrix] and [Discord][discord] are available for live help, but I have a strong bias towards answering in the form of documentation. You can also find me on [mastodon](https://mastodon.social/@mattiem). 
+I would love to hear from you! Issues or pull requests work great. Both a [Matrix space][matrix] and [Discord][discord] are available for live help, but I have a strong bias towards answering in the form of documentation. You can also find me on [mastodon](https://mastodon.social/@mattiem).
 
 I prefer collaboration, and would love to find ways to work together if you have a similar project.
 
