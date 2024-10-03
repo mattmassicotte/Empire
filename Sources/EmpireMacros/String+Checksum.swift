@@ -1,3 +1,4 @@
+#if canImport(zlib)
 import zlib
 
 extension String {
@@ -7,3 +8,10 @@ extension String {
 		}
 	}
 }
+#else
+extension String {
+	var checksum: Int {
+		0
+	}
+}
+#endif
