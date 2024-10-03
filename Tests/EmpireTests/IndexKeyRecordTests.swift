@@ -23,7 +23,7 @@ public struct PublicModel: Sendable {
 
 @Suite(.serialized)
 struct IndexKeyRecordTests {
-	static let storeURL = URL(fileURLWithPath: "/tmp/store", isDirectory: true)
+	static let storeURL = URL(fileURLWithPath: "/tmp/empire_test_store", isDirectory: true)
 
 	init() throws {
 		try? FileManager.default.removeItem(at: Self.storeURL)
