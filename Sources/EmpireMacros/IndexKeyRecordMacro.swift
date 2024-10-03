@@ -89,10 +89,6 @@ public static var fieldsVersion: Int { \(literal) }
 	private static func extensionDecl(
 		argument: RecordMacroArguments<some TypeSyntaxProtocol, some DeclGroupSyntax>
 	) throws -> ExtensionDeclSyntax {
-		let keySize = argument.keyMemberNames
-			.map { "\($0).serializedSize" }
-			.joined(separator: " +\n")
-
 		let keyTupleArguments = argument.keyMemberNames
 			.joined(separator: ", ")
 
