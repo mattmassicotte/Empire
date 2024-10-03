@@ -1,3 +1,4 @@
+#if canImport(CloudKit)
 import CloudKit
 import Testing
 
@@ -61,3 +62,4 @@ struct CloudKitRecordTests {
 		#expect(decodedRecord == record)
 	}
 }
+#endif

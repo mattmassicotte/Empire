@@ -20,6 +20,7 @@ public macro IndexKeyRecord(
 	_ remaining: StaticString...
 ) = #externalMacro(module: "EmpireMacros", type: "IndexKeyRecordMacro")
 
+#if canImport(CloudKit)
 @attached(
 	extension,
 	conformances: CloudKitRecord,
@@ -28,3 +29,4 @@ public macro IndexKeyRecord(
 		named(init)
 )
 public macro CloudKitRecord() = #externalMacro(module: "EmpireMacros", type: "CloudKitRecordMacro")
+#endif
