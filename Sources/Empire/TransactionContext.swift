@@ -201,30 +201,16 @@ extension TransactionContext {
 }
 
 extension TransactionContext {
+	private func delete(prefix: Int, key: some Serializable) throws {
+		let keyVal = try MDB_val(key, prefix: prefix, using: keyBuffer)
+
+		try transaction.delete(dbi: dbi, key: keyVal)
+	}
+	
 	public func delete<Record: IndexKeyRecord>(_ record: Record) throws {
 		let prefix = Record.keyPrefix
-		let version = Record.fieldsVersion
+		let key = record.indexKey
 
-		// TODO: this could be optimized to just find the key
-		let keySize = record.indexKey.serializedSize + prefix.serializedSize
-		guard keySize <= keyBuffer.count else {
-			throw StoreError.keyBufferOverflow
-		}
-
-		let valueSize = record.fieldsSerializedSize + version.serializedSize
-		guard valueSize <= valueBuffer.count else {
-			throw StoreError.valueBufferOverflow
-		}
-
-		var localBuffer = SerializationBuffer(keyBuffer: keyBuffer, valueBuffer: valueBuffer)
-
-		prefix.serialize(into: &localBuffer.keyBuffer)
-		version.serialize(into: &localBuffer.valueBuffer)
-
-		record.serialize(into: &localBuffer)
-
-		let key = MDB_val(mv_size: keySize, mv_data: keyBuffer.baseAddress)
-
-		try transaction.delete(dbi: dbi, key: key)
+		try delete(prefix: prefix, key: key)
 	}
 }
