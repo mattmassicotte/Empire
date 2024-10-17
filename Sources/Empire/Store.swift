@@ -2,7 +2,7 @@ import LMDB
 import CLMDB
 import PackedSerialize
 
-enum StoreError: Error {
+public enum StoreError: Error, Hashable {
 	case noActiveContext
 	case noActiveStore
 	case keyBufferOverflow

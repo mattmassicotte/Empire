@@ -13,4 +13,13 @@ public protocol IndexKeyRecord {
 
 	func serialize(into buffer: inout SerializationBuffer)
 	init(_ buffer: inout DeserializationBuffer) throws
+
+	/// Create an instance with data that requires a migration.
+	init(_ buffer: inout DeserializationBuffer, version: Int) throws
+}
+
+extension IndexKeyRecord {
+	public init(_ buffer: inout DeserializationBuffer, version: Int) throws {
+		throw StoreError.migrationUnsupported(String(describing: Self.self), Self.fieldsVersion, version)
+	}
 }

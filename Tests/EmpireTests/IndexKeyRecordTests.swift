@@ -21,6 +21,36 @@ public struct PublicModel: Sendable {
 	let key: Int
 }
 
+struct MismatchedKeyOnlyRecord: Hashable {
+	let key: UInt
+	let value: String
+}
+
+extension MismatchedKeyOnlyRecord: IndexKeyRecord {
+	typealias IndexKey = KeyOnlyRecord.IndexKey
+	typealias Fields = Tuple<String>
+
+	public static var keyPrefix: Int { KeyOnlyRecord.keyPrefix }
+	public static var fieldsVersion: Int { 10 }
+	var indexKey: IndexKey {
+		Tuple(key)
+	}
+
+	public var fieldsSerializedSize: Int {
+		value.serializedSize
+	}
+
+	public func serialize(into buffer: inout Empire.SerializationBuffer) {
+		key.serialize(into: &buffer.keyBuffer)
+		value.serialize(into: &buffer.valueBuffer)
+	}
+	
+	init(_ buffer: inout Empire.DeserializationBuffer) throws {
+		self.key = try UInt(buffer: &buffer.keyBuffer)
+		self.value = try String(buffer: &buffer.valueBuffer)
+	}
+}
+
 @Suite(.serialized)
 struct IndexKeyRecordTests {
 	static let storeURL = URL(fileURLWithPath: "/tmp/empire_test_store", isDirectory: true)
@@ -267,5 +297,32 @@ extension IndexKeyRecordTests {
 		}
 
 		#expect(output == [])
+	}
+}
+
+extension IndexKeyRecordTests {
+	@Test
+	func mismatchedFieldsVersion() async throws {
+		let mismatchedRecord = MismatchedKeyOnlyRecord(key: 5, value: "hello")
+
+		let store = try Store(url: Self.storeURL)
+
+		try await store.withTransaction { ctx in
+			try ctx.insert(mismatchedRecord)
+		}
+
+		let output: MismatchedKeyOnlyRecord? = try await store.withTransaction { ctx in
+			try ctx.select(key: MismatchedKeyOnlyRecord.IndexKey(5))
+		}
+
+		#expect(mismatchedRecord == output)
+
+		await #expect(
+			throws: StoreError.migrationUnsupported("KeyOnlyRecord", KeyOnlyRecord.fieldsVersion, MismatchedKeyOnlyRecord.fieldsVersion)
+		) {
+			let _ = try await store.withTransaction { ctx in
+				try KeyOnlyRecord.select(in: ctx, key: .equals(5))
+			}
+		}
 	}
 }

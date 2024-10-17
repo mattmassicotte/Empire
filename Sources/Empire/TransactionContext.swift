@@ -38,6 +38,33 @@ extension TransactionContext {
 }
 
 extension TransactionContext {
+	private func deserialize<Record: IndexKeyRecord>(keyValue: MDB_val, buffer: inout DeserializationBuffer) throws -> Record {
+		let prefix = Record.keyPrefix
+
+		let readPrefix = try Int(buffer: &buffer.keyBuffer)
+		if prefix != readPrefix {
+			throw StoreError.recordPrefixMismatch(String(describing: Record.self), prefix, readPrefix)
+		}
+
+		let version = try Int(buffer: &buffer.valueBuffer)
+		if version != Record.fieldsVersion {
+			// create the new record
+			let newRecord = try Record(&buffer, version: version)
+
+			// delete the existing record
+			try transaction.delete(dbi: dbi, key: keyValue)
+
+			// insert the new one
+			try insert(newRecord)
+
+			return newRecord
+		}
+
+		return try Record(&buffer)
+	}
+}
+
+extension TransactionContext {
 	public func select<Record: IndexKeyRecord>(key: some Serializable) throws -> Record? {
 		let prefix = Record.keyPrefix
 
@@ -49,17 +76,7 @@ extension TransactionContext {
 
 		var localBuffer = DeserializationBuffer(key: keyVal, value: valueVal)
 
-		let readPrefix = try Int(buffer: &localBuffer.keyBuffer)
-		if prefix != readPrefix {
-			throw StoreError.recordPrefixMismatch(String(describing: Record.self), prefix, readPrefix)
-		}
-
-		let version = try Int(buffer: &localBuffer.valueBuffer)
-		if version != Record.fieldsVersion {
-			throw StoreError.migrationUnsupported(String(describing: Record.self), Record.fieldsVersion, version)
-		}
-
-		return try Record(&localBuffer)
+		return try deserialize(keyValue: keyVal, buffer: &localBuffer)
 	}
 
 	/// Perform a select and copy the resulting data into a new Record.
@@ -119,10 +136,7 @@ extension TransactionContext {
 			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
-				_ = try Int(buffer: &localBuffer.keyBuffer)
-				_ = try Int(buffer: &localBuffer.valueBuffer)
-
-				return try Record(&localBuffer)
+				return try deserialize(keyValue: pair.0, buffer: &localBuffer)
 			}
 		case .greaterOrEqual:
 			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
@@ -131,10 +145,7 @@ extension TransactionContext {
 			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
-				_ = try Int(buffer: &localBuffer.keyBuffer)
-				_ = try Int(buffer: &localBuffer.valueBuffer)
-
-				return try Record(&localBuffer)
+				return try deserialize(keyValue: pair.0, buffer: &localBuffer)
 			}
 		case .lessThan:
 			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
@@ -143,10 +154,7 @@ extension TransactionContext {
 			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
-				_ = try Int(buffer: &localBuffer.keyBuffer)
-				_ = try Int(buffer: &localBuffer.valueBuffer)
-
-				return try Record(&localBuffer)
+				return try deserialize(keyValue: pair.0, buffer: &localBuffer)
 			}
 		case .lessOrEqual:
 			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
@@ -155,10 +163,7 @@ extension TransactionContext {
 			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
-				_ = try Int(buffer: &localBuffer.keyBuffer)
-				_ = try Int(buffer: &localBuffer.valueBuffer)
-
-				return try Record(&localBuffer)
+				return try deserialize(keyValue: pair.0, buffer: &localBuffer)
 			}
 		case .range:
 			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
@@ -167,10 +172,7 @@ extension TransactionContext {
 			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
-				_ = try Int(buffer: &localBuffer.keyBuffer)
-				_ = try Int(buffer: &localBuffer.valueBuffer)
-
-				return try Record(&localBuffer)
+				return try deserialize(keyValue: pair.0, buffer: &localBuffer)
 			}
 		case .closedRange:
 			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
@@ -179,10 +181,7 @@ extension TransactionContext {
 			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
-				_ = try Int(buffer: &localBuffer.keyBuffer)
-				_ = try Int(buffer: &localBuffer.valueBuffer)
-
-				return try Record(&localBuffer)
+				return try deserialize(keyValue: pair.0, buffer: &localBuffer)
 			}
 		case let .within(values):
 			return try values.map { value in
