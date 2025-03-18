@@ -51,6 +51,49 @@ extension MismatchedKeyOnlyRecord: IndexKeyRecord {
 	}
 }
 
+struct MigratableKeyOnlyRecord: Hashable {
+	let key: UInt
+	let value: String
+	
+	static let valuePlaceholder = "<placeholder>"
+}
+
+extension MigratableKeyOnlyRecord: IndexKeyRecord {
+	typealias IndexKey = KeyOnlyRecord.IndexKey
+	typealias Fields = Tuple<String>
+
+	public static var keyPrefix: Int { KeyOnlyRecord.keyPrefix }
+	public static var fieldsVersion: Int { 20 }
+	var indexKey: IndexKey {
+		Tuple(key)
+	}
+
+	public var fieldsSerializedSize: Int {
+		value.serializedSize
+	}
+
+	public func serialize(into buffer: inout Empire.SerializationBuffer) {
+		key.serialize(into: &buffer.keyBuffer)
+		value.serialize(into: &buffer.valueBuffer)
+	}
+	
+	init(_ buffer: inout Empire.DeserializationBuffer) throws {
+		self.key = try UInt(buffer: &buffer.keyBuffer)
+		self.value = try String(buffer: &buffer.valueBuffer)
+	}
+	
+	// this is the code that actually checks for and peforms the migration
+	init(_ buffer: inout DeserializationBuffer, version: Int) throws {
+		switch version {
+		case KeyOnlyRecord.fieldsVersion:
+			self.key = try UInt(buffer: &buffer.keyBuffer)
+			self.value = Self.valuePlaceholder
+		default:
+			throw Self.unsupportedMigrationError(for: version)
+		}
+	}
+}
+
 @Suite(.serialized)
 struct IndexKeyRecordTests {
 	static let storeURL = URL(fileURLWithPath: "/tmp/empire_test_store", isDirectory: true)
@@ -301,8 +344,7 @@ extension IndexKeyRecordTests {
 }
 
 extension IndexKeyRecordTests {
-	@Test
-	func mismatchedFieldsVersion() async throws {
+	@Test func mismatchedFieldsVersion() async throws {
 		let mismatchedRecord = MismatchedKeyOnlyRecord(key: 5, value: "hello")
 
 		let store = try Store(url: Self.storeURL)
@@ -324,5 +366,22 @@ extension IndexKeyRecordTests {
 				try KeyOnlyRecord.select(in: ctx, key: .equals(5))
 			}
 		}
+	}
+	
+	@Test func migratableFieldsVersion() async throws {
+		let record = KeyOnlyRecord(key: 5)
+
+		let store = try Store(url: Self.storeURL)
+
+		try await store.withTransaction { ctx in
+			try ctx.insert(record)
+		}
+
+		let output: MigratableKeyOnlyRecord? = try await store.withTransaction { ctx in
+			try ctx.select(key: MigratableKeyOnlyRecord.IndexKey(5))
+		}
+
+		#expect(output?.key == 5)
+		#expect(output?.value == MigratableKeyOnlyRecord.valuePlaceholder)
 	}
 }
