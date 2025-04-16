@@ -105,21 +105,24 @@ Your types **are** the schema. The type's data is serialized directly to a binar
 Because the database schema is defined by your types, any changes to these types will invalidate the data within the storage. This is detected using the `fieldsVersion` property, and 
 fixing it requires migrations. These are run incrementally as mismatches are detected on load.
 
+The only factors that affect data compatibility are definition order and data type.
+
 To support migration, you must implement a custom initializer.
 
 ```swift
 extension struct Person {
-	init(_ buffer: inout DeserializationBuffer, version: Int) throws {
-		switch version {
-		case 1:
-			// this version didn't support the `age` field
-			self.lastName = try String(buffer: &buffer.keyBuffer)
-			self.firstName = try String(buffer: &buffer.keyBuffer)
-			self.age = 0 // a reasonable placeholder I guess?
-		default:
-			throw Self.unsupportedMigrationError(for: version)
-		}
-	}
+    init(_ buffer: inout DeserializationBuffer, version: Int) throws {
+        // `version` here is the `fieldVersion` of the data actually serialized in storage
+        switch version {
+        case 1:
+            // this version didn't support the `age` field
+            self.lastName = try String(buffer: &buffer.keyBuffer)
+            self.firstName = try String(buffer: &buffer.keyBuffer)
+            self.age = 0 // a reasonable placeholder I guess?
+        default:
+            throw Self.unsupportedMigrationError(for: version)
+        }
+    }
 }
 ```
 
