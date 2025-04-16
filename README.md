@@ -217,7 +217,7 @@ func ckRecord(in zoneId: CKRecordZone.ID)
 
 ### Why does this exist?
 
-I'm not sure! I haven't used [CoreData](https://developer.apple.com/documentation/coredata) or [SwiftData](https://developer.apple.com/documentation/swiftdata) too much. But I have used the distributed database [Cassandra](https://cassandra.apache.org) quite a lot and [DynamoDB](https://aws.amazon.com/dynamodb/) a bit. Then one day I discovered [LMDB][LMDB]. Its data model is quite similar to Cassandra and I got interested in playing around with it. This just kinda materialized from those experiments.
+I'm not sure! I haven't used [Core Data](https://developer.apple.com/documentation/coredata) or [SwiftData](https://developer.apple.com/documentation/swiftdata) too much. But I have used the distributed database [Cassandra](https://cassandra.apache.org) quite a lot and [DynamoDB](https://aws.amazon.com/dynamodb/) a bit. Then one day I discovered [LMDB][LMDB]. Its data model is quite similar to Cassandra and I got interested in playing around with it. This just kinda materialized from those experiments.
 
 ### Can I use this?
 
@@ -229,7 +229,7 @@ User data is important. This library has a bunch of tests, but it has no real-wo
 
 ## Contributing and Collaboration
 
-I would love to hear from you! Issues or pull requests work great. Both a [Matrix space][matrix] and [Discord][discord] are available for live help, but I have a strong bias towards answering in the form of documentation. You can also find me on [mastodon](https://mastodon.social/@mattiem).
+I would love to hear from you! Issues or pull requests work great. Both a [Matrix space][matrix] and [Discord][discord] are available for live help, but I have a strong bias towards answering in the form of documentation. You can also find me on [the web](https://www.massicotte.org).
 
 I prefer collaboration, and would love to find ways to work together if you have a similar project.
 
