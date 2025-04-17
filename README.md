@@ -135,17 +135,17 @@ You can manually encode the field hash into your types to get build-time verific
 ```swift
 @IndexKeyRecord(validated: 8366809093122785258, "key")
 public struct VerifiedVersion: Sendable {
-	let key: Int
+    let key: Int
 }
 ```
 
-You can also manually manage the key prefix and field version. This can be useful for easier version management, but you are giving up automated checks by doing this.
+You can also manually manage the key prefix and field version. This can be useful for easier version management, but you are giving up automated checks by doing this. It is **absolutely critical** that you correctly change this value when you make serialization-incompatible changes.
 
 ```swift
 @IndexKeyRecord(keyPrefix: 1, fieldsVersion: 2, "key")
 struct ManuallyVersionedRecord: Sendable {
-	let key: Int
-	let value: String
+    let key: Int
+    let value: String
 }
 ```
 
