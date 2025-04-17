@@ -5,12 +5,16 @@ public protocol IndexKeyRecord {
 	associatedtype IndexKey: Serializable & Deserializable & IndexKeyComparable
 	associatedtype Fields: Serializable & Deserializable
 
-	static var keyPrefix: Int { get }
-	/// A stable numeric representation of the field layout and data types.
+	/// A prefix used for all records of the same type to distinguish them by key type alone.
 	///
-	/// The macro-supplied serialization process depends exclusively on field order and data type.
-	static var fieldsVersion: Int { get }
+	/// By default, this value is the same as `keySchemaHashValue`. You can override this value to control the key prefixing strategy.
+	static var keyPrefix: Int { get }
 
+	/// An identifier used to ensure serialized data matches the record structure.
+	///
+	/// By default, this value is the same as `fieldSchemaHashValue`. You can override this value to use a custom field versioning strategy.
+	static var fieldsVersion: Int { get }
+	
 	var fieldsSerializedSize: Int { get }
 	var indexKey: IndexKey { get }
 

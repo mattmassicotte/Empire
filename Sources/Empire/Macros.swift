@@ -16,6 +16,9 @@ import PackedSerialize
 		named(select)
 )
 public macro IndexKeyRecord(
+	validated: Int? = nil,
+	keyPrefix: Int? = nil,
+	fieldsVersion: Int? = nil,
 	_ first: StaticString,
 	_ remaining: StaticString...
 ) = #externalMacro(module: "EmpireMacros", type: "IndexKeyRecordMacro")

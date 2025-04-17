@@ -21,73 +21,41 @@ public struct PublicModel: Sendable {
 	let key: Int
 }
 
+
+
+@IndexKeyRecord(validated: 8366809093122785258, "key")
+public struct VerifiedVersion: Sendable {
+	let key: Int
+}
+
+@IndexKeyRecord(keyPrefix: 5, fieldsVersion: 10, "key")
+public struct CustomVersion: Sendable {
+	let key: Int
+}
+
+@IndexKeyRecord(keyPrefix: 4973231345230152924, fieldsVersion: 10, "key")
 struct MismatchedKeyOnlyRecord: Hashable {
 	let key: UInt
 	let value: String
 }
 
-extension MismatchedKeyOnlyRecord: IndexKeyRecord {
-	typealias IndexKey = KeyOnlyRecord.IndexKey
-	typealias Fields = Tuple<String>
-
-	public static var keyPrefix: Int { KeyOnlyRecord.keyPrefix }
-	public static var fieldsVersion: Int { 10 }
-	var indexKey: IndexKey {
-		Tuple(key)
-	}
-
-	public var fieldsSerializedSize: Int {
-		value.serializedSize
-	}
-
-	public func serialize(into buffer: inout Empire.SerializationBuffer) {
-		key.serialize(into: &buffer.keyBuffer)
-		value.serialize(into: &buffer.valueBuffer)
-	}
-	
-	init(_ buffer: inout Empire.DeserializationBuffer) throws {
-		self.key = try UInt(buffer: &buffer.keyBuffer)
-		self.value = try String(buffer: &buffer.valueBuffer)
-	}
-}
-
+@IndexKeyRecord(keyPrefix: 4973231345230152924, fieldsVersion: 20, "key")
 struct MigratableKeyOnlyRecord: Hashable {
 	let key: UInt
 	let value: String
 	
-	static let valuePlaceholder = "<placeholder>"
+#warning("static properties are broken in the macro")
+//	static let valuePlaceholder = "<placeholder>"
 }
 
-extension MigratableKeyOnlyRecord: IndexKeyRecord {
-	typealias IndexKey = KeyOnlyRecord.IndexKey
-	typealias Fields = Tuple<String>
-
-	public static var keyPrefix: Int { KeyOnlyRecord.keyPrefix }
-	public static var fieldsVersion: Int { 20 }
-	var indexKey: IndexKey {
-		Tuple(key)
-	}
-
-	public var fieldsSerializedSize: Int {
-		value.serializedSize
-	}
-
-	public func serialize(into buffer: inout Empire.SerializationBuffer) {
-		key.serialize(into: &buffer.keyBuffer)
-		value.serialize(into: &buffer.valueBuffer)
-	}
-	
-	init(_ buffer: inout Empire.DeserializationBuffer) throws {
-		self.key = try UInt(buffer: &buffer.keyBuffer)
-		self.value = try String(buffer: &buffer.valueBuffer)
-	}
-	
+extension MigratableKeyOnlyRecord {
 	// this is the code that actually checks for and peforms the migration
 	init(_ buffer: inout DeserializationBuffer, version: Int) throws {
 		switch version {
 		case KeyOnlyRecord.fieldsVersion:
 			self.key = try UInt(buffer: &buffer.keyBuffer)
-			self.value = Self.valuePlaceholder
+//			self.value = Self.valuePlaceholder
+			self.value = "<placeholder>"
 		default:
 			throw Self.unsupportedMigrationError(for: version)
 		}
@@ -345,6 +313,8 @@ extension IndexKeyRecordTests {
 
 extension IndexKeyRecordTests {
 	@Test func mismatchedFieldsVersion() async throws {
+		#expect(MismatchedKeyOnlyRecord.keyPrefix == KeyOnlyRecord.keyPrefix)
+		
 		let mismatchedRecord = MismatchedKeyOnlyRecord(key: 5, value: "hello")
 
 		let store = try Store(url: Self.storeURL)
@@ -369,6 +339,8 @@ extension IndexKeyRecordTests {
 	}
 	
 	@Test func migratableFieldsVersion() async throws {
+		#expect(MigratableKeyOnlyRecord.keyPrefix == KeyOnlyRecord.keyPrefix)
+		
 		let record = KeyOnlyRecord(key: 5)
 
 		let store = try Store(url: Self.storeURL)
@@ -382,6 +354,18 @@ extension IndexKeyRecordTests {
 		}
 
 		#expect(output?.key == 5)
-		#expect(output?.value == MigratableKeyOnlyRecord.valuePlaceholder)
+//		#expect(output?.value == MigratableKeyOnlyRecord.valuePlaceholder)
+		#expect(output?.value == "<placeholder>")
+	}
+}
+
+extension IndexKeyRecordTests {
+	@Test func validatedVersion() {
+		#expect(VerifiedVersion.fieldsVersion == 8366809093122785258)
+	}
+	
+	@Test func customVersions() {
+		#expect(CustomVersion.keyPrefix == 5)
+		#expect(CustomVersion.fieldsVersion == 10)
 	}
 }

@@ -6,15 +6,25 @@ import SwiftSyntaxMacros
 enum IndexKeyRecordMacroError: Error, CustomStringConvertible {
 	case invalidType
 	case invalidArguments
+	case recordValidationFailure
 
 	var description: String {
 		switch self {
 		case .invalidType:
 			return "Record macro can only be attached to a struct"
+		case .recordValidationFailure:
+			return "oh"
 		case .invalidArguments:
 			return "Record macro requires static string arguments"
 		}
 	}
+}
+
+public enum RecordVersion {
+	case automatic
+	case custom(key: Int, fields: Int)
+	case customFields(Int)
+	case validated(Int)
 }
 
 public struct IndexKeyRecordMacro: ExtensionMacro {
@@ -26,14 +36,69 @@ public struct IndexKeyRecordMacro: ExtensionMacro {
 		in context: some MacroExpansionContext
 	) throws -> [ExtensionDeclSyntax] {
 		let keyMemberNames = try keyMemberNames(node: node)
+		let version = try recordValidation(node: node)
 		let args = try RecordMacroArguments(type: type, declaration: declaration, keyMemberNames: keyMemberNames)
 
 		return [
-			try extensionDecl(argument: args),
+			try extensionDecl(argument: args, version: version),
 			try dataManipulationExtensionDecl(argument: args),
 		]
 	}
 
+	private static func recordValidation(node: AttributeSyntax) throws -> RecordVersion {
+		guard
+			case let .argumentList(arguments) = node.arguments,
+			arguments.isEmpty == false
+		else {
+			throw IndexKeyRecordMacroError.invalidArguments
+		}
+
+		var validatedValue: Int?
+		var keyPrefixValue: Int?
+		var fieldsVersionValue: Int?
+		
+		for argument in arguments {
+			switch argument.label?.text {
+			case "validated":
+				validatedValue = argument
+					.expression
+					.as(IntegerLiteralExprSyntax.self)
+					.flatMap {
+						Int($0.literal.text)
+					}
+			case "keyPrefix":
+				keyPrefixValue = argument
+					.expression
+					.as(IntegerLiteralExprSyntax.self)
+					.flatMap {
+						Int($0.literal.text)
+					}
+			case "fieldsVersion":
+				fieldsVersionValue = argument
+					.expression
+					.as(IntegerLiteralExprSyntax.self)
+					.flatMap {
+						Int($0.literal.text)
+					}
+			default:
+				break
+			}
+		}
+		
+		switch (validatedValue, keyPrefixValue, fieldsVersionValue) {
+		case let (nil, b?, c?):
+			return RecordVersion.custom(key: b, fields: c)
+		case let (a?, nil, nil):
+			return RecordVersion.validated(a)
+		case let (nil, nil, c?):
+			return RecordVersion.customFields(c)
+		case (nil, nil, nil):
+			return .automatic
+		default:
+			throw IndexKeyRecordMacroError.invalidArguments
+		}
+	}
+	
 	private static func keyMemberNames(node: AttributeSyntax) throws -> [String] {
 		guard
 			case let .argumentList(arguments) = node.arguments,
@@ -58,36 +123,67 @@ public struct IndexKeyRecordMacro: ExtensionMacro {
 
 extension IndexKeyRecordMacro {
 	private static func keyPrefixAccessor(
-		argument: RecordMacroArguments<some TypeSyntaxProtocol, some DeclGroupSyntax>
+		argument: RecordMacroArguments<some TypeSyntaxProtocol, some DeclGroupSyntax>,
+		version: RecordVersion
 	) throws -> VariableDeclSyntax {
 		let output = argument.type.trimmedDescription
 
-		let schemaHash = output.checksum
-		let literal = IntegerLiteralExprSyntax(schemaHash)
+		let schemaHash: Int
+		
+		switch version {
+		case .automatic, .validated, .customFields:
+			schemaHash = output.sdbmHashValue
+		case let .custom(key: value, fields: _):
+			schemaHash = value
+		}
 
+		let literal = IntegerLiteralExprSyntax(schemaHash)
+		
 		return try VariableDeclSyntax(
 			"""
+/// Input: "\(raw: output)"
 public static var keyPrefix: Int { \(literal) }
 """
 		)
 	}
 
 	/// Have to preserve types and order
-	private static func fieldsVersionAccessor(members: [PatternBindingSyntax]) throws -> VariableDeclSyntax {
-		let output = members.map { $0.description }.joined(separator: ",")
+	private static func fieldsVersionAccessor(
+		members: [PatternBindingSyntax],
+		version: RecordVersion
+	) throws -> VariableDeclSyntax {
+		let output = members.map { $0.trimmedDescription }.joined(separator: ",")
 
-		let schemaHash = output.checksum
+		let schemaHash: Int
+		
+		switch version {
+		case .automatic:
+			schemaHash = output.sdbmHashValue
+		case let .custom(key: _, fields: value):
+			schemaHash = value
+		case let .customFields(value):
+			schemaHash = value
+		case let .validated(value):
+			schemaHash = output.sdbmHashValue
+			
+			if value != schemaHash {
+				throw IndexKeyRecordMacroError.recordValidationFailure
+			}
+		}
+
 		let literal = IntegerLiteralExprSyntax(schemaHash)
 
 		return try VariableDeclSyntax(
 			"""
+/// Input: "\(raw: output)"
 public static var fieldsVersion: Int { \(literal) }
 """
 		)
 	}
 
 	private static func extensionDecl(
-		argument: RecordMacroArguments<some TypeSyntaxProtocol, some DeclGroupSyntax>
+		argument: RecordMacroArguments<some TypeSyntaxProtocol, some DeclGroupSyntax>,
+		version: RecordVersion
 	) throws -> ExtensionDeclSyntax {
 		let keyTupleArguments = argument.keyMemberNames
 			.joined(separator: ", ")
@@ -141,15 +237,15 @@ public var fieldsSerializedSize: Int {
 }
 """
 		)
-
+		
 		return try ExtensionDeclSyntax(
 	"""
 extension \(argument.type.trimmed): IndexKeyRecord {
 	public typealias IndexKey = Tuple<\(raw: keyTypes)>
 	public typealias Fields = Tuple<\(raw: fieldTypes)>
 
-	\(try keyPrefixAccessor(argument: argument))
-	\(try fieldsVersionAccessor(members: argument.members))
+	\(try keyPrefixAccessor(argument: argument, version: version))
+	\(try fieldsVersionAccessor(members: argument.members, version: version))
 
 	\(fieldsSerializedSizeVar)
 

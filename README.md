@@ -126,6 +126,31 @@ extension struct Person {
 }
 ```
 
+### Schema Version Management
+
+Changing your record types can result in catastrophic failure, so you want to be really careful with them. The `IndexKeyRecord` macro supports a number of other features that can help with migration and schema management.
+
+You can manually encode the field hash into your types to get build-time verification that your schema hasn't changed. What you can do here is inspect the macro output, grab the hash, and then supply it as an argument to the macro. If anything is accidentally changed, an error will be generated.
+
+```swift
+@IndexKeyRecord(validated: 8366809093122785258, "key")
+public struct VerifiedVersion: Sendable {
+	let key: Int
+}
+```
+
+You can also manually manage the key prefix and field version. This can be useful for easier version management, but you are giving up automated checks by doing this.
+
+```swift
+@IndexKeyRecord(keyPrefix: 1, fieldsVersion: 2, "key")
+struct ManuallyVersionedRecord: Sendable {
+	let key: Int
+	let value: String
+}
+```
+
+For reference, the hash algorithm used by the automated system is [sdbm](https://www.partow.net/programming/hashfunctions/#SDBMHashFunction).
+
 ## `IndexKeyRecord` Conformance
 
 The `@IndexKeyRecord` macro expands to a conformance to the `IndexKeyRecord` protocol. You can use this directly, but it isn't easy. You have to handle binary serialization and deserialization of all your fields. It's also critical that you version your type's serialization format.

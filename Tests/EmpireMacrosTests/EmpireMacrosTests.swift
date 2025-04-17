@@ -6,6 +6,7 @@ import Testing
 
 #if canImport(EmpireMacroMacros)
 import EmpireMacros
+import MacroInterface
 
 let testMacros: [String: Macro.Type] = [
     "IndexKeyRecord": IndexKeyRecordMacro.self,
