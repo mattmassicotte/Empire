@@ -55,7 +55,7 @@ jobs:
           swift package reset
           swift package resolve
           swift package resolve --version ${{ matrix.swift-syntax-version }} swift-syntax
-          set -o pipefail && xcodebuild -scheme Empire-Package -destination "${{ matrix.destination }}" test | xcbeautify
+          set -o pipefail && xcodebuild -scheme Empire-Package -destination "${{ matrix.destination }}" -configuration ${{ matrix.configuration }} test | xcbeautify
 
   linux_test:
     name: Test Linux
@@ -94,7 +94,7 @@ jobs:
           . ~/.local/share/swiftly/env.sh
           hash -r
           swiftly install --use ${{ matrix.swift-version }}
-      - name: Test
+      - name: Test Swift ${{ matrix.swift-version }} / swift-syntax ${{ matrix.swift-syntax-version }} / ${{ matrix.configuration }}
         run: |
           . ~/.local/share/swiftly/env.sh
           hash -r
