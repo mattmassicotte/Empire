@@ -51,6 +51,13 @@ dependencies: [
 ]
 ```
 
+## Building
+
+**Note**: requires Xcode 16
+
+- clone the repo
+- `git submodule update --init --recursive`
+
 ## Data Modeling and Queries
 
 Empire uses a data model that is **extremely** different from a traditional SQL-backed data store. It is pretty unforgiving and can be a challenge, even if you are familiar with it.
