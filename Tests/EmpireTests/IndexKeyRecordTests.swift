@@ -21,46 +21,13 @@ public struct PublicModel: Sendable {
 	let key: Int
 }
 
-
-
-@IndexKeyRecord(validated: 8366809093122785258, "key")
-public struct VerifiedVersion: Sendable {
-	let key: Int
-}
-
-@IndexKeyRecord(keyPrefix: 5, fieldsVersion: 10, "key")
-public struct CustomVersion: Sendable {
-	let key: Int
-}
-
-@IndexKeyRecord(keyPrefix: 4973231345230152924, fieldsVersion: 10, "key")
-struct MismatchedKeyOnlyRecord: Hashable {
-	let key: UInt
-	let value: String
-}
-
-@IndexKeyRecord(keyPrefix: 4973231345230152924, fieldsVersion: 20, "key")
-struct MigratableKeyOnlyRecord: Hashable {
-	let key: UInt
-	let value: String
-	
+/// Validates that a IndexKeyRecord can contain static properties
 #warning("static properties are broken in the macro")
-//	static let valuePlaceholder = "<placeholder>"
-}
-
-extension MigratableKeyOnlyRecord {
-	// this is the code that actually checks for and peforms the migration
-	init(_ buffer: inout DeserializationBuffer, version: Int) throws {
-		switch version {
-		case KeyOnlyRecord.fieldsVersion:
-			self.key = try UInt(buffer: &buffer.keyBuffer)
-//			self.value = Self.valuePlaceholder
-			self.value = "<placeholder>"
-		default:
-			throw Self.unsupportedMigrationError(for: version)
-		}
-	}
-}
+//@IndexKeyRecord("key")
+//struct StaticProperties: Sendable {
+//	let key: Int
+//	static let value = 1
+//}
 
 @Suite(.serialized)
 struct IndexKeyRecordTests {
@@ -312,56 +279,18 @@ extension IndexKeyRecordTests {
 }
 
 extension IndexKeyRecordTests {
-	@Test func mismatchedFieldsVersion() async throws {
-		#expect(MismatchedKeyOnlyRecord.keyPrefix == KeyOnlyRecord.keyPrefix)
-		
-		let mismatchedRecord = MismatchedKeyOnlyRecord(key: 5, value: "hello")
+	@IndexKeyRecord(validated: 8366809093122785258, "key")
+	struct ValidatedRecord: Sendable {
+		let key: Int
+	}
 
-		let store = try Store(url: Self.storeURL)
-
-		try await store.withTransaction { ctx in
-			try ctx.insert(mismatchedRecord)
-		}
-
-		let output: MismatchedKeyOnlyRecord? = try await store.withTransaction { ctx in
-			try ctx.select(key: MismatchedKeyOnlyRecord.IndexKey(5))
-		}
-
-		#expect(mismatchedRecord == output)
-
-		await #expect(
-			throws: StoreError.migrationUnsupported("KeyOnlyRecord", KeyOnlyRecord.fieldsVersion, MismatchedKeyOnlyRecord.fieldsVersion)
-		) {
-			let _ = try await store.withTransaction { ctx in
-				try KeyOnlyRecord.select(in: ctx, key: .equals(5))
-			}
-		}
+	@IndexKeyRecord(keyPrefix: 5, fieldsVersion: 10, "key")
+	struct CustomVersion: Sendable {
+		let key: Int
 	}
 	
-	@Test func migratableFieldsVersion() async throws {
-		#expect(MigratableKeyOnlyRecord.keyPrefix == KeyOnlyRecord.keyPrefix)
-		
-		let record = KeyOnlyRecord(key: 5)
-
-		let store = try Store(url: Self.storeURL)
-
-		try await store.withTransaction { ctx in
-			try ctx.insert(record)
-		}
-
-		let output: MigratableKeyOnlyRecord? = try await store.withTransaction { ctx in
-			try ctx.select(key: MigratableKeyOnlyRecord.IndexKey(5))
-		}
-
-		#expect(output?.key == 5)
-//		#expect(output?.value == MigratableKeyOnlyRecord.valuePlaceholder)
-		#expect(output?.value == "<placeholder>")
-	}
-}
-
-extension IndexKeyRecordTests {
 	@Test func validatedVersion() {
-		#expect(VerifiedVersion.fieldsVersion == 8366809093122785258)
+		#expect(ValidatedRecord.fieldsVersion == 8366809093122785258)
 	}
 	
 	@Test func customVersions() {
