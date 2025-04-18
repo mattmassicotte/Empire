@@ -10,6 +10,20 @@ struct TestRecord: Hashable {
 	var c: String
 }
 
+@IndexKeyRecord(keyPrefix: -7225243746777116894, "a", "b")
+struct LessThanTestRecord: Hashable {
+	let a: String
+	let b: UInt
+	var c: String
+}
+
+@IndexKeyRecord(keyPrefix: -7225243746777116892, "a", "b")
+struct GreaterThanTestRecord: Hashable {
+	let a: String
+	let b: UInt
+	var c: String
+}
+
 @IndexKeyRecord("key")
 struct KeyOnlyRecord: Hashable {
 	let key: UInt
@@ -38,6 +52,17 @@ struct IndexKeyRecordTests {
 		try FileManager.default.createDirectory(at: Self.storeURL, withIntermediateDirectories: false)
 	}
 
+	/// If this test fails, many other tests could fail too
+	@Test func validateTestRecords() {
+		#expect(TestRecord.keyPrefix < GreaterThanTestRecord.keyPrefix)
+		#expect(TestRecord.keyPrefix + 1 == GreaterThanTestRecord.keyPrefix)
+		#expect(TestRecord.fieldsVersion == GreaterThanTestRecord.fieldsVersion)
+
+		#expect(TestRecord.keyPrefix > LessThanTestRecord.keyPrefix)
+		#expect(TestRecord.keyPrefix - 1 == LessThanTestRecord.keyPrefix)
+		#expect(TestRecord.fieldsVersion == LessThanTestRecord.fieldsVersion)
+	}
+	
 	@Test func insertAndSelect() async throws {
 		let record = TestRecord(a: "hello", b: 42, c: "goodbye")
 
@@ -85,7 +110,7 @@ struct IndexKeyRecordTests {
 
 		#expect(output == record)
 	}
-
+	
 	@Test func selectGreater() async throws {
 		let store = try Store(url: Self.storeURL)
 
@@ -93,6 +118,7 @@ struct IndexKeyRecordTests {
 			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
+//			try ctx.insert(GreaterThanTestRecord(a: "hello", b: 41, c: "b"))
 		}
 
 		let records = try await store.withTransaction { ctx in
@@ -114,6 +140,7 @@ struct IndexKeyRecordTests {
 			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
+			try ctx.insert(GreaterThanTestRecord(a: "hello", b: 41, c: "b"))
 		}
 
 		let records = try await store.withTransaction { ctx in
@@ -135,6 +162,7 @@ struct IndexKeyRecordTests {
 			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
+//			try ctx.insert(LessThanTestRecord(a: "hello", b: 41, c: "b"))
 		}
 
 		let records = try await store.withTransaction { ctx in
@@ -156,6 +184,7 @@ struct IndexKeyRecordTests {
 			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
+//			try ctx.insert(LessThanTestRecord(a: "hello", b: 41, c: "b"))
 		}
 
 		let records = try await store.withTransaction { ctx in
@@ -178,6 +207,8 @@ struct IndexKeyRecordTests {
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
 			try ctx.insert(TestRecord(a: "hello", b: 43, c: "d"))
+//			try ctx.insert(LessThanTestRecord(a: "hello", b: 41, c: "b"))
+//			try ctx.insert(GreaterThanTestRecord(a: "hello", b: 41, c: "b"))
 		}
 
 		let records = try await store.withTransaction { ctx in
@@ -200,6 +231,8 @@ struct IndexKeyRecordTests {
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
 			try ctx.insert(TestRecord(a: "hello", b: 43, c: "d"))
+			try ctx.insert(LessThanTestRecord(a: "hello", b: 41, c: "b"))
+			try ctx.insert(GreaterThanTestRecord(a: "hello", b: 41, c: "b"))
 		}
 
 		let records = try await store.withTransaction { ctx in
@@ -245,6 +278,7 @@ extension IndexKeyRecordTests {
 			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
+			try ctx.insert(GreaterThanTestRecord(a: "hello", b: 41, c: "b"))
 		}
 
 		let records: [TestRecord] = try await store.withTransaction { ctx in
@@ -284,17 +318,28 @@ extension IndexKeyRecordTests {
 		let key: Int
 	}
 
+	@Test func validatedVersion() {
+		#expect(ValidatedRecord.fieldsVersion == 8366809093122785258)
+	}
+
 	@IndexKeyRecord(keyPrefix: 5, fieldsVersion: 10, "key")
 	struct CustomVersion: Sendable {
 		let key: Int
-	}
-	
-	@Test func validatedVersion() {
-		#expect(ValidatedRecord.fieldsVersion == 8366809093122785258)
 	}
 	
 	@Test func customVersions() {
 		#expect(CustomVersion.keyPrefix == 5)
 		#expect(CustomVersion.fieldsVersion == 10)
 	}
+	
+	@IndexKeyRecord(keyPrefix: -5, fieldsVersion: -10, "key")
+	struct CustomNegativeVersion: Sendable {
+		let key: Int
+	}
+	
+	@Test func customNegativeVersions() {
+		#expect(CustomNegativeVersion.keyPrefix == -5)
+		#expect(CustomNegativeVersion.fieldsVersion == -10)
+	}
+
 }

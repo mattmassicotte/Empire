@@ -24,6 +24,7 @@ public enum RecordVersion {
 	case automatic
 	case custom(key: Int, fields: Int)
 	case customFields(Int)
+	case customKey(Int)
 	case validated(Int)
 }
 
@@ -45,6 +46,28 @@ public struct IndexKeyRecordMacro: ExtensionMacro {
 		]
 	}
 
+	private static func decodeInteger(_ element: LabeledExprListSyntax.Element) -> Int? {
+		let prefixOp = element
+			.expression
+			.as(PrefixOperatorExprSyntax.self)
+		
+		let negation = prefixOp?.operator.tokenKind == .prefixOperator("-")
+		
+		let intExp = prefixOp?.expression ?? element.expression
+		
+		let value = intExp
+			.as(IntegerLiteralExprSyntax.self)
+			.flatMap {
+				Int($0.literal.text)
+			}
+		
+		guard let value else {
+			return nil
+		}
+		
+		return negation ? value * -1 : value
+	}
+	
 	private static func recordValidation(node: AttributeSyntax) throws -> RecordVersion {
 		guard
 			case let .argumentList(arguments) = node.arguments,
@@ -60,26 +83,11 @@ public struct IndexKeyRecordMacro: ExtensionMacro {
 		for argument in arguments {
 			switch argument.label?.text {
 			case "validated":
-				validatedValue = argument
-					.expression
-					.as(IntegerLiteralExprSyntax.self)
-					.flatMap {
-						Int($0.literal.text)
-					}
+				validatedValue = decodeInteger(argument)
 			case "keyPrefix":
-				keyPrefixValue = argument
-					.expression
-					.as(IntegerLiteralExprSyntax.self)
-					.flatMap {
-						Int($0.literal.text)
-					}
+				keyPrefixValue = decodeInteger(argument)
 			case "fieldsVersion":
-				fieldsVersionValue = argument
-					.expression
-					.as(IntegerLiteralExprSyntax.self)
-					.flatMap {
-						Int($0.literal.text)
-					}
+				fieldsVersionValue = decodeInteger(argument)
 			default:
 				break
 			}
@@ -92,6 +100,8 @@ public struct IndexKeyRecordMacro: ExtensionMacro {
 			return RecordVersion.validated(a)
 		case let (nil, nil, c?):
 			return RecordVersion.customFields(c)
+		case let (nil, b?, nil):
+			return RecordVersion.customKey(b)
 		case (nil, nil, nil):
 			return .automatic
 		default:
@@ -135,6 +145,8 @@ extension IndexKeyRecordMacro {
 			schemaHash = output.sdbmHashValue
 		case let .custom(key: value, fields: _):
 			schemaHash = value
+		case let .customKey(value):
+			schemaHash = value
 		}
 
 		let literal = IntegerLiteralExprSyntax(schemaHash)
@@ -157,7 +169,7 @@ public static var keyPrefix: Int { \(literal) }
 		let schemaHash: Int
 		
 		switch version {
-		case .automatic:
+		case .automatic, .customKey:
 			schemaHash = output.sdbmHashValue
 		case let .custom(key: _, fields: value):
 			schemaHash = value
