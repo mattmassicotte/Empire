@@ -38,17 +38,46 @@ extension TransactionContext {
 }
 
 extension TransactionContext {
-	private func deserialize<Record: IndexKeyRecord>(keyValue: MDB_val, buffer: inout DeserializationBuffer) throws -> Record {
+	enum DeserializationResult<Record: IndexKeyRecord> {
+		case success(Record)
+		case migrated(Record)
+		case prefixMismatch(Int)
+		
+		var record: Record? {
+			switch self {
+			case let .success(value), let .migrated(value):
+				return value
+			case .prefixMismatch:
+				return nil
+			}
+		}
+		
+		var recordIfMatching: Record {
+			get throws {
+				switch self {
+				case let .success(value), let .migrated(value):
+					return value
+				case let .prefixMismatch(readPrefix):
+					throw StoreError.recordPrefixMismatch(String(describing: Record.self), Record.keyPrefix, readPrefix)
+				}
+			}
+		}
+	}
+	
+	private func deserialize<Record: IndexKeyRecord>(
+		keyValue: MDB_val,
+		buffer: inout DeserializationBuffer
+	) throws -> DeserializationResult<Record> {
 		let prefix = Record.keyPrefix
 
 		let readPrefix = try Int(buffer: &buffer.keyBuffer)
 		if prefix != readPrefix {
-			throw StoreError.recordPrefixMismatch(String(describing: Record.self), prefix, readPrefix)
+			return .prefixMismatch(readPrefix)
 		}
 
 		let version = try Int(buffer: &buffer.valueBuffer)
 		if version != Record.fieldsVersion {
-			// create the new record
+			// create the new migrated record
 			let newRecord = try Record(&buffer, version: version)
 
 			// delete the existing record
@@ -57,10 +86,12 @@ extension TransactionContext {
 			// insert the new one
 			try insert(newRecord)
 
-			return newRecord
+			return .migrated(newRecord)
 		}
 
-		return try Record(&buffer)
+		let record = try Record(&buffer)
+		
+		return .success(record)
 	}
 }
 
@@ -76,7 +107,7 @@ extension TransactionContext {
 
 		var localBuffer = DeserializationBuffer(key: keyVal, value: valueVal)
 
-		return try deserialize(keyValue: keyVal, buffer: &localBuffer)
+		return try deserialize(keyValue: keyVal, buffer: &localBuffer).recordIfMatching
 	}
 
 	/// Perform a select and copy the resulting data into a new Record.
@@ -133,38 +164,82 @@ extension TransactionContext {
 			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
 
-			return try cursor.map { pair in
+			var records: [Record] = []
+			
+			for pair in cursor {
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
-				return try deserialize(keyValue: pair.0, buffer: &localBuffer)
+				let result: DeserializationResult<Record> = try deserialize(keyValue: pair.0, buffer: &localBuffer)
+				
+				switch result {
+				case let .migrated(record), let .success(record):
+					records.append(record)
+				case .prefixMismatch:
+					return records
+				}
 			}
+			
+			return records
 		case .greaterOrEqual:
 			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
 
-			return try cursor.map { pair in
+			var records: [Record] = []
+			
+			for pair in cursor {
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
-				return try deserialize(keyValue: pair.0, buffer: &localBuffer)
+				let result: DeserializationResult<Record> = try deserialize(keyValue: pair.0, buffer: &localBuffer)
+				
+				switch result {
+				case let .migrated(record), let .success(record):
+					records.append(record)
+				case .prefixMismatch:
+					return records
+				}
 			}
+			
+			return records
 		case .lessThan:
 			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
 
-			return try cursor.map { pair in
+			var records: [Record] = []
+			
+			for pair in cursor {
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
-				return try deserialize(keyValue: pair.0, buffer: &localBuffer)
+				let result: DeserializationResult<Record> = try deserialize(keyValue: pair.0, buffer: &localBuffer)
+				
+				switch result {
+				case let .migrated(record), let .success(record):
+					records.append(record)
+				case .prefixMismatch:
+					return records
+				}
 			}
+			
+			return records
 		case .lessOrEqual:
 			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
 
-			return try cursor.map { pair in
+			var records: [Record] = []
+			
+			for pair in cursor {
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
-				return try deserialize(keyValue: pair.0, buffer: &localBuffer)
+				let result: DeserializationResult<Record> = try deserialize(keyValue: pair.0, buffer: &localBuffer)
+				
+				switch result {
+				case let .migrated(record), let .success(record):
+					records.append(record)
+				case .prefixMismatch:
+					return records
+				}
 			}
+			
+			return records
 		case .range:
 			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
@@ -172,7 +247,7 @@ extension TransactionContext {
 			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
-				return try deserialize(keyValue: pair.0, buffer: &localBuffer)
+				return try deserialize(keyValue: pair.0, buffer: &localBuffer).recordIfMatching
 			}
 		case .closedRange:
 			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
@@ -181,7 +256,7 @@ extension TransactionContext {
 			return try cursor.map { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
-				return try deserialize(keyValue: pair.0, buffer: &localBuffer)
+				return try deserialize(keyValue: pair.0, buffer: &localBuffer).recordIfMatching
 			}
 		case let .within(values):
 			return try values.map { value in

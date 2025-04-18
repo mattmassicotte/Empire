@@ -117,7 +117,7 @@ struct IndexKeyRecordTests {
 			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
-//			try ctx.insert(GreaterThanTestRecord(a: "hello", b: 41, c: "b"))
+			try ctx.insert(GreaterThanTestRecord(a: "hello", b: 41, c: "b"))
 		}
 
 		let records = try await store.withTransaction { ctx in
@@ -139,7 +139,7 @@ struct IndexKeyRecordTests {
 			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
-//			try ctx.insert(GreaterThanTestRecord(a: "hello", b: 41, c: "b"))
+			try ctx.insert(GreaterThanTestRecord(a: "hello", b: 41, c: "b"))
 		}
 
 		let records = try await store.withTransaction { ctx in
@@ -161,7 +161,7 @@ struct IndexKeyRecordTests {
 			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
-//			try ctx.insert(LessThanTestRecord(a: "hello", b: 41, c: "b"))
+			try ctx.insert(LessThanTestRecord(a: "hello", b: 41, c: "b"))
 		}
 
 		let records = try await store.withTransaction { ctx in
@@ -183,7 +183,7 @@ struct IndexKeyRecordTests {
 			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
-//			try ctx.insert(LessThanTestRecord(a: "hello", b: 41, c: "b"))
+			try ctx.insert(LessThanTestRecord(a: "hello", b: 41, c: "b"))
 		}
 
 		let records = try await store.withTransaction { ctx in
@@ -206,8 +206,8 @@ struct IndexKeyRecordTests {
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
 			try ctx.insert(TestRecord(a: "hello", b: 43, c: "d"))
-//			try ctx.insert(LessThanTestRecord(a: "hello", b: 41, c: "b"))
-//			try ctx.insert(GreaterThanTestRecord(a: "hello", b: 41, c: "b"))
+			try ctx.insert(LessThanTestRecord(a: "hello", b: 41, c: "b"))
+			try ctx.insert(GreaterThanTestRecord(a: "hello", b: 41, c: "b"))
 		}
 
 		let records = try await store.withTransaction { ctx in
@@ -277,7 +277,7 @@ extension IndexKeyRecordTests {
 			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
-//			try ctx.insert(GreaterThanTestRecord(a: "hello", b: 41, c: "b"))
+			try ctx.insert(GreaterThanTestRecord(a: "hello", b: 41, c: "b"))
 		}
 
 		let records: [TestRecord] = try await store.withTransaction { ctx in
