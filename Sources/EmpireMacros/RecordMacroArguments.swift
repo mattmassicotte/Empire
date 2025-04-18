@@ -100,7 +100,7 @@ struct RecordMacroArguments<Type: TypeSyntaxProtocol, Declaration: DeclGroupSynt
 	}
 
 	var fieldMemberTypeNames: [String] {
-		fieldMembers.compactMap { $0.typeAnnotation?.type.description }
+		return fieldMembers.compactMap { $0.typeAnnotation?.type.description }
 	}
 
 	var fieldMemberNames: [String] {

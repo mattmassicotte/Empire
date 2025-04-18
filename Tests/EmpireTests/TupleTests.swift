@@ -8,6 +8,12 @@ struct TupleTests {
 
 		#expect(value.elements == 45)
 	}
+	
+	@Test func zeroValueTuple() throws {
+		let value = Tuple<EmptyValue>(EmptyValue())
+
+		#expect(value.elements == EmptyValue())
+	}
 }
 
 extension TupleTests {

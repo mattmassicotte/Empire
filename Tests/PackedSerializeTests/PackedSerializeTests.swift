@@ -116,6 +116,15 @@ extension PackedSerializeTests {
 		#expect(try Date(buffer: &outputBuffer) == dateA)
 		#expect(try Date(buffer: &outputBuffer) == dateB)
 	}
+	
+	@Test func serializeEmptyValue() throws {
+		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
+		var inputBuffer = buffer
+
+		EmptyValue().serialize(into: &inputBuffer)
+		
+		#expect(inputBuffer.baseAddress == buffer.baseAddress)
+	}
 }
 
 #endif

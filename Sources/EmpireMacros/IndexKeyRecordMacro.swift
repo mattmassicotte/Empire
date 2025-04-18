@@ -226,8 +226,7 @@ public static var fieldsVersion: Int { \(literal) }
 		let keyTypes = argument.primaryKeyTypeNamePairs
 			.map { $1 }
 			.joined(separator: ", ")
-		let fieldTypes = argument.fieldMemberTypeNames
-			.joined(separator: ", ")
+		let fieldTypes = argument.fieldMemberTypeNames.isEmpty ? "EmptyValue" : argument.fieldMemberTypeNames.joined(separator: ", ")
 
 		let fieldsInit = argument.fieldTypeNamePairs
 			.map { "self.\($0) = try \($1)(buffer: &buffer.valueBuffer)" }
