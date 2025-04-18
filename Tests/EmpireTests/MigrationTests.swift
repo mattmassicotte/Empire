@@ -14,8 +14,7 @@ struct MigratableKeyOnlyRecord: Hashable {
 	let key: UInt
 	let value: String
 	
-#warning("static properties are broken in the macro")
-//	static let valuePlaceholder = "<placeholder>"
+	static let valuePlaceholder = "<placeholder>"
 }
 
 extension MigratableKeyOnlyRecord {
@@ -24,8 +23,7 @@ extension MigratableKeyOnlyRecord {
 		switch version {
 		case KeyOnlyRecord.fieldsVersion:
 			self.key = try UInt(buffer: &buffer.keyBuffer)
-//			self.value = Self.valuePlaceholder
-			self.value = "<placeholder>"
+			self.value = Self.valuePlaceholder
 		default:
 			throw Self.unsupportedMigrationError(for: version)
 		}
@@ -83,7 +81,6 @@ struct MigrationTests {
 		}
 
 		#expect(output?.key == 5)
-//		#expect(output?.value == MigratableKeyOnlyRecord.valuePlaceholder)
-		#expect(output?.value == "<placeholder>")
+		#expect(output?.value == MigratableKeyOnlyRecord.valuePlaceholder)
 	}
 }

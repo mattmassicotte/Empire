@@ -120,6 +120,9 @@ struct RecordMacroArguments<Type: TypeSyntaxProtocol, Declaration: DeclGroupSynt
 			.compactMap {
 				$0.decl.as(VariableDeclSyntax.self)
 			}
+			.filter { varDecl in
+				varDecl.modifiers.contains(where: { $0.name.text == "static" }) == false
+			}
 			.compactMap {
 				$0.bindings.first
 			}

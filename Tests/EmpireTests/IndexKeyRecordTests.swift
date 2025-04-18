@@ -36,12 +36,11 @@ public struct PublicModel: Sendable {
 }
 
 /// Validates that a IndexKeyRecord can contain static properties
-#warning("static properties are broken in the macro")
-//@IndexKeyRecord("key")
-//struct StaticProperties: Sendable {
-//	let key: Int
-//	static let value = 1
-//}
+@IndexKeyRecord("key")
+struct StaticProperties: Sendable {
+	let key: Int
+	static let value = 1
+}
 
 @Suite(.serialized)
 struct IndexKeyRecordTests {
