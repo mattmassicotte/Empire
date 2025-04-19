@@ -31,12 +31,12 @@ struct Person {
 
 let store = try Store(path: "/path/to/store")
 
-try await store.withTransaction { context in
+try store.withTransaction { context in
     try context.insert(Person(name: "Korben", age: 45))
     try context.insert(Person(name: "Leeloo", age: 2000))
 }
 
-let records = try await store.withTransaction { context in
+let records = try store.withTransaction { context in
     try Person.select(in: context, limit: 1, name: .lessThan("Zorg"))
 }
 

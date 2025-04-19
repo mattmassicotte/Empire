@@ -32,7 +32,7 @@ public struct DeserializationBuffer {
 }
 
 /// Interface to Empire database.
-public actor Store {
+public final class Store {
 	private let environment: Environment
 	private var dbi = [String: MDB_dbi]()
 	private var keyBuffer: UnsafeMutableRawBufferPointer
@@ -66,7 +66,7 @@ public actor Store {
 #if compiler(>=6.1)
 	/// Execute a transation on a database.
 	public func withTransaction<T>(
-		_ block: sending (TransactionContext) throws -> sending T
+		_ block: (TransactionContext) throws -> sending T
 	) throws -> sending T {
 		let value = try Transaction.with(env: environment) { txn in
 			let dbi = try activeDBI(for: "mydb", txn)
@@ -86,7 +86,7 @@ public actor Store {
 #else
 	/// Execute a transation on a database.
 	public func withTransaction<T : Sendable>(
-		_ block: sending (TransactionContext) throws -> sending T
+		_ block: (TransactionContext) throws -> sending T
 	) throws -> sending T {
 		let value = try Transaction.with(env: environment) { txn in
 			let dbi = try activeDBI(for: "mydb", txn)
@@ -111,7 +111,7 @@ import Foundation
 
 extension Store {
 	/// Create an instance with a URL to the on-disk database file.
-	public init(url: URL) throws {
+	public convenience init(url: URL) throws {
 		try self.init(path: url.path)
 	}
 }

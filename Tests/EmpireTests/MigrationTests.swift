@@ -41,44 +41,44 @@ struct MigrationTests {
 		try FileManager.default.createDirectory(at: Self.storeURL, withIntermediateDirectories: false)
 	}
 	
-	@Test func mismatchedFieldsVersion() async throws {
+	@Test func mismatchedFieldsVersion() throws {
 		#expect(MismatchedKeyOnlyRecord.keyPrefix == KeyOnlyRecord.keyPrefix)
 		
 		let mismatchedRecord = MismatchedKeyOnlyRecord(key: 5, value: "hello")
 
 		let store = try Store(url: Self.storeURL)
 
-		try await store.withTransaction { ctx in
+		try store.withTransaction { ctx in
 			try ctx.insert(mismatchedRecord)
 		}
 
-		let output: MismatchedKeyOnlyRecord? = try await store.withTransaction { ctx in
+		let output: MismatchedKeyOnlyRecord? = try store.withTransaction { ctx in
 			try ctx.select(key: MismatchedKeyOnlyRecord.IndexKey(5))
 		}
 
 		#expect(mismatchedRecord == output)
 
-		await #expect(
+		#expect(
 			throws: StoreError.migrationUnsupported("KeyOnlyRecord", KeyOnlyRecord.fieldsVersion, MismatchedKeyOnlyRecord.fieldsVersion)
 		) {
-			let _ = try await store.withTransaction { ctx in
+			let _ = try store.withTransaction { ctx in
 				try KeyOnlyRecord.select(in: ctx, key: .equals(5))
 			}
 		}
 	}
 	
-	@Test func migratableFieldsVersion() async throws {
+	@Test func migratableFieldsVersion() throws {
 		#expect(MigratableKeyOnlyRecord.keyPrefix == KeyOnlyRecord.keyPrefix)
 		
 		let record = KeyOnlyRecord(key: 5)
 
 		let store = try Store(url: Self.storeURL)
 
-		try await store.withTransaction { ctx in
+		try store.withTransaction { ctx in
 			try ctx.insert(record)
 		}
 
-		let output: MigratableKeyOnlyRecord? = try await store.withTransaction { ctx in
+		let output: MigratableKeyOnlyRecord? = try store.withTransaction { ctx in
 			try ctx.select(key: MigratableKeyOnlyRecord.IndexKey(5))
 		}
 

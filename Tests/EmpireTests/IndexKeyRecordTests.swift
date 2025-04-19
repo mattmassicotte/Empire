@@ -62,65 +62,65 @@ struct IndexKeyRecordTests {
 		#expect(TestRecord.fieldsVersion == LessThanTestRecord.fieldsVersion)
 	}
 	
-	@Test func insertAndSelect() async throws {
+	@Test func insertAndSelect() throws {
 		let record = TestRecord(a: "hello", b: 42, c: "goodbye")
 
 		let store = try Store(url: Self.storeURL)
 
-		try await store.withTransaction { ctx in
+		try store.withTransaction { ctx in
 			try ctx.insert(record)
 		}
 
-		let output: TestRecord? = try await store.withTransaction { ctx in
+		let output: TestRecord? = try store.withTransaction { ctx in
 			try ctx.select(key: TestRecord.IndexKey("hello", 42))
 		}
 
 		#expect(output == record)
 	}
 
-	@Test func insertAndSelectSingleRecord() async throws {
+	@Test func insertAndSelectSingleRecord() throws {
 		let record = TestRecord(a: "hello", b: 42, c: "goodbye")
 
 		let store = try Store(url: Self.storeURL)
 
-		try await store.withTransaction { ctx in
+		try store.withTransaction { ctx in
 			try ctx.insert(record)
 		}
 
-		let records = try await store.withTransaction { ctx in
+		let records = try store.withTransaction { ctx in
 			try TestRecord.select(in: ctx, a: "hello", b: 42)
 		}
 
 		#expect(records == [record])
 	}
 
-	@Test func insertAndSelectCopy() async throws {
+	@Test func insertAndSelectCopy() throws {
 		let record = TestRecord(a: "hello", b: 42, c: "goodbye")
 
 		let store = try Store(url: Self.storeURL)
 
-		try await store.withTransaction { ctx in
+		try store.withTransaction { ctx in
 			try ctx.insert(record)
 		}
 
-		let output: TestRecord? = try await store.withTransaction { ctx in
+		let output: TestRecord? = try store.withTransaction { ctx in
 			try ctx.selectCopy(key: TestRecord.IndexKey("hello", 42))
 		}
 
 		#expect(output == record)
 	}
 	
-	@Test func selectGreater() async throws {
+	@Test func selectGreater() throws {
 		let store = try Store(url: Self.storeURL)
 
-		try await store.withTransaction { ctx in
+		try store.withTransaction { ctx in
 			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
 			try ctx.insert(GreaterThanTestRecord(a: "hello", b: 41, c: "b"))
 		}
 
-		let records = try await store.withTransaction { ctx in
+		let records = try store.withTransaction { ctx in
 			try TestRecord.select(in: ctx, a: "hello", b: .greaterThan(40))
 		}
 
@@ -132,17 +132,17 @@ struct IndexKeyRecordTests {
 		#expect(records == expected)
 	}
 
-	@Test func selectGreaterOrEqual() async throws {
+	@Test func selectGreaterOrEqual() throws {
 		let store = try Store(url: Self.storeURL)
 
-		try await store.withTransaction { ctx in
+		try store.withTransaction { ctx in
 			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
 			try ctx.insert(GreaterThanTestRecord(a: "hello", b: 41, c: "b"))
 		}
 
-		let records = try await store.withTransaction { ctx in
+		let records = try store.withTransaction { ctx in
 			try TestRecord.select(in: ctx, a: "hello", b: .greaterOrEqual(41))
 		}
 
@@ -154,17 +154,17 @@ struct IndexKeyRecordTests {
 		#expect(records == expected)
 	}
 
-	@Test func selectLessThan() async throws {
+	@Test func selectLessThan() throws {
 		let store = try Store(url: Self.storeURL)
 
-		try await store.withTransaction { ctx in
+		try store.withTransaction { ctx in
 			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
 			try ctx.insert(LessThanTestRecord(a: "hello", b: 41, c: "b"))
 		}
 
-		let records = try await store.withTransaction { ctx in
+		let records = try store.withTransaction { ctx in
 			try TestRecord.select(in: ctx, a: "hello", b: .lessThan(42))
 		}
 
@@ -176,17 +176,17 @@ struct IndexKeyRecordTests {
 		#expect(records == expected)
 	}
 
-	@Test func selectLessThanOrEqual() async throws {
+	@Test func selectLessThanOrEqual() throws {
 		let store = try Store(url: Self.storeURL)
 
-		try await store.withTransaction { ctx in
+		try store.withTransaction { ctx in
 			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
 			try ctx.insert(LessThanTestRecord(a: "hello", b: 41, c: "b"))
 		}
 
-		let records = try await store.withTransaction { ctx in
+		let records = try store.withTransaction { ctx in
 			try TestRecord.select(in: ctx, a: "hello", b: .lessOrEqual(41))
 		}
 
@@ -198,10 +198,10 @@ struct IndexKeyRecordTests {
 		#expect(records == expected)
 	}
 
-	@Test func selectRange() async throws {
+	@Test func selectRange() throws {
 		let store = try Store(url: Self.storeURL)
 
-		try await store.withTransaction { ctx in
+		try store.withTransaction { ctx in
 			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
@@ -210,7 +210,7 @@ struct IndexKeyRecordTests {
 			try ctx.insert(GreaterThanTestRecord(a: "hello", b: 41, c: "b"))
 		}
 
-		let records = try await store.withTransaction { ctx in
+		let records = try store.withTransaction { ctx in
 			try TestRecord.select(in: ctx, a: "hello", b: .range(41..<43))
 		}
 
@@ -222,10 +222,10 @@ struct IndexKeyRecordTests {
 		#expect(records == expected)
 	}
 
-	@Test func selectClosedRange() async throws {
+	@Test func selectClosedRange() throws {
 		let store = try Store(url: Self.storeURL)
 
-		try await store.withTransaction { ctx in
+		try store.withTransaction { ctx in
 			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
@@ -234,7 +234,7 @@ struct IndexKeyRecordTests {
 			try ctx.insert(GreaterThanTestRecord(a: "hello", b: 41, c: "b"))
 		}
 
-		let records = try await store.withTransaction { ctx in
+		let records = try store.withTransaction { ctx in
 			try TestRecord.select(in: ctx, a: "hello", b: .closedRange(41...42))
 		}
 
@@ -246,17 +246,17 @@ struct IndexKeyRecordTests {
 		#expect(records == expected)
 	}
 
-	@Test func selectWithin() async throws {
+	@Test func selectWithin() throws {
 		let store = try Store(url: Self.storeURL)
 
-		try await store.withTransaction { ctx in
+		try store.withTransaction { ctx in
 			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
 			try ctx.insert(TestRecord(a: "hello", b: 43, c: "d"))
 		}
 
-		let records = try await store.withTransaction { ctx in
+		let records = try store.withTransaction { ctx in
 			try TestRecord.select(in: ctx, a: "hello", b: .within([41, 43]))
 		}
 
@@ -270,17 +270,17 @@ struct IndexKeyRecordTests {
 }
 
 extension IndexKeyRecordTests {
-	@Test func selectGreaterWithLimit() async throws {
+	@Test func selectGreaterWithLimit() throws {
 		let store = try Store(url: Self.storeURL)
 
-		try await store.withTransaction { ctx in
+		try store.withTransaction { ctx in
 			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
 			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
 			try ctx.insert(TestRecord(a: "hello", b: 42, c: "c"))
 			try ctx.insert(GreaterThanTestRecord(a: "hello", b: 41, c: "b"))
 		}
 
-		let records: [TestRecord] = try await store.withTransaction { ctx in
+		let records: [TestRecord] = try store.withTransaction { ctx in
 			try TestRecord.select(in: ctx, limit: 1, a: "hello", b: .greaterThan(40))
 		}
 
@@ -293,17 +293,17 @@ extension IndexKeyRecordTests {
 }
 
 extension IndexKeyRecordTests {
-	@Test func delete() async throws {
+	@Test func delete() throws {
 		let record = TestRecord(a: "hello", b: 42, c: "goodbye")
 
 		let store = try Store(url: Self.storeURL)
 
-		try await store.withTransaction { ctx in
+		try store.withTransaction { ctx in
 			try ctx.insert(record)
 			try ctx.delete(record)
 		}
 
-		let output = try await store.withTransaction { ctx in
+		let output = try store.withTransaction { ctx in
 			try TestRecord.select(in: ctx, a: "hello", b: .equals(42))
 		}
 
