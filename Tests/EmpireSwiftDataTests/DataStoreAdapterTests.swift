@@ -6,29 +6,6 @@ import Testing
 @testable import EmpireSwiftData
 
 @Model
-final class ExampleModel {
-	var name: String
-
-	init(name: String) {
-		self.name = name
-	}
-}
-
-struct ExampleVersionedSchema : VersionedSchema {
-	static let models: [any PersistentModel.Type] = [ExampleModel.self]
-	static var versionIdentifier: Schema.Version {
-		Schema.Version(1, 0, 0)
-	}
-}
-
-struct ExampleMigrationPlan : SchemaMigrationPlan {
-	static let schemas: [VersionedSchema.Type] = [ExampleVersionedSchema.self]
-	static var stages: [MigrationStage] {
-		[]
-	}
-}
-
-@Model
 final class Item {
 	var name: String
 	
@@ -37,27 +14,21 @@ final class Item {
 	}
 }
 
-extension ModelContainer {
-	static var shared: ModelContainer {
-		try! ModelContainer(
-			for: Schema([Item.self]),
-			configurations: .init(isStoredInMemoryOnly: true)
-		)
-	}
-}
-
+@Suite(.serialized)
 struct DataStoreAdapterTests {
-	@Test
-	@available(macOS 15, iOS 18, tvOS 18, watchOS 11, visionOS 2, *)
-	func createAdapter() async throws {
-		let schema = Schema([Item.self])
-		let url = URL(fileURLWithPath: "/tmp/empire_datastore_store", isDirectory: true)
-		try? FileManager.default.removeItem(at: url)
-		try FileManager.default.createDirectory(at: url, withIntermediateDirectories: false)
+	static let storeURL = URL(fileURLWithPath: "/tmp/empire_test_store", isDirectory: true)
 
-		let adapterConfiguration = DataStoreAdapter.Configuration(name: "name", schema: schema, url: url)
+	init() throws {
+		try? FileManager.default.removeItem(at: Self.storeURL)
+		try FileManager.default.createDirectory(at: Self.storeURL, withIntermediateDirectories: false)
+	}
+
+	@available(macOS 15, iOS 18, tvOS 18, watchOS 11, visionOS 2, *)
+	@Test func createAdapter() async throws {
+		let schema = Schema([Item.self])
+		let config = DataStoreAdapter.Configuration(name: "name", schema: schema, url: Self.storeURL)
 		
-		let container = try ModelContainer(for: schema, configurations: [adapterConfiguration])
+		let container = try ModelContainer(for: schema, configurations: [config])
 		let context = ModelContext(container)
 		
 		let item = Item(name: "itemA")
