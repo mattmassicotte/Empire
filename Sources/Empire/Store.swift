@@ -31,14 +31,14 @@ public struct DeserializationBuffer {
 	}
 }
 
+/// Interface to Empire database.
 public actor Store {
-	@TaskLocal private static var taskStore: Store?
-
 	private let environment: Environment
 	private var dbi = [String: MDB_dbi]()
 	private var keyBuffer: UnsafeMutableRawBufferPointer
 	private var valueBuffer: UnsafeMutableRawBufferPointer
 
+	/// Create an instance with a path to the on-disk database file.
 	public init(path: String) throws {
 		self.environment = try Environment(path: path, maxDatabases: 1)
 		self.keyBuffer = UnsafeMutableRawBufferPointer.allocate(
@@ -63,9 +63,10 @@ public actor Store {
 		return value
 	}
 
-	// I would like to lift the Sendable requirement, but the compiler will not let me right now
-	// https://github.com/swiftlang/swift/issues/75473
-	public func withTransaction<T: Sendable>(_ block: sending (TransactionContext) throws -> sending T) async throws -> sending T {
+	/// Execute a transation on a database.
+	public func withTransaction<T>(
+		_ block: sending (TransactionContext) throws -> sending T
+	) throws -> sending T {
 		let value = try Transaction.with(env: environment) { txn in
 			let dbi = try activeDBI(for: "mydb", txn)
 
@@ -87,6 +88,7 @@ public actor Store {
 import Foundation
 
 extension Store {
+	/// Create an instance with a URL to the on-disk database file.
 	public init(url: URL) throws {
 		try self.init(path: url.path)
 	}

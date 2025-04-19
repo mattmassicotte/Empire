@@ -31,13 +31,13 @@ struct KeyOnlyRecord: Hashable {
 
 /// Validates that a IndexKeyRecord can be public.
 @IndexKeyRecord("key")
-public struct PublicModel: Sendable {
+public struct PublicModel : Sendable {
 	let key: Int
 }
 
 /// Validates that a IndexKeyRecord can contain static properties
 @IndexKeyRecord("key")
-struct StaticProperties: Sendable {
+struct StaticProperties {
 	let key: Int
 	static let value = 1
 }

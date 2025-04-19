@@ -18,7 +18,7 @@ public struct Transaction {
 		guard txn != nil else { throw MDBError.problem }
 	}
 
-	public static func with<T>(env: Environment, block: (inout Transaction) throws -> T) throws -> sending T {
+	public static func with<T>(env: Environment, block: (inout Transaction) throws -> sending T) throws -> sending T {
 		var transaction = try Transaction(env: env)
 
 		do {
