@@ -133,6 +133,58 @@ extension struct Person {
 }
 ```
 
+Here's a possible approach to managing migrations for your record types over time in a more structured way.
+
+```swift
+// This represents your current schema
+@IndexKeyRecord("key")
+struct MyRecord {
+    let key: Int
+    let a: String
+    let b: String
+    let c: String
+}
+
+extension MyRecord {
+    // Here, you keep previous versions of your records.
+    @IndexKeyRecord("key")
+    private struct MyRecord1 {
+        let key: Int
+        let a: String
+    }
+
+    @IndexKeyRecord("key")
+    private struct MyRecord2 {
+        let key: Int
+        let a: String
+        let b: String
+    }
+
+    // implement the migration initializer
+    public init(_ buffer: inout DeserializationBuffer, version: Int) throws {
+        // switch over the possible previous field versions and migrate as necessary
+        switch version {
+        case MyRecord1.fieldsVersion:
+            let record1 = try MyRecord1(&buffer)
+
+            self.key = record1.key
+            self.a = record1.a
+            self.b = ""
+            self.c = ""
+        case MyRecord2.fieldsVersion:
+            let record2 = try MyRecord2(&buffer)
+
+            self.key = record2.key
+            self.a = record2.a
+            self.b = record2.b
+            self.c = ""
+        default:
+            throw Self.unsupportedMigrationError(for: version)
+        }
+    }
+}
+```
+
 ### Schema Version Management
 
 Changing your record types can result in catastrophic failure, so you want to be really careful with them. The `IndexKeyRecord` macro supports a number of other features that can help with migration and schema management.
