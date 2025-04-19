@@ -5,11 +5,11 @@ import Testing
 #if canImport(EmpireMacros) && canImport(CloudKit)
 import EmpireMacros
 
-let specs: [String: MacroSpec] = [
-	"CloudKitRecord": MacroSpec(type: CloudKitRecordMacro.self)
-]
-
 struct CloudKitRecordMacroTests {
+	let specs: [String: MacroSpec] = [
+		"CloudKitRecord": MacroSpec(type: CloudKitRecordMacro.self)
+	]
+
 	@Test func testMacro() throws {
 		assertMacroExpansion(
 """

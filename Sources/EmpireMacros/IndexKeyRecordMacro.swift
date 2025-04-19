@@ -232,26 +232,26 @@ public static var fieldsVersion: Int { \(literal) }
 			.map { "self.\($0) = try \($1)(buffer: &buffer.valueBuffer)" }
 			.joined(separator: "\n")
 
+		let fullInit = [keyInit, fieldsInit].joined(separator: "")
+		let fullSerialize = [keySerialize, fieldsSerialize].joined(separator: "")
+		
 		let serializeFunction = try FunctionDeclSyntax(
-			"""
+"""
 public func serialize(into buffer: inout SerializationBuffer) {
-	\(raw: keySerialize)
-	\(raw: fieldsSerialize)
+	\(raw: fullSerialize)
 }
 """
 		)
 
 		let fieldsSerializedSizeVar = try VariableDeclSyntax(
 """
-public var fieldsSerializedSize: Int {
-	\(raw: fieldSize)
-}
+public var fieldsSerializedSize: Int { \(raw: fieldSize) }
 """
 		)
 		
 		return try ExtensionDeclSyntax(
 	"""
-extension \(argument.type.trimmed): IndexKeyRecord {
+extension \(argument.type.trimmed) : IndexKeyRecord {
 	public typealias IndexKey = Tuple<\(raw: keyTypes)>
 	public typealias Fields = Tuple<\(raw: fieldTypes)>
 
@@ -260,15 +260,12 @@ extension \(argument.type.trimmed): IndexKeyRecord {
 
 	\(fieldsSerializedSizeVar)
 
-	public var indexKey: IndexKey {
-		Tuple(\(raw: keyTupleArguments))
-	}
+	public var indexKey: IndexKey { Tuple(\(raw: keyTupleArguments)) }
 
 	\(serializeFunction)
 
 	public init(_ buffer: inout DeserializationBuffer) throws {
-		\(raw: keyInit)
-		\(raw: fieldsInit)
+		\(raw: fullInit)
 	}
 }
 """
