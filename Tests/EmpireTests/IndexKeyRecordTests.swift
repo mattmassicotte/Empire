@@ -312,13 +312,16 @@ extension IndexKeyRecordTests {
 }
 
 extension IndexKeyRecordTests {
-	@IndexKeyRecord(validated: 8366809093122785258, "key")
+	@IndexKeyRecord(validated: 1699611724785793992, "key")
 	struct ValidatedRecord: Sendable {
 		let key: Int
+		let a: Int
+		let b: String
+		let c: Data
 	}
 
 	@Test func validatedVersion() {
-		#expect(ValidatedRecord.fieldsVersion == 8366809093122785258)
+		#expect(ValidatedRecord.fieldsVersion == 1699611724785793992)
 	}
 
 	@IndexKeyRecord(keyPrefix: 5, fieldsVersion: 10, "key")

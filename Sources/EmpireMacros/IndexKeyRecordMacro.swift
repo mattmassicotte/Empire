@@ -13,7 +13,7 @@ enum IndexKeyRecordMacroError: Error, CustomStringConvertible {
 		case .invalidType:
 			return "Record macro can only be attached to a struct"
 		case .recordValidationFailure:
-			return "oh"
+			return "Record fieldsVersion validation failed"
 		case .invalidArguments:
 			return "Record macro requires static string arguments"
 		}
@@ -161,10 +161,10 @@ public static var keyPrefix: Int { \(literal) }
 
 	/// Have to preserve types and order
 	private static func fieldsVersionAccessor(
-		members: [PatternBindingSyntax],
+		argument: RecordMacroArguments<some TypeSyntaxProtocol, some DeclGroupSyntax>,
 		version: RecordVersion
 	) throws -> VariableDeclSyntax {
-		let output = members.map { $0.trimmedDescription }.joined(separator: ",")
+		let output = argument.fieldMemberTypeNames.joined(separator: ",")
 
 		let schemaHash: Int
 		
@@ -256,7 +256,8 @@ extension \(argument.type.trimmed) : IndexKeyRecord {
 	public typealias Fields = Tuple<\(raw: fieldTypes)>
 
 	\(try keyPrefixAccessor(argument: argument, version: version))
-	\(try fieldsVersionAccessor(members: argument.members, version: version))
+
+	\(try fieldsVersionAccessor(argument: argument, version: version))
 
 	\(fieldsSerializedSizeVar)
 
