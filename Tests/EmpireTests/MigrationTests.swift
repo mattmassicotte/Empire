@@ -22,7 +22,9 @@ extension MigratableKeyOnlyRecord {
 	init(_ buffer: inout DeserializationBuffer, version: Int) throws {
 		switch version {
 		case KeyOnlyRecord.fieldsVersion:
-			self.key = try UInt(buffer: &buffer.keyBuffer)
+			let record = try KeyOnlyRecord(&buffer)
+			self.key = record.key
+			
 			self.value = Self.valuePlaceholder
 		default:
 			throw Self.unsupportedMigrationError(for: version)
