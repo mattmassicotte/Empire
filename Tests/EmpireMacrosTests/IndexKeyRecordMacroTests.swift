@@ -10,7 +10,7 @@ struct IndexKeyRecordMacroTests {
 		"IndexKeyRecord": MacroSpec(type: IndexKeyRecordMacro.self)
 	]
 
-	@Test func testSingleFieldRecord() throws {
+	@Test func singleFieldRecord() throws {
 		assertMacroExpansion(
 """
 @IndexKeyRecord("key")
@@ -70,7 +70,7 @@ extension KeyOnlyRecord {
 		)
 	}
 	
-	@Test func testKeyAndFieldRecord() throws {
+	@Test func keyAndFieldRecord() throws {
 		assertMacroExpansion(
 """
 @IndexKeyRecord("key")
@@ -134,7 +134,7 @@ extension KeyFieldRecord {
 		)
 	}
 	
-	@Test func testKeyAndFieldsRecord() throws {
+	@Test func keyAndFieldsRecord() throws {
 		assertMacroExpansion(
 """
 @IndexKeyRecord("key")
@@ -203,4 +203,3 @@ extension KeyFieldsRecord {
 	}
 }
 #endif
-
