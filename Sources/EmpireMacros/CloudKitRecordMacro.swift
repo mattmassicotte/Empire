@@ -27,7 +27,7 @@ public struct CloudKitRecordMacro: ExtensionMacro {
 
 		let ext = try ExtensionDeclSyntax(
  """
-extension \(type.trimmed): CloudKitRecord {
+extension \(type.trimmed) : CloudKitRecord {
 	public init(ckRecord: CKRecord) throws {
 		try ckRecord.validateRecordType(Self.ckRecordType)
 
