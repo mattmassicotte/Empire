@@ -1,5 +1,8 @@
 #if canImport(SwiftData)
+import Foundation
 import SwiftData
+
+import Empire
 
 enum DataStoreAdapterError: Error {
 	case unsupported
@@ -7,10 +10,12 @@ enum DataStoreAdapterError: Error {
 
 @available(macOS 15, iOS 18, tvOS 18, watchOS 11, visionOS 2, *)
 final class DataStoreAdapter {
+	let configuration: Configuration
 	private let store: Store
 
-	public init(store: Store) {
-		self.store = store
+	init(_ configuration: Configuration, migrationPlan: (any SchemaMigrationPlan.Type)?) throws {
+		self.configuration = configuration
+		self.store = try Store(url: configuration.url)
 	}
 }
 
@@ -36,9 +41,9 @@ extension DataStoreAdapter {
 
 		var name: String
 		var schema: Schema?
+		var url: URL
 
 		func validate() throws {
-			throw DataStoreAdapterError.unsupported
 		}
 	}
 }
@@ -50,7 +55,26 @@ extension DataStoreAdapter: DataStore {
 	}
 	
 	func save(_ request: DataStoreSaveChangesRequest<Snapshot>) throws -> DataStoreSaveChangesResult<Snapshot> {
-		throw DataStoreAdapterError.unsupported
+		for insert in request.inserted {
+		}
+		
+//		Task { [store, identifier] in
+//			try await store.withTransaction { ctx in
+//				for insert in request.inserted {
+//					let entityName = insert.persistentIdentifier.entityName
+//					let permanentIdentifier = try PersistentIdentifier.identifier(for: identifier, entityName: entityName, primaryKey: UUID())
+//					let snapshotCopy = insert.copy(persistentIdentifier: permanentIdentifier, remappedIdentifiers: nil)
+//
+//					print(snapshotCopy)
+//					let data = try JSONEncoder().encode(snapshotCopy)
+//					
+//					print(String(decoding: data, as: UTF8.self))
+//					print("done")
+//				}
+//			}
+//		}
+
+		return DataStoreSaveChangesResult(for: identifier)
 	}
 
 	var identifier: String {
@@ -58,15 +82,7 @@ extension DataStoreAdapter: DataStore {
 	}
 	
 	var schema: Schema {
-		Schema(Schema.Entity("entity"), version: Schema.Version(1, 2, 3))
-	}
-	
-	var configuration: Configuration {
-		Configuration(name: "hello", schema: schema)
-	}
-	
-	convenience init(_ configuration: Configuration, migrationPlan: (any SchemaMigrationPlan.Type)?) throws {
-		throw DataStoreAdapterError.unsupported
+		configuration.schema!
 	}
 }
 

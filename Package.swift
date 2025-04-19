@@ -52,9 +52,8 @@ let package = Package(
 			name: "Empire",
 			dependencies: ["LMDB", "EmpireMacros", "PackedSerialize"]
 		),
-		.testTarget(
-			name: "EmpireTests",
-			dependencies: ["Empire"]
-		),
+		.testTarget(name: "EmpireTests", dependencies: ["Empire"]),
+		.target(name: "EmpireSwiftData", dependencies: ["Empire"]),
+		.testTarget(name: "EmpireSwiftDataTests", dependencies: ["EmpireSwiftData"]),
 	]
 )
