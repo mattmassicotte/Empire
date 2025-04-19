@@ -46,6 +46,10 @@ extension KeyOnlyRecord : IndexKeyRecord {
 		Tuple(key)
 	}
 
+	public var fields: Fields {
+		Tuple(EmptyValue())
+	}
+
 	public func serialize(into buffer: inout SerializationBuffer) {
 		key.serialize(into: &buffer.keyBuffer)
 	}
@@ -106,6 +110,10 @@ extension KeyFieldRecord : IndexKeyRecord {
 
 	public var indexKey: IndexKey {
 		Tuple(key)
+	}
+
+	public var fields: Fields {
+		Tuple(value)
 	}
 
 	public func serialize(into buffer: inout SerializationBuffer) {
@@ -173,6 +181,10 @@ extension KeyFieldsRecord : IndexKeyRecord {
 
 	public var indexKey: IndexKey {
 		Tuple(key)
+	}
+
+	public var fields: Fields {
+		Tuple(a, b)
 	}
 
 	public func serialize(into buffer: inout SerializationBuffer) {

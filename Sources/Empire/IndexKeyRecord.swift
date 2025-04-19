@@ -17,6 +17,7 @@ public protocol IndexKeyRecord {
 	
 	var fieldsSerializedSize: Int { get }
 	var indexKey: IndexKey { get }
+	var fields: Fields { get }
 
 	func serialize(into buffer: inout SerializationBuffer)
 	init(_ buffer: inout DeserializationBuffer) throws

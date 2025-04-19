@@ -72,7 +72,7 @@ struct IndexKeyRecordTests {
 		}
 
 		let output: TestRecord? = try await store.withTransaction { ctx in
-			try ctx.select(key: Tuple<String, UInt>("hello", 42))
+			try ctx.select(key: TestRecord.IndexKey("hello", 42))
 		}
 
 		#expect(output == record)
@@ -104,7 +104,7 @@ struct IndexKeyRecordTests {
 		}
 
 		let output: TestRecord? = try await store.withTransaction { ctx in
-			try ctx.selectCopy(key: Tuple<String, UInt>("hello", 42))
+			try ctx.selectCopy(key: TestRecord.IndexKey("hello", 42))
 		}
 
 		#expect(output == record)

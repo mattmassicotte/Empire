@@ -199,6 +199,8 @@ public static var fieldsVersion: Int { \(literal) }
 	) throws -> ExtensionDeclSyntax {
 		let keyTupleArguments = argument.keyMemberNames
 			.joined(separator: ", ")
+		let fieldsTupleArguments = argument.fieldMemberNames.isEmpty ? "EmptyValue()" : argument.fieldMemberNames
+			.joined(separator: ", ")
 
 		// handle no fields
 		let fieldSize: String
@@ -262,6 +264,8 @@ extension \(argument.type.trimmed) : IndexKeyRecord {
 	\(fieldsSerializedSizeVar)
 
 	public var indexKey: IndexKey { Tuple(\(raw: keyTupleArguments)) }
+
+	public var fields: Fields { Tuple(\(raw: fieldsTupleArguments)) }
 
 	\(serializeFunction)
 
