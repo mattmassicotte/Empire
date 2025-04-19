@@ -14,8 +14,7 @@ public protocol IndexKeyRecord {
 	///
 	/// By default, this value is the same as `fieldSchemaHashValue`. You can override this value to use a custom field versioning strategy.
 	static var fieldsVersion: Int { get }
-	
-	var fieldsSerializedSize: Int { get }
+
 	var indexKey: IndexKey { get }
 	var fields: Fields { get }
 

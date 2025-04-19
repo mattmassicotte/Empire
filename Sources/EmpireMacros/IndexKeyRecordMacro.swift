@@ -202,17 +202,6 @@ public static var fieldsVersion: Int { \(literal) }
 		let fieldsTupleArguments = argument.fieldMemberNames.isEmpty ? "EmptyValue()" : argument.fieldMemberNames
 			.joined(separator: ", ")
 
-		// handle no fields
-		let fieldSize: String
-
-		if argument.fieldMemberNames.isEmpty {
-			fieldSize = "0"
-		} else {
-			fieldSize = argument.fieldMemberNames
-				.map { "\($0).serializedSize" }
-				.joined(separator: " +\n")
-		}
-
 		let keySerialize = argument.keyMemberNames
 			.map { "\($0).serialize(into: &buffer.keyBuffer)" }
 			.joined(separator: "\n")
@@ -245,12 +234,6 @@ public func serialize(into buffer: inout SerializationBuffer) {
 """
 		)
 
-		let fieldsSerializedSizeVar = try VariableDeclSyntax(
-"""
-public var fieldsSerializedSize: Int { \(raw: fieldSize) }
-"""
-		)
-		
 		return try ExtensionDeclSyntax(
 	"""
 extension \(argument.type.trimmed) : IndexKeyRecord {
@@ -260,8 +243,6 @@ extension \(argument.type.trimmed) : IndexKeyRecord {
 	\(try keyPrefixAccessor(argument: argument, version: version))
 
 	\(try fieldsVersionAccessor(argument: argument, version: version))
-
-	\(fieldsSerializedSizeVar)
 
 	public var indexKey: IndexKey { Tuple(\(raw: keyTupleArguments)) }
 

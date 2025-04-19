@@ -38,10 +38,6 @@ extension KeyOnlyRecord : IndexKeyRecord {
 		0
 	}
 
-	public var fieldsSerializedSize: Int {
-		0
-	}
-
 	public var indexKey: IndexKey {
 		Tuple(key)
 	}
@@ -102,10 +98,6 @@ extension KeyFieldRecord : IndexKeyRecord {
 	/// Input: "Int"
 	public static var fieldsVersion: Int {
 		314142918479
-	}
-
-	public var fieldsSerializedSize: Int {
-		value.serializedSize
 	}
 
 	public var indexKey: IndexKey {
@@ -172,11 +164,6 @@ extension KeyFieldsRecord : IndexKeyRecord {
 	/// Input: "Int,String"
 	public static var fieldsVersion: Int {
 		748462363595542894
-	}
-
-	public var fieldsSerializedSize: Int {
-		a.serializedSize +
-			b.serializedSize
 	}
 
 	public var indexKey: IndexKey {

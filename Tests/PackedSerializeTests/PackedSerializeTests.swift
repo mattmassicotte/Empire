@@ -121,7 +121,11 @@ extension PackedSerializeTests {
 		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
 		var inputBuffer = buffer
 
-		EmptyValue().serialize(into: &inputBuffer)
+		let value = EmptyValue()
+		
+		#expect(value.serializedSize == 0)
+		
+		value.serialize(into: &inputBuffer)
 		
 		#expect(inputBuffer.baseAddress == buffer.baseAddress)
 	}

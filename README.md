@@ -224,7 +224,7 @@ struct Person {
 // Equivalent to this:
 extension Person: IndexKeyRecord {
     public typealias IndexKey = Tuple<String, Int>
-    public associatedtype Fields: Tuple<Int>
+    public typealias Fields: Tuple<Int>
 
     public static var keyPrefix: Int {
         1
@@ -234,12 +234,12 @@ extension Person: IndexKeyRecord {
         1
     }
 
-    public var fieldsSerializedSize: Int {
-        age.serializedSize
-    }
-
     public var indexKey: IndexKey {
         Tuple(name)
+    }
+
+    public var fields: Fields {
+        Tuple(age)
     }
 
     public func serialize(into buffer: inout SerializationBuffer) {

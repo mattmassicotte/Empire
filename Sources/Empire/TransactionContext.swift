@@ -18,7 +18,7 @@ extension TransactionContext {
 			throw StoreError.keyBufferOverflow
 		}
 
-		let valueSize = record.fieldsSerializedSize + version.serializedSize
+		let valueSize = record.fields.serializedSize + version.serializedSize
 		guard valueSize <= valueBuffer.count else {
 			throw StoreError.valueBufferOverflow
 		}

@@ -7,7 +7,6 @@ import PackedSerialize
 	names:
 		named(IndexKey),
 		named(Fields),
-		named(fieldsSerializedSize),
 		named(indexKey),
 		named(fields),
 		named(serialize),
