@@ -45,7 +45,7 @@ let package = Package(
 			name: "EmpireMacrosTests",
 			dependencies: [
 				"EmpireMacros",
-				.product(name: "SwiftSyntaxMacrosGenericTestSupport", package: "swift-syntax"),
+				.product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
 			]
 		),
 		.target(
