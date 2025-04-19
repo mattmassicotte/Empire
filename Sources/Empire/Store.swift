@@ -63,6 +63,7 @@ public actor Store {
 		return value
 	}
 
+#if compiler(>=6.1)
 	/// Execute a transation on a database.
 	public func withTransaction<T>(
 		_ block: sending (TransactionContext) throws -> sending T
@@ -82,6 +83,27 @@ public actor Store {
 
 		return value
 	}
+#else
+	/// Execute a transation on a database.
+	public func withTransaction<T : Sendable>(
+		_ block: sending (TransactionContext) throws -> sending T
+	) throws -> sending T {
+		let value = try Transaction.with(env: environment) { txn in
+			let dbi = try activeDBI(for: "mydb", txn)
+
+			let context = TransactionContext(
+				transaction: txn,
+				dbi: dbi,
+				keyBuffer: keyBuffer,
+				valueBuffer: valueBuffer
+			)
+
+			return try block(context)
+		}
+
+		return value
+	}
+#endif
 }
 
 #if canImport(Foundation)
