@@ -2,9 +2,9 @@ import SwiftSyntaxMacrosGenericTestSupport
 import SwiftSyntaxMacroExpansion
 import Testing
 
+#if canImport(EmpireMacros) && canImport(CloudKit)
 import EmpireMacros
 
-#if canImport(CloudKit)
 let specs: [String: MacroSpec] = [
 	"CloudKitRecord": MacroSpec(type: CloudKitRecordMacro.self)
 ]
