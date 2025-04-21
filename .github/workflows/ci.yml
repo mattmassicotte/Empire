@@ -59,7 +59,7 @@ jobs:
           swift package reset
           swift package resolve
           swift package resolve --version ${{ matrix.swift-syntax-version }} swift-syntax
-          set -o pipefail && xcodebuild -scheme Empire-Package -destination "${{ matrix.destination }}" test | xcbeautify
+          set -o pipefail && xcodebuild -scheme Empire-Package -destination "${{ matrix.destination }}" -configuration ${{ matrix.configuration }} test | xcbeautify
 
   linux_test:
     name: Test Linux
