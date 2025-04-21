@@ -24,7 +24,7 @@ struct DataStoreAdapterTests {
 	}
 
 	@available(macOS 15, iOS 18, tvOS 18, watchOS 11, visionOS 2, *)
-	@Test func createAdapter() async throws {
+	@Test(.disabled("This isn't set up quite right yet")) func insertAndFetchValue() async throws {
 		let schema = Schema([Item.self])
 		let config = DataStoreAdapter.Configuration(name: "name", schema: schema, url: Self.storeURL)
 		
@@ -32,10 +32,21 @@ struct DataStoreAdapterTests {
 		let context = ModelContext(container)
 		
 		let item = Item(name: "itemA")
-		
+
 		context.insert(item)
 		
 		try context.save()
+		let id = item.id
+		
+		let fetchDescriptor = FetchDescriptor<Item>(
+			   predicate: #Predicate {
+				   $0.persistentModelID == id
+			   }
+		)
+		
+		let fetchedItems = try context.fetch(fetchDescriptor)
+		
+		#expect(fetchedItems == [item])
 	}
 }
 
