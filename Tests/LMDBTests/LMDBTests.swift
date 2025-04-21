@@ -283,3 +283,25 @@ extension LMDBTests {
 		}
 	}
 }
+
+extension LMDBTests {
+	@Test func readOnlyTransaction() throws {
+		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
+
+		// the database must exist before trying a read-only transaction
+		try Transaction.with(env: env, readOnly: false) { txn in
+			let dbi = try txn.open(name: "mydb")
+
+			try txn.set(dbi: dbi, key: "hello", value: "goodbye")
+		}
+		
+		try Transaction.with(env: env, readOnly: true) { txn in
+			let dbi = try txn.open(name: "mydb")
+
+			#expect(throws: MDBError.permissionDenied) {
+				try txn.set(dbi: dbi, key: "hello", value: "goodbye")
+			}
+		}
+
+	}
+}

@@ -3,6 +3,7 @@ import CLMDB
 public enum MDBError: Error, Hashable {
 	case problem
 	case recordNotFound
+	case permissionDenied
 	case failure(Int, String)
 
 	init(_ result: Int32) {
@@ -19,6 +20,8 @@ public enum MDBError: Error, Hashable {
 			return
 		case MDB_NOTFOUND:
 			throw MDBError.recordNotFound
+		case EACCES:
+			throw MDBError.permissionDenied
 		default:
 			throw MDBError(result)
 		}
