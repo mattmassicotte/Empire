@@ -35,13 +35,6 @@ public struct PublicModel : Sendable {
 	let key: Int
 }
 
-/// Validates that a IndexKeyRecord can contain static properties
-@IndexKeyRecord("key")
-struct StaticProperties {
-	let key: Int
-	static let value = 1
-}
-
 @Suite(.serialized)
 struct IndexKeyRecordTests {
 	static let storeURL = URL(fileURLWithPath: "/tmp/empire_test_store", isDirectory: true)

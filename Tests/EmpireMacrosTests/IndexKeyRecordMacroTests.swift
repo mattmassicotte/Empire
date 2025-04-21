@@ -201,5 +201,67 @@ extension KeyFieldsRecord {
 			failureHandler: { Issue.record($0) }
 		)
 	}
+	
+	@Test func staticProperties() throws {
+		assertMacroExpansion(
+"""
+@IndexKeyRecord("key")
+struct KeyOnlyRecord {
+	let key: Int
+	static let value: Int
+}
+""",
+			expandedSource:
+"""
+struct KeyOnlyRecord {
+	let key: Int
+	static let value: Int
+}
+
+extension KeyOnlyRecord : IndexKeyRecord {
+	public typealias IndexKey = Tuple<Int>
+	public typealias Fields = Tuple<EmptyValue>
+
+	/// Input: "KeyOnlyRecord"
+	public static var keyPrefix: Int {
+		4973231345230152924
+	}
+
+	/// Input: ""
+	public static var fieldsVersion: Int {
+		0
+	}
+
+	public var indexKey: IndexKey {
+		Tuple(key)
+	}
+
+	public var fields: Fields {
+		Tuple(EmptyValue())
+	}
+
+	public func serialize(into buffer: inout SerializationBuffer) {
+		key.serialize(into: &buffer.keyBuffer)
+	}
+
+	public init(_ buffer: inout DeserializationBuffer) throws {
+		self.key = try Int(buffer: &buffer.keyBuffer)
+	}
+}
+
+extension KeyOnlyRecord {
+	public static func select(in context: TransactionContext, limit: Int? = nil, key: ComparisonOperator<Int>) throws -> [Self] {
+		try context.select(query: Query(last: key, limit: limit))
+	}
+	public static func select(in context: TransactionContext, limit: Int? = nil, key: Int) throws -> [Self] {
+		try context.select(query: Query(last: .equals(key), limit: limit))
+	}
+}
+""",
+			macroSpecs: specs,
+			indentationWidth: .tab,
+			failureHandler: { Issue.record($0) }
+		)
+	}
 }
 #endif
