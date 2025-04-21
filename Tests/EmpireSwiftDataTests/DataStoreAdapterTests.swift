@@ -3,7 +3,7 @@ import Foundation
 import SwiftData
 import Testing
 
-@testable import EmpireSwiftData
+import EmpireSwiftData
 
 @Model
 final class Item {

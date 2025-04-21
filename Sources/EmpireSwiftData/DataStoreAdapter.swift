@@ -11,11 +11,11 @@ struct KeyValueRecord {
 }
 
 @available(macOS 15, iOS 18, tvOS 18, watchOS 11, visionOS 2, *)
-final class DataStoreAdapter {
-	let configuration: Configuration
+final package class DataStoreAdapter {
+	package let configuration: Configuration
 	private let store: Store
 
-	init(_ configuration: Configuration, migrationPlan: (any SchemaMigrationPlan.Type)?) throws {
+	package init(_ configuration: Configuration, migrationPlan: (any SchemaMigrationPlan.Type)?) throws {
 		self.configuration = configuration
 		self.store = try Store(url: configuration.url)
 	}
@@ -23,27 +23,33 @@ final class DataStoreAdapter {
 
 @available(macOS 15, iOS 18, tvOS 18, watchOS 11, visionOS 2, *)
 extension DataStoreAdapter {
-	struct Configuration: DataStoreConfiguration {
-		typealias Store = DataStoreAdapter
+	package struct Configuration: DataStoreConfiguration {
+		package typealias Store = DataStoreAdapter
 
-		var name: String
-		var schema: Schema?
-		var url: URL
+		package var name: String
+		package var schema: Schema?
+		package var url: URL
+		
+		package init(name: String, schema: Schema? = nil, url: URL) {
+			self.name = name
+			self.schema = schema
+			self.url = url
+		}
 
-		func validate() throws {
+		package func validate() throws {
 		}
 	}
 }
 
 @available(macOS 15, iOS 18, tvOS 18, watchOS 11, visionOS 2, *)
 extension DataStoreAdapter: DataStore {
-	typealias Snapshot = DefaultSnapshot
+	package typealias Snapshot = DefaultSnapshot
 	
-	func fetch<T>(_ request: DataStoreFetchRequest<T>) throws -> DataStoreFetchResult<T, Snapshot> where T : PersistentModel {
+	package func fetch<T>(_ request: DataStoreFetchRequest<T>) throws -> DataStoreFetchResult<T, Snapshot> where T : PersistentModel {
 		throw DataStoreError.unsupportedFeature
 	}
 	
-	func save(_ request: DataStoreSaveChangesRequest<Snapshot>) throws -> DataStoreSaveChangesResult<Snapshot> {
+	package func save(_ request: DataStoreSaveChangesRequest<Snapshot>) throws -> DataStoreSaveChangesResult<Snapshot> {
 		for insert in request.inserted {
 			let entityName = insert.persistentIdentifier.entityName
 			let _ = schema.entitiesByName[entityName]
@@ -52,11 +58,11 @@ extension DataStoreAdapter: DataStore {
 		return DataStoreSaveChangesResult(for: identifier)
 	}
 
-	var identifier: String {
+	package var identifier: String {
 		"hello"
 	}
 	
-	var schema: Schema {
+	package var schema: Schema {
 		configuration.schema!
 	}
 }
