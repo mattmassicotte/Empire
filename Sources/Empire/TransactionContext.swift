@@ -1,6 +1,9 @@
 import CLMDB
 import LMDB
 
+/// Represents a database transaction.
+///
+/// Transactions have full ACID sematics.
 public struct TransactionContext {
 	var transaction: Transaction
 	let dbi: MDB_dbi

@@ -32,6 +32,8 @@ public struct DeserializationBuffer {
 }
 
 /// Interface to Empire database.
+///
+/// The `Store` is the main interface to a single database file.
 public final class Store {
 	private static let minimumFieldBufferSize = 1024 * 32
 	
@@ -41,6 +43,8 @@ public final class Store {
 	private var valueBuffer: UnsafeMutableRawBufferPointer
 
 	/// Create an instance with a path to the on-disk database file.
+	///
+	/// If there is no file at the specified path, one will be created.
 	public init(path: String) throws {
 		self.environment = try Environment(path: path, maxDatabases: 1)
 		self.keyBuffer = UnsafeMutableRawBufferPointer.allocate(
@@ -113,6 +117,8 @@ import Foundation
 
 extension Store {
 	/// Create an instance with a URL to the on-disk database file.
+	///
+	/// If there is no file at the specified url, one will be created.
 	public convenience init(url: URL) throws {
 		try self.init(path: url.path)
 	}
