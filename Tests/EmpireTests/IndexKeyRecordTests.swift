@@ -87,6 +87,22 @@ struct IndexKeyRecordTests {
 		#expect(records == [record])
 	}
 
+	@Test func insertRecordWithLargeField() throws {
+		let record = TestRecord(a: "hello", b: 42, c: String(repeating: "z", count: 1024*10))
+
+		let store = try Store(url: Self.storeURL)
+
+		try store.withTransaction { ctx in
+			try ctx.insert(record)
+		}
+
+		let output: TestRecord? = try store.withTransaction { ctx in
+			try ctx.select(key: TestRecord.IndexKey("hello", 42))
+		}
+
+		#expect(output == record)
+	}
+	
 	@Test func insertAndSelectCopy() throws {
 		let record = TestRecord(a: "hello", b: 42, c: "goodbye")
 

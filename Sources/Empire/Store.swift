@@ -33,6 +33,8 @@ public struct DeserializationBuffer {
 
 /// Interface to Empire database.
 public final class Store {
+	private static let minimumFieldBufferSize = 1024 * 32
+	
 	private let environment: Environment
 	private var dbi = [String: MDB_dbi]()
 	private var keyBuffer: UnsafeMutableRawBufferPointer
@@ -43,11 +45,11 @@ public final class Store {
 		self.environment = try Environment(path: path, maxDatabases: 1)
 		self.keyBuffer = UnsafeMutableRawBufferPointer.allocate(
 			byteCount: environment.maximumKeySize,
-			alignment: MemoryLayout<Int>.alignment
+			alignment: MemoryLayout<UInt8>.alignment
 		)
 		self.valueBuffer = UnsafeMutableRawBufferPointer.allocate(
-			byteCount: 1024,
-			alignment: MemoryLayout<Int>.alignment
+			byteCount: Self.minimumFieldBufferSize,
+			alignment: MemoryLayout<UInt8>.alignment
 		)
 	}
 
@@ -62,7 +64,7 @@ public final class Store {
 
 		return value
 	}
-
+	
 #if compiler(>=6.1)
 	/// Execute a transation on a database.
 	public func withTransaction<T>(
