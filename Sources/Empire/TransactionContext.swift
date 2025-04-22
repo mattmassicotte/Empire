@@ -7,8 +7,13 @@ import LMDB
 public struct TransactionContext {
 	var transaction: Transaction
 	let dbi: MDB_dbi
-	let keyBuffer: UnsafeMutableRawBufferPointer
-	let valueBuffer: UnsafeMutableRawBufferPointer
+	let buffer: SerializationBuffer
+	
+	init(transaction: Transaction, dbi: MDB_dbi, buffer: SerializationBuffer) {
+		self.transaction = transaction
+		self.dbi = dbi
+		self.buffer = buffer
+	}
 }
 
 extension TransactionContext {
@@ -17,24 +22,24 @@ extension TransactionContext {
 		let version = Record.fieldsVersion
 
 		let keySize = record.indexKey.serializedSize + prefix.serializedSize
-		guard keySize <= keyBuffer.count else {
+		guard keySize <= buffer.keyBuffer.count else {
 			throw StoreError.keyBufferOverflow
 		}
 
 		let valueSize = record.fields.serializedSize + version.serializedSize
-		guard valueSize <= valueBuffer.count else {
+		guard valueSize <= buffer.valueBuffer.count else {
 			throw StoreError.valueBufferOverflow
 		}
 
-		var localBuffer = SerializationBuffer(keyBuffer: keyBuffer, valueBuffer: valueBuffer)
+		var localBuffer = self.buffer
 
 		prefix.serialize(into: &localBuffer.keyBuffer)
 		version.serialize(into: &localBuffer.valueBuffer)
 
 		record.serialize(into: &localBuffer)
 
-		let keyData = UnsafeRawBufferPointer(start: keyBuffer.baseAddress, count: keySize)
-		let fieldsData = UnsafeRawBufferPointer(start: valueBuffer.baseAddress, count: valueSize)
+		let keyData = UnsafeRawBufferPointer(start: buffer.keyBuffer.baseAddress, count: keySize)
+		let fieldsData = UnsafeRawBufferPointer(start: buffer.valueBuffer.baseAddress, count: valueSize)
 
 		try transaction.set(dbi: dbi, keyBuffer: keyData, valueBuffer: fieldsData)
 	}
@@ -102,7 +107,7 @@ extension TransactionContext {
 	public func select<Record: IndexKeyRecord>(key: some Serializable) throws -> Record? {
 		let prefix = Record.keyPrefix
 
-		let keyVal = try MDB_val(key, prefix: prefix, using: keyBuffer)
+		let keyVal = try MDB_val(key, prefix: prefix, using: buffer.keyBuffer)
 
 		guard let valueVal = try transaction.get(dbi: dbi, key: keyVal) else {
 			return nil
@@ -118,7 +123,7 @@ extension TransactionContext {
 	/// This version is useful if the underlying IndexKeyRecord is not Sendable but you want to transfer it out of a transaction context.
 	public func selectCopy<Record: IndexKeyRecord>(key: some Serializable) throws -> sending Record? {
 		let prefix = Record.keyPrefix
-		let keyVal = try MDB_val(key, prefix: prefix, using: keyBuffer)
+		let keyVal = try MDB_val(key, prefix: prefix, using: buffer.keyBuffer)
 
 		guard let valueVal = try transaction.get(dbi: dbi, key: keyVal) else {
 			return nil
@@ -155,7 +160,7 @@ extension TransactionContext {
 		query: Query<repeat each Component, Last>
 	) throws -> sending [Record] where Record: Sendable {
 		let prefix = Record.keyPrefix
-		let bufferPair = SerializationBuffer(keyBuffer: keyBuffer, valueBuffer: valueBuffer)
+		let bufferPair = self.buffer
 
 		switch query.last {
 		case let .equals(value):
@@ -279,7 +284,7 @@ extension TransactionContext {
 
 extension TransactionContext {
 	private func delete(prefix: Int, key: some Serializable) throws {
-		let keyVal = try MDB_val(key, prefix: prefix, using: keyBuffer)
+		let keyVal = try MDB_val(key, prefix: prefix, using: buffer.keyBuffer)
 
 		try transaction.delete(dbi: dbi, key: keyVal)
 	}

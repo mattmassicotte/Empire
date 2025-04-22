@@ -45,14 +45,14 @@ public final class Environment: Sendable {
 		self.internalEnv = SendableOpaquePointer(pointer: ptr)
 	}
 
-	public convenience init(path: String, maxDatabases: Int? = nil) throws {
+	public convenience init(path: String, maxDatabases: Int? = nil, locking: Bool = true) throws {
 		try self.init()
 
 		if let max = maxDatabases {
 			try setMaxDatabases(max)
 		}
 
-		try open(path: path)
+		try open(path: path, locking: locking)
 	}
 
 	deinit {
@@ -63,8 +63,8 @@ public final class Environment: Sendable {
 		try MDBError.check { mdb_env_set_maxdbs(internalEnv.pointer, UInt32(value)) }
 	}
 
-	private func open(path: String) throws {
-		let envFlags = UInt32(MDB_NOTLS | MDB_NOLOCK)
+	private func open(path: String, locking: Bool) throws {
+		let envFlags = UInt32(MDB_NOTLS) | (locking ? 0 : UInt32(MDB_NOLOCK))
 		let envMode: mdb_mode_t = S_IRUSR | S_IWUSR
 
 		try path.withCString { pathStr in
@@ -94,12 +94,8 @@ public final class Environment: Sendable {
 import Foundation
 
 extension Environment {
-	public convenience init(url: URL, maxDatabases: Int? = nil) throws {
-		try self.init(path: url.path, maxDatabases: maxDatabases)
-	}
-
-	func open(url: URL) throws {
-		try open(path: url.path)
+	public convenience init(url: URL, maxDatabases: Int? = nil, locking: Bool = true) throws {
+		try self.init(path: url.path, maxDatabases: maxDatabases, locking: locking)
 	}
 }
 #endif

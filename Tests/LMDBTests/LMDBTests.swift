@@ -26,22 +26,27 @@ struct LMDBTests {
 	}
 
 	@Test func testWriteKeyCloseAndRead() throws {
-		var env = try Environment(url: Self.storeURL, maxDatabases: 1)
-
-		try Transaction.with(env: env) { txn in
-			let dbi = try txn.open(name: "mydb")
-
-			try txn.set(dbi: dbi, key: "hello", value: "goodbye")
+		// Scope has to be more carefully controlled here, to ensure the database is deallocated (closed) correctly
+		do {
+			let env = try Environment(url: Self.storeURL, maxDatabases: 1)
+			
+			try Transaction.with(env: env) { txn in
+				let dbi = try txn.open(name: "mydb")
+				
+				try txn.set(dbi: dbi, key: "hello", value: "goodbye")
+			}
 		}
 
-		env = try Environment(url: Self.storeURL, maxDatabases: 1)
-
-		try Transaction.with(env: env) { txn in
-			let dbi = try txn.open(name: "mydb")
-
-			let value = try txn.getString(dbi: dbi, key: "hello")
-
-			#expect(value == "goodbye")
+		do {
+			let env = try Environment(url: Self.storeURL, maxDatabases: 1)
+			
+			try Transaction.with(env: env) { txn in
+				let dbi = try txn.open(name: "mydb")
+				
+				let value = try txn.getString(dbi: dbi, key: "hello")
+				
+				#expect(value == "goodbye")
+			}
 		}
 	}
 
@@ -306,5 +311,49 @@ extension LMDBTests {
 				try txn.set(dbi: dbi, key: "hello", value: "goodbye")
 			}
 		}
+	}
+	
+	@Test func concurrentAccess() async throws {
+		let env = try Environment(url: Self.storeURL, maxDatabases: 1, locking: true)
+		let count = 100
+
+		// use a transaction to first get the dbi
+		let dbi = try Transaction.with(env: env) { txn in
+			try txn.open(name: "mydb")
+		}
+		
+		try Transaction.with(env: env) { txn in
+			try txn.set(dbi: dbi, key: "hello", value: "goodbye")
+		}
+
+		let strings = try await withThrowingTaskGroup(of: String?.self) { group in
+			for _ in 0..<count {
+				group.addTask {
+					try Transaction.with(env: env, readOnly: true) { txn in
+						return try txn.getString(dbi: dbi, key: "hello")
+					}
+				}
+				
+				group.addTask {
+					try Transaction.with(env: env) { txn in
+						try txn.set(dbi: dbi, key: "hello", value: "hello")
+					}
+
+					return "hello"
+				}
+			}
+			
+			var values: [String?] = []
+			
+			for try await value in group {
+				values.append(value)
+			}
+			
+			return values
+		}
+		
+		#expect(strings.count == count * 2)
+		#expect(strings.contains("hello"))
+		#expect(strings.contains("goodbye"))
 	}
 }
