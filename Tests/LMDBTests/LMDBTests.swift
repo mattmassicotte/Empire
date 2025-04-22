@@ -298,10 +298,13 @@ extension LMDBTests {
 		try Transaction.with(env: env, readOnly: true) { txn in
 			let dbi = try txn.open(name: "mydb")
 
+			let value = try txn.getString(dbi: dbi, key: "hello")
+
+			#expect(value == "goodbye")
+
 			#expect(throws: MDBError.permissionDenied) {
 				try txn.set(dbi: dbi, key: "hello", value: "goodbye")
 			}
 		}
-
 	}
 }
