@@ -101,6 +101,7 @@ Your types **are** the schema. The type's data is serialized directly to a binar
 | Type | Limitations |
 | --- | --- |
 | `String` | none |
+| `UInt8`  | none |
 | `UInt`   | none |
 | `Int`    | `(Int.min + 1)...(Int.max)` |
 | `UUID`   | none |

@@ -37,6 +37,21 @@ struct PackedSerializeTests {
 		#expect(try Int(buffer: &outputBuffer) == Int.max)
 	}
 
+	@Test func serializeUInt8() throws {
+		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
+		var inputBuffer = buffer
+
+		UInt8(42).serialize(into: &inputBuffer)
+		UInt8(142).serialize(into: &inputBuffer)
+		UInt8(0).serialize(into: &inputBuffer)
+
+		var outputBuffer = UnsafeRawBufferPointer(buffer)
+
+		#expect(try UInt8(buffer: &outputBuffer) == 42)
+		#expect(try UInt8(buffer: &outputBuffer) == 142)
+		#expect(try UInt8(buffer: &outputBuffer) == 0)
+	}
+	
 	@Test func serializeString() throws {
 		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
 		var inputBuffer = buffer
