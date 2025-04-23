@@ -1,4 +1,3 @@
-import SwiftCompilerPlugin
 import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
@@ -25,26 +24,38 @@ public struct CloudKitRecordMacro: ExtensionMacro {
 			}
 			.joined(separator: "\n")
 
-		let ext = try ExtensionDeclSyntax(
- """
-extension \(type.trimmed) : CloudKitRecord {
-	public init(ckRecord: CKRecord) throws {
-		try ckRecord.validateRecordType(Self.ckRecordType)
 
-		\(raw: initers)
-	}
+		
+		let inheritance = InheritanceClauseSyntax {
+			InheritedTypeListSyntax {
+				InheritedTypeSyntax(type: TypeSyntax(stringLiteral: "CloudKitRecord"))
+			}
+		}
+		
+		let ext = ExtensionDeclSyntax(extendedType: type, inheritanceClause: inheritance) {
+			DeclSyntax(
+				"""
+				public init(ckRecord: CKRecord) throws {
+					try ckRecord.validateRecordType(Self.ckRecordType)
+				
+					\(raw: initers)
+				}
+				"""
+			)
 
-	public func ckRecord(with recordId: CKRecord.ID) -> CKRecord {
-		let record = CKRecord(recordType: Self.ckRecordType, recordID: recordId)
-
-		\(raw: setters)
-
-		return record
-	}
-}
-"""
-		)
-
+			DeclSyntax(
+				"""
+				public func ckRecord(with recordId: CKRecord.ID) -> CKRecord {
+					let record = CKRecord(recordType: Self.ckRecordType, recordID: recordId)
+				
+					\(raw: setters)
+				
+					return record
+				}
+				"""
+			)
+		}
+		
 		return [
 			ext
 		]

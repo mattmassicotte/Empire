@@ -28,7 +28,7 @@ struct CloudKitTestRecord: Hashable {
 	var c: String
 }
 
-extension CloudKitTestRecord : CloudKitRecord {
+extension CloudKitTestRecord: CloudKitRecord {
 	public init(ckRecord: CKRecord) throws {
 		try ckRecord.validateRecordType(Self.ckRecordType)
 
@@ -36,7 +36,6 @@ extension CloudKitTestRecord : CloudKitRecord {
 		self.b = try ckRecord.getTypedValue(for: "b")
 		self.c = try ckRecord.getTypedValue(for: "c")
 	}
-
 	public func ckRecord(with recordId: CKRecord.ID) -> CKRecord {
 		let record = CKRecord(recordType: Self.ckRecordType, recordID: recordId)
 
@@ -49,6 +48,7 @@ extension CloudKitTestRecord : CloudKitRecord {
 }
 """,
 			macroSpecs: specs,
+			indentationWidth: .tab,
 			failureHandler: { Issue.record($0) }
 		)
 	}
