@@ -116,6 +116,17 @@ struct PackedSerializeTests {
 		#expect(try String?(buffer: &outputBuffer) == "hello")
 		#expect(try String?(buffer: &outputBuffer) == "goodbye")
 	}
+	
+	@Test func serializeStringArray() throws {
+		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
+		var inputBuffer = buffer
+
+		["1", "2", "3"].serialize(into: &inputBuffer)
+
+		var outputBuffer = UnsafeRawBufferPointer(buffer)
+
+		#expect(try [String](buffer: &outputBuffer) == ["1", "2", "3"])
+	}
 }
 
 #if canImport(Foundation)
