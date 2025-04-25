@@ -45,7 +45,7 @@ extension DataStoreAdapter {
 extension DataStoreAdapter: DataStore {
 	package typealias Snapshot = DefaultSnapshot
 	
-	package func fetch<T>(_ request: DataStoreFetchRequest<T>) throws -> DataStoreFetchResult<T, Snapshot> where T : PersistentModel {
+	package func fetch<T>(_ request: DataStoreFetchRequest<T>) throws -> DataStoreFetchResult<T, Snapshot> where T: PersistentModel {
 		throw DataStoreError.unsupportedFeature
 	}
 	

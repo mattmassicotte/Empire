@@ -2,11 +2,11 @@ public struct EmptyValue {
 	public init() {}
 }
 
-extension EmptyValue : Sendable {}
-extension EmptyValue : Equatable {}
-extension EmptyValue : Hashable {}
+extension EmptyValue: Sendable {}
+extension EmptyValue: Equatable {}
+extension EmptyValue: Hashable {}
 
-extension EmptyValue : Serializable {
+extension EmptyValue: Serializable {
 	public var serializedSize: Int {
 		0
 	}
@@ -15,7 +15,7 @@ extension EmptyValue : Serializable {
 	}
 }
 
-extension EmptyValue : Deserializable {
+extension EmptyValue: Deserializable {
 	public init(buffer: inout UnsafeRawBufferPointer) throws {
 	}
 }

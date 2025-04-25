@@ -236,7 +236,7 @@ public func serialize(into buffer: inout SerializationBuffer) {
 
 		return try ExtensionDeclSyntax(
 	"""
-extension \(argument.type.trimmed) : IndexKeyRecord {
+extension \(argument.type.trimmed): IndexKeyRecord {
 	public typealias IndexKey = Tuple<\(raw: keyTypes)>
 	public typealias Fields = Tuple<\(raw: fieldTypes)>
 

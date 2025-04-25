@@ -12,7 +12,7 @@ public enum StoreError: Error, Hashable {
 }
 
 /// Represents the on-disk storage.
-public struct Database : Sendable {
+public struct Database: Sendable {
 	let environment: Environment
 	let dbi: MDB_dbi
 	
@@ -77,7 +77,7 @@ public final class Store {
 	}
 #else
 	/// Execute a transation on a database.
-	public func withTransaction<T : Sendable>(
+	public func withTransaction<T: Sendable>(
 		_ block: (TransactionContext) throws -> sending T
 	) throws -> sending T {
 		let value = try Transaction.with(env: database.environment) { txn in

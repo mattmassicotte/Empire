@@ -24,7 +24,7 @@ struct KeyOnlyRecord {
 	let key: Int
 }
 
-extension KeyOnlyRecord : IndexKeyRecord {
+extension KeyOnlyRecord: IndexKeyRecord {
 	public typealias IndexKey = Tuple<Int>
 	public typealias Fields = Tuple<EmptyValue>
 
@@ -86,7 +86,7 @@ struct KeyFieldRecord {
 	let value: Int
 }
 
-extension KeyFieldRecord : IndexKeyRecord {
+extension KeyFieldRecord: IndexKeyRecord {
 	public typealias IndexKey = Tuple<Int>
 	public typealias Fields = Tuple<Int>
 
@@ -152,7 +152,7 @@ struct KeyFieldsRecord {
 	let b: String
 }
 
-extension KeyFieldsRecord : IndexKeyRecord {
+extension KeyFieldsRecord: IndexKeyRecord {
 	public typealias IndexKey = Tuple<Int>
 	public typealias Fields = Tuple<Int, String>
 
@@ -218,7 +218,7 @@ struct KeyOnlyRecord {
 	static let value: Int
 }
 
-extension KeyOnlyRecord : IndexKeyRecord {
+extension KeyOnlyRecord: IndexKeyRecord {
 	public typealias IndexKey = Tuple<Int>
 	public typealias Fields = Tuple<EmptyValue>
 
