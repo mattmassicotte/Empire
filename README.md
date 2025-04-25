@@ -104,6 +104,8 @@ Your types **are** the schema. The type's data is serialized directly to a binar
 | `UInt8`  | none |
 | `UInt`   | none |
 | `Int`    | `(Int.min + 1)...(Int.max)` |
+| `Bool`    | none |
+| `Optional<Wrapped>`| none |
 | `UUID`   | none |
 | `Data`   | none |
 | `Date`   | millisecond precision |

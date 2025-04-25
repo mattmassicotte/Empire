@@ -77,6 +77,45 @@ struct PackedSerializeTests {
 			try String(buffer: &outputBuffer)
 		})
 	}
+	
+	@Test func serializeBoolString() throws {
+		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
+		var inputBuffer = buffer
+
+		true.serialize(into: &inputBuffer)
+		false.serialize(into: &inputBuffer)
+
+		var outputBuffer = UnsafeRawBufferPointer(buffer)
+
+		#expect(try Bool(buffer: &outputBuffer) == true)
+		#expect(try Bool(buffer: &outputBuffer) == false)
+	}
+	
+	@Test func deserializeBoolWithInvalidValue() throws {
+		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
+		var inputBuffer = buffer
+
+		UInt8(4).serialize(into: &inputBuffer)
+
+		var outputBuffer = UnsafeRawBufferPointer(buffer)
+
+		#expect(throws: (any Error).self, performing: {
+			try Bool(buffer: &outputBuffer)
+		})
+	}
+	
+	@Test func serializeOptionalString() throws {
+		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
+		var inputBuffer = buffer
+
+		Optional<String>.some("hello").serialize(into: &inputBuffer)
+		Optional<String>.some("goodbye").serialize(into: &inputBuffer)
+
+		var outputBuffer = UnsafeRawBufferPointer(buffer)
+
+		#expect(try String?(buffer: &outputBuffer) == "hello")
+		#expect(try String?(buffer: &outputBuffer) == "goodbye")
+	}
 }
 
 #if canImport(Foundation)

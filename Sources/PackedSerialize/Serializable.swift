@@ -9,4 +9,5 @@ public protocol Deserializable {
 
 enum DeserializeError: Error {
 	case invalidLength
+	case invalidValue
 }
