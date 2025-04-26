@@ -264,6 +264,9 @@ extension Person {
     public static func select(in context: TransactionContext, limit: Int? = nil, name: String) throws -> [Self] {
         try context.select(query: Query(last: .equals(name), limit: limit))
     }
+    public static func delete(in context: TransactionContext, name: String) throws {
+        try context.delete(recordType: Self.self, key: Tuple(name))
+    }
 }
 ```
 
