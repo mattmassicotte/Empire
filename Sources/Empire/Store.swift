@@ -11,8 +11,8 @@ public enum StoreError: Error, Hashable {
 	case migrationUnsupported(String, Int, Int)
 }
 
-/// Represents the on-disk storage.
-public struct Database: Sendable {
+/// Represents the on-disk storage that supports concurrent accesses.
+public struct LockingDatabase: Sendable {
 	let environment: Environment
 	let dbi: MDB_dbi
 	
@@ -32,24 +32,59 @@ public struct Database: Sendable {
 	}
 }
 
+/// Represents the on-disk storage.
+public struct Database {
+	let environment: Environment
+	let dbi: MDB_dbi
+	
+	/// Create an instance with a path to the on-disk database file.
+	///
+	/// If there is no file at the specified path, one will be created.
+	public init(path: String) throws {
+		self.environment = try Environment(
+			path: path,
+			maxDatabases: 1,
+			locking: false
+		)
+		
+		self.dbi = try Transaction.with(env: environment) { txn in
+			try txn.open(name: "empiredb")
+		}
+	}
+}
+
 /// Interface to Empire database.
 ///
 /// The `Store` is the main interface to a single database file.
 public final class Store {
 	private static let minimumFieldBufferSize = 1024 * 32
 	
-	private let database: Database
+	private let environment: Environment
+	private let dbi: MDB_dbi
 	private let buffer: SerializationBuffer
 
+	init(environment: Environment, dbi: MDB_dbi) {
+		self.environment = environment
+		self.dbi = dbi
+		self.buffer = SerializationBuffer(
+			keySize: environment.maximumKeySize,
+			valueSize: Self.minimumFieldBufferSize
+		)
+
+	}
+	
 	/// Create an instance with a path to the on-disk database file.
 	///
 	/// If there is no file at the specified path, one will be created.
-	public init(database: Database) {
-		self.database = database
-		self.buffer = SerializationBuffer(
-			keySize: database.environment.maximumKeySize,
-			valueSize: Self.minimumFieldBufferSize
-		)
+	public convenience init(database: Database) {
+		self.init(environment: database.environment, dbi: database.dbi)
+	}
+	
+	/// Create an instance with a path to the on-disk database file.
+	///
+	/// If there is no file at the specified path, one will be created.
+	public convenience init(database: LockingDatabase) {
+		self.init(environment: database.environment, dbi: database.dbi)
 	}
 		
 	public convenience init(path: String) throws {
@@ -63,10 +98,10 @@ public final class Store {
 	public func withTransaction<T>(
 		_ block: (TransactionContext) throws -> sending T
 	) throws -> sending T {
-		let value = try Transaction.with(env: database.environment) { txn in
+		let value = try Transaction.with(env: environment) { txn in
 			let context = TransactionContext(
 				transaction: txn,
-				dbi: database.dbi,
+				dbi: dbi,
 				buffer: buffer
 			)
 
@@ -80,10 +115,10 @@ public final class Store {
 	public func withTransaction<T: Sendable>(
 		_ block: (TransactionContext) throws -> sending T
 	) throws -> sending T {
-		let value = try Transaction.with(env: database.environment) { txn in
+		let value = try Transaction.with(env: environment) { txn in
 			let context = TransactionContext(
 				transaction: txn,
-				dbi: database.dbi,
+				dbi: dbi,
 				buffer: buffer
 			)
 
@@ -103,6 +138,18 @@ extension Store {
 	///
 	/// If there is no file at the specified url, one will be created.
 	public convenience init(url: URL) throws {
+		try self.init(path: url.path)
+	}
+}
+
+extension Database {
+	public init(url: URL) throws {
+		try self.init(path: url.path)
+	}
+}
+
+extension LockingDatabase {
+	public init(url: URL) throws {
 		try self.init(path: url.path)
 	}
 }
