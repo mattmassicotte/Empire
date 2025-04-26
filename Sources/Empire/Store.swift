@@ -114,7 +114,7 @@ public final class Store {
 	/// Execute a transation on a database.
 	public func withTransaction<T: Sendable>(
 		_ block: (TransactionContext) throws -> sending T
-	) throws -> sending T {
+	) throws -> T {
 		let value = try Transaction.with(env: environment) { txn in
 			let context = TransactionContext(
 				transaction: txn,
@@ -138,15 +138,29 @@ extension Store {
 		}
 	}
 	
+#if compiler(>=6.1)
 	/// Retrieve a single record from the store.
 	///
 	/// This is currently implemented with a `selectCopy` internally.
-	public func select<Record: IndexKeyRecord>(key: Record.IndexKey) throws -> Record? {
+	public func select<Record: IndexKeyRecord>(
+		key: Record.IndexKey
+	) throws -> Record? {
 		try withTransaction { ctx in
 			// this must be a copy to work around sending the result
 			try ctx.selectCopy(key: key)
 		}
 	}
+#else
+	/// Retrieve a single record from the store.
+	public func select<Record: IndexKeyRecord>(
+		key: Record.IndexKey
+	) throws -> Record? where Record: Sendable {
+		try withTransaction { ctx in
+			// this must be a copy to work around sending the result
+			try ctx.select(key: key)
+		}
+	}
+#endif
 	
 	/// Delete a single record from the store.
 	public func delete<Record: IndexKeyRecord>(_ record: Record) throws {
