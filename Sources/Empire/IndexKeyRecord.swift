@@ -56,3 +56,15 @@ extension IndexKeyRecord {
 		StoreError.migrationUnsupported(String(describing: Self.self), Self.fieldsVersion, version)
 	}
 }
+
+extension IndexKeyRecord {
+	/// Delete a record using an IndexKey argument.
+	public static func delete(in context: TransactionContext, key: IndexKey) throws {
+		try context.delete(recordType: Self.self, key: key)
+	}
+	
+	/// Delete this record using its `indexKey` property.
+	public func delete(in context: TransactionContext) throws {
+		try Self.delete(in: context, key: indexKey)
+	}
+}
