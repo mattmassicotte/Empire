@@ -13,7 +13,8 @@ import PackedSerialize
 		named(init),
 		named(fieldsVersion),
 		named(keyPrefix),
-		named(select)
+		named(select),
+		named(delete)
 )
 public macro IndexKeyRecord(
 	validated: Int? = nil,

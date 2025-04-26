@@ -290,9 +290,12 @@ extension TransactionContext {
 	}
 	
 	public func delete<Record: IndexKeyRecord>(_ record: Record) throws {
-		let prefix = Record.keyPrefix
-		let key = record.indexKey
+		try delete(recordType: Record.self, key: record.indexKey)
+	}
+	
+	public func delete<Record: IndexKeyRecord>(recordType: Record.Type, key: Record.IndexKey) throws {
+		let keyVal = try MDB_val(key, prefix: recordType.keyPrefix, using: buffer.keyBuffer)
 
-		try delete(prefix: prefix, key: key)
+		try transaction.delete(dbi: dbi, key: keyVal)
 	}
 }

@@ -62,6 +62,9 @@ extension KeyOnlyRecord {
 	public static func select(in context: TransactionContext, limit: Int? = nil, key: Int) throws -> [Self] {
 		try context.select(query: Query(last: .equals(key), limit: limit))
 	}
+	public static func delete(in context: TransactionContext, key: Int) throws {
+		try context.delete(recordType: Self.self, key: Tuple(key))
+	}
 }
 """,
 			macroSpecs: specs,
@@ -125,6 +128,9 @@ extension KeyFieldRecord {
 	}
 	public static func select(in context: TransactionContext, limit: Int? = nil, key: Int) throws -> [Self] {
 		try context.select(query: Query(last: .equals(key), limit: limit))
+	}
+	public static func delete(in context: TransactionContext, key: Int) throws {
+		try context.delete(recordType: Self.self, key: Tuple(key))
 	}
 }
 """,
@@ -194,6 +200,9 @@ extension KeyFieldsRecord {
 	public static func select(in context: TransactionContext, limit: Int? = nil, key: Int) throws -> [Self] {
 		try context.select(query: Query(last: .equals(key), limit: limit))
 	}
+	public static func delete(in context: TransactionContext, key: Int) throws {
+		try context.delete(recordType: Self.self, key: Tuple(key))
+	}
 }
 """,
 			macroSpecs: specs,
@@ -255,6 +264,9 @@ extension KeyOnlyRecord {
 	}
 	public static func select(in context: TransactionContext, limit: Int? = nil, key: Int) throws -> [Self] {
 		try context.select(query: Query(last: .equals(key), limit: limit))
+	}
+	public static func delete(in context: TransactionContext, key: Int) throws {
+		try context.delete(recordType: Self.self, key: Tuple(key))
 	}
 }
 """,

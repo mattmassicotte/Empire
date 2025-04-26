@@ -303,11 +303,27 @@ public static func select(in context: TransactionContext, limit: Int? = nil, \(r
 
 		}
 
+		let deleteParams = pairs
+			.map { "\($0.0): \($0.1)" }
+			.joined(separator: ", ")
+		let deleteArgs = pairs
+			.map { $0.0 }
+			.joined(separator: ", ")
+		
+		let deleteFunction = try FunctionDeclSyntax(
+			"""
+			public static func delete(in context: TransactionContext, \(raw: deleteParams)) throws {
+				try context.delete(recordType: Self.self, key: Tuple(\(raw: deleteArgs)))
+			}
+			"""
+		)
+		
 		return ExtensionDeclSyntax(
 			extendedType: argument.type,
 			memberBlock: MemberBlockSyntax(
 				members: MemberBlockItemListSyntax(
-					selectFunctions.map { MemberBlockItemSyntax(decl: $0) }
+					selectFunctions.map { MemberBlockItemSyntax(decl: $0) } +
+					[MemberBlockItemSyntax(decl: deleteFunction)]
 				)
 			)
 		)
