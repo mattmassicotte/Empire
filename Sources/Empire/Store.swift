@@ -130,6 +130,32 @@ public final class Store {
 #endif
 }
 
+extension Store {
+	/// Insert a single record into the store.
+	public func insert<Record: IndexKeyRecord>(_ record: Record) throws {
+		try withTransaction { ctx in
+			try ctx.insert(record)
+		}
+	}
+	
+	/// Retrieve a single record from the store.
+	///
+	/// This is currently implemented with a `selectCopy` internally.
+	public func select<Record: IndexKeyRecord>(key: Record.IndexKey) throws -> Record? {
+		try withTransaction { ctx in
+			// this must be a copy to work around sending the result
+			try ctx.selectCopy(key: key)
+		}
+	}
+	
+	/// Delete a single record from the store.
+	public func delete<Record: IndexKeyRecord>(_ record: Record) throws {
+		try withTransaction { ctx in
+			try ctx.delete(record)
+		}
+	}
+}
+
 #if canImport(Foundation)
 import Foundation
 

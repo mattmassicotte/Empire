@@ -302,6 +302,31 @@ extension IndexKeyRecordTests {
 }
 
 extension IndexKeyRecordTests {
+	@Test func insertAndSelectViaStore() throws {
+		let store = try Store(url: Self.storeURL)
+
+		let input = TestRecord(a: "hello", b: 40, c: "a")
+		
+		try store.insert(input)
+		let record: TestRecord? = try store.select(key: input.indexKey)
+
+		#expect(record == input)
+	}
+	
+	@Test func insertAndDeleteViaStore() throws {
+		let store = try Store(url: Self.storeURL)
+
+		let input = TestRecord(a: "hello", b: 40, c: "a")
+		
+		try store.insert(input)
+		#expect(try store.select(key: input.indexKey) == input)
+		
+		try store.delete(input)
+		#expect(try store.select(key: input.indexKey) == Optional<TestRecord>.none)
+	}
+}
+
+extension IndexKeyRecordTests {
 	@Test func deleteEntireRecord() throws {
 		let record = TestRecord(a: "hello", b: 42, c: "goodbye")
 
