@@ -31,6 +31,10 @@ struct RecordMacroArguments<Type: TypeSyntaxProtocol, Declaration: DeclGroupSynt
 		self.keyMemberNames = keyMemberNames
 
 		self.members = try Self.members(of: declaration)
+		
+		if keyMemberTypeNames.contains("") || keyMemberTypeNames.isEmpty || fieldMemberTypeNames.contains("") {
+			throw IndexKeyRecordMacroError.missingTypes
+		}
 	}
 
 	private var memberNames: [String] {

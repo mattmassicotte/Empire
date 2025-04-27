@@ -7,6 +7,7 @@ enum IndexKeyRecordMacroError: Error, CustomStringConvertible {
 	case invalidType
 	case invalidArguments
 	case recordValidationFailure
+	case missingTypes
 
 	var description: String {
 		switch self {
@@ -16,6 +17,8 @@ enum IndexKeyRecordMacroError: Error, CustomStringConvertible {
 			return "Record fieldsVersion validation failed"
 		case .invalidArguments:
 			return "Record macro requires static string arguments"
+		case .missingTypes:
+			return "Mssing type annotations"
 		}
 	}
 }
