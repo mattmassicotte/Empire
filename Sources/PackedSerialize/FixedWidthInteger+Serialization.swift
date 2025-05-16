@@ -1,17 +1,15 @@
-extension UInt8: Serializable {
+extension FixedWidthInteger where Self.Magnitude: UnsignedInteger {
 	public var serializedSize: Int {
 		MemoryLayout<Self>.size
 	}
-
+	
 	public func serialize(into buffer: inout UnsafeMutableRawBufferPointer) {
 		withUnsafeBytes(of: self.bigEndian) { ptr in
 			buffer.copyMemory(from: ptr)
 			buffer = UnsafeMutableRawBufferPointer(rebasing: buffer[ptr.count...])
 		}
 	}
-}
-
-extension UInt8: Deserializable {
+	
 	public init(buffer: inout UnsafeRawBufferPointer) throws {
 		var value: Self = 0
 		let size = MemoryLayout<Self>.size
@@ -27,3 +25,10 @@ extension UInt8: Deserializable {
 		self.init(bigEndian: value)
 	}
 }
+
+extension UInt8: Serializable {}
+extension UInt8: Deserializable {}
+extension UInt32: Serializable {}
+extension UInt32: Deserializable {}
+extension UInt: Serializable {}
+extension UInt: Deserializable {}
