@@ -166,7 +166,7 @@ extension MyRecord {
     }
 
     // implement the migration initializer
-    public init(_ buffer: inout DeserializationBuffer, version: Int) throws {
+    public init(_ buffer: inout DeserializationBuffer, version: IndexKeyRecordHash) throws {
         // switch over the possible previous field versions and migrate as necessary
         switch version {
         case MyRecord1.fieldsVersion:
@@ -231,11 +231,11 @@ extension Person: IndexKeyRecord {
     public typealias IndexKey = Tuple<String, Int>
     public typealias Fields: Tuple<Int>
 
-    public static var keyPrefix: Int {
+    public static var keyPrefix: IndexKeyRecordHash {
         1
     }
 
-    public static var fieldsVersion: Int {
+    public static var fieldsVersion: IndexKeyRecordHash {
         1
     }
 
