@@ -59,12 +59,13 @@ extension Tuple: Deserializable where repeat each Element: Deserializable {
 extension Tuple: Comparable where repeat each Element: Comparable {
 	public static func < (lhs: Tuple<repeat each Element>, rhs: Tuple<repeat each Element>) -> Bool {
 		for (left, right) in repeat (each lhs.elements, each rhs.elements) {
-			guard left < right else {
+			if left > right {
 				return false
 			}
 		}
 
-		return true
+		// I cannot figure out how to do this more efficiently
+		return lhs != rhs
 	}
 }
 

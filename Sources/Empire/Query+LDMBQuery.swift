@@ -8,11 +8,7 @@ extension Query {
 			let key = Tuple(prefix, repeat each components, value)
 			let keyVal = try MDB_val(key, using: buffer.keyBuffer)
 
-			if let limit, limit != 1 {
-				throw QueryError.limitInvalid(limit)
-			}
-
-			return LMDB.Query(comparison: .greaterOrEqual(keyVal), limit: 1)
+			return LMDB.Query(comparison: .greaterOrEqual(keyVal), limit: limit)
 		case let .greaterThan(value):
 			let key = Tuple(prefix, repeat each components, value)
 			let keyVal = try MDB_val(key, using: buffer.keyBuffer)

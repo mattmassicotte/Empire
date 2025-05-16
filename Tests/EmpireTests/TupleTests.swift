@@ -42,3 +42,17 @@ extension TupleTests {
 	}
 }
 
+extension TupleTests {
+	@Test func comparsionWithMultipleValues() throws {
+		let a = Tuple<String, UInt>("Korben", 45)
+		let b = Tuple<String, UInt>("Korben", 44)
+		
+		#expect(a > b)
+		#expect(b < a)
+		#expect((a > a) == false)
+		#expect((a < a) == false)
+		#expect(a == a)
+		#expect(b == b)
+		#expect(a != b)
+	}
+}

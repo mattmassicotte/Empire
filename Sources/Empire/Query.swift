@@ -42,7 +42,7 @@ extension ComparisonOperator: Equatable {
 extension ComparisonOperator: Hashable where Value: Hashable {
 }
 
-public typealias QueryComponent = IndexKeyComparable & Serializable
+public typealias QueryComponent = IndexKeyComparable & Serializable & Deserializable
 
 public struct Query<each Component: QueryComponent, Last: QueryComponent> {
 	public let last: ComparisonOperator<Last>

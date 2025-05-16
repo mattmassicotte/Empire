@@ -275,5 +275,89 @@ extension KeyOnlyRecord {
 			failureHandler: { Issue.record($0) }
 		)
 	}
+	
+	@Test func compositeKeyRecord() throws {
+		assertMacroExpansion(
+"""
+@IndexKeyRecord("a", "b", "c")
+struct Record {
+	let a: Int
+	let b: String
+	let c: UUID
+}
+""",
+			expandedSource:
+"""
+struct Record {
+	let a: Int
+	let b: String
+	let c: UUID
+}
+
+extension Record: IndexKeyRecord {
+	public typealias IndexKey = Tuple<Int, String, UUID>
+	public typealias Fields = Tuple<EmptyValue>
+
+	/// Input: "Record"
+	public static var keyPrefix: IndexKeyRecordHash {
+		464924881
+	}
+
+	/// Input: ""
+	public static var fieldsVersion: IndexKeyRecordHash {
+		0
+	}
+
+	public var indexKey: IndexKey {
+		Tuple(a, b, c)
+	}
+
+	public var fields: Fields {
+		Tuple(EmptyValue())
+	}
+
+	public func serialize(into buffer: inout SerializationBuffer) {
+		a.serialize(into: &buffer.keyBuffer)
+	b.serialize(into: &buffer.keyBuffer)
+	c.serialize(into: &buffer.keyBuffer)
+	}
+
+	public init(_ buffer: inout DeserializationBuffer) throws {
+		self.a = try Int(buffer: &buffer.keyBuffer)
+		self.b = try String(buffer: &buffer.keyBuffer)
+		self.c = try UUID(buffer: &buffer.keyBuffer)
+	}
+}
+
+extension Record {
+	public static func select(in context: TransactionContext, limit: Int? = nil, a: ComparisonOperator<Int>) throws -> [Self] {
+		try context.select(query: Query(last: a, limit: limit))
+	}
+	public static func select(in context: TransactionContext, limit: Int? = nil, a: Int) throws -> [Self] {
+		try context.select(query: Query(last: .equals(a), limit: limit))
+	}
+	public static func select(in context: TransactionContext, limit: Int? = nil, a: Int, b: ComparisonOperator<String>) throws -> [Self] {
+		try context.select(query: Query(a, last: b, limit: limit))
+	}
+	public static func select(in context: TransactionContext, limit: Int? = nil, a: Int, b: String) throws -> [Self] {
+		try context.select(query: Query(a, last: .equals(b), limit: limit))
+	}
+	public static func select(in context: TransactionContext, limit: Int? = nil, a: Int, b: String, c: ComparisonOperator<UUID>) throws -> [Self] {
+		try context.select(query: Query(a, b, last: c, limit: limit))
+	}
+	public static func select(in context: TransactionContext, limit: Int? = nil, a: Int, b: String, c: UUID) throws -> [Self] {
+		try context.select(query: Query(a, b, last: .equals(c), limit: limit))
+	}
+	public static func delete(in context: TransactionContext, a: Int, b: String, c: UUID) throws {
+		try context.delete(recordType: Self.self, key: Tuple(a, b, c))
+	}
+}
+""",
+			macroSpecs: specs,
+			indentationWidth: .tab,
+			failureHandler: { Issue.record($0) }
+		)
+	}
+
 }
 #endif

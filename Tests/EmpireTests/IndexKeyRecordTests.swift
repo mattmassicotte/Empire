@@ -276,6 +276,46 @@ struct IndexKeyRecordTests {
 
 		#expect(records == expected)
 	}
+	
+	@Test func selectEqualsCompositeKey() throws {
+		let store = try Store(url: Self.storeURL)
+
+		try store.withTransaction { ctx in
+			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
+			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
+		}
+
+		let records: [TestRecord] = try store.withTransaction { ctx in
+			try TestRecord.select(in: ctx, a: "hello", b: 40)
+		}
+
+		let expected = [
+			TestRecord(a: "hello", b: 40, c: "a"),
+		]
+
+		#expect(records == expected)
+	}
+	
+	@Test func selectEqualsPartialCompositeKey() throws {
+		let store = try Store(url: Self.storeURL)
+
+		try store.withTransaction { ctx in
+			try ctx.insert(TestRecord(a: "hello", b: 40, c: "a"))
+			try ctx.insert(TestRecord(a: "hello", b: 41, c: "b"))
+			try ctx.insert(TestRecord(a: "hellp", b: 42, c: "c")) // note this comes after "hello"
+		}
+
+		let records: [TestRecord] = try store.withTransaction { ctx in
+			try TestRecord.select(in: ctx, a: "hello")
+		}
+
+		let expected = [
+			TestRecord(a: "hello", b: 40, c: "a"),
+			TestRecord(a: "hello", b: 41, c: "b"),
+		]
+
+		#expect(records == expected)
+	}
 }
 
 extension IndexKeyRecordTests {
