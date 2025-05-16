@@ -2,6 +2,12 @@ import Testing
 
 import PackedSerialize
 
+enum HasRawRep: Int {
+	case one
+	case two
+	case three
+}
+
 struct PackedSerializeTests {
 	@Test func serializeUInt() throws {
 		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
@@ -126,6 +132,20 @@ struct PackedSerializeTests {
 		var outputBuffer = UnsafeRawBufferPointer(buffer)
 
 		#expect(try [String](buffer: &outputBuffer) == ["1", "2", "3"])
+	}
+	
+	@Test func rawRepresentable() throws {
+		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
+		var inputBuffer = buffer
+
+		HasRawRep.two.serialize(into: &inputBuffer)
+		HasRawRep.one.serialize(into: &inputBuffer)
+
+		var outputBuffer = UnsafeRawBufferPointer(buffer)
+
+		#expect(try HasRawRep(buffer: &outputBuffer) == HasRawRep.two)
+		#expect(try HasRawRep(buffer: &outputBuffer) == HasRawRep.one)
+
 	}
 }
 

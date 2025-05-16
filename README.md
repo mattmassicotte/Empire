@@ -110,6 +110,7 @@ Your types **are** the schema. The type's data is serialized directly to a binar
 | `UUID`    | none |
 | `Data`    | none |
 | `Date`    | millisecond precision |
+| `RawRepresentable` | none |
 
 ### Migrations
 
