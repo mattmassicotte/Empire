@@ -7,8 +7,8 @@ public enum StoreError: Error, Hashable {
 	case noActiveStore
 	case keyBufferOverflow
 	case valueBufferOverflow
-	case recordPrefixMismatch(String, Int, Int)
-	case migrationUnsupported(String, Int, Int)
+	case recordPrefixMismatch(String, IndexKeyRecordHash, IndexKeyRecordHash)
+	case migrationUnsupported(String, IndexKeyRecordHash, IndexKeyRecordHash)
 }
 
 /// Represents the on-disk storage that supports concurrent accesses.

@@ -10,6 +10,9 @@ extension String: IndexKeyComparable {
 extension UInt: IndexKeyComparable {
 }
 
+extension UInt32: IndexKeyComparable {
+}
+
 extension Int: IndexKeyComparable {
 }
 

@@ -29,12 +29,12 @@ extension KeyOnlyRecord: IndexKeyRecord {
 	public typealias Fields = Tuple<EmptyValue>
 
 	/// Input: "KeyOnlyRecord"
-	public static var keyPrefix: Int {
-		4973231345230152924
+	public static var keyPrefix: IndexKeyRecordHash {
+		642254044
 	}
 
 	/// Input: ""
-	public static var fieldsVersion: Int {
+	public static var fieldsVersion: IndexKeyRecordHash {
 		0
 	}
 
@@ -94,13 +94,13 @@ extension KeyFieldRecord: IndexKeyRecord {
 	public typealias Fields = Tuple<Int>
 
 	/// Input: "KeyFieldRecord"
-	public static var keyPrefix: Int {
-		5586469532794244204
+	public static var keyPrefix: IndexKeyRecordHash {
+		314461292
 	}
 
 	/// Input: "Int"
-	public static var fieldsVersion: Int {
-		314142918479
+	public static var fieldsVersion: IndexKeyRecordHash {
+		610305871
 	}
 
 	public var indexKey: IndexKey {
@@ -163,13 +163,13 @@ extension KeyFieldsRecord: IndexKeyRecord {
 	public typealias Fields = Tuple<Int, String>
 
 	/// Input: "KeyFieldsRecord"
-	public static var keyPrefix: Int {
-		-5806003971678461975
+	public static var keyPrefix: IndexKeyRecordHash {
+		932782057
 	}
 
 	/// Input: "Int,String"
-	public static var fieldsVersion: Int {
-		748462363595542894
+	public static var fieldsVersion: IndexKeyRecordHash {
+		3722219886
 	}
 
 	public var indexKey: IndexKey {
@@ -232,12 +232,12 @@ extension KeyOnlyRecord: IndexKeyRecord {
 	public typealias Fields = Tuple<EmptyValue>
 
 	/// Input: "KeyOnlyRecord"
-	public static var keyPrefix: Int {
-		4973231345230152924
+	public static var keyPrefix: IndexKeyRecordHash {
+		642254044
 	}
 
 	/// Input: ""
-	public static var fieldsVersion: Int {
+	public static var fieldsVersion: IndexKeyRecordHash {
 		0
 	}
 

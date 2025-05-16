@@ -10,14 +10,14 @@ struct TestRecord: Hashable {
 	var c: String
 }
 
-@IndexKeyRecord(keyPrefix: -7225243746777116894, "a", "b")
+@IndexKeyRecord(keyPrefix: 3787247394, "a", "b")
 struct LessThanTestRecord: Hashable {
 	let a: String
 	let b: UInt
 	var c: String
 }
 
-@IndexKeyRecord(keyPrefix: -7225243746777116892, "a", "b")
+@IndexKeyRecord(keyPrefix: 3787247396, "a", "b")
 struct GreaterThanTestRecord: Hashable {
 	let a: String
 	let b: UInt
@@ -380,7 +380,7 @@ extension IndexKeyRecordTests {
 }
 
 extension IndexKeyRecordTests {
-	@IndexKeyRecord(validated: 1699611724785793992, "key")
+	@IndexKeyRecord(validated: 3622976456, "key")
 	struct ValidatedRecord: Sendable {
 		let key: Int
 		let a: Int
@@ -389,7 +389,7 @@ extension IndexKeyRecordTests {
 	}
 
 	@Test func validatedVersion() {
-		#expect(ValidatedRecord.fieldsVersion == 1699611724785793992)
+		#expect(ValidatedRecord.fieldsVersion == 3622976456)
 	}
 
 	@IndexKeyRecord(keyPrefix: 5, fieldsVersion: 10, "key")
@@ -401,15 +401,4 @@ extension IndexKeyRecordTests {
 		#expect(CustomVersion.keyPrefix == 5)
 		#expect(CustomVersion.fieldsVersion == 10)
 	}
-	
-	@IndexKeyRecord(keyPrefix: -5, fieldsVersion: -10, "key")
-	struct CustomNegativeVersion: Sendable {
-		let key: Int
-	}
-	
-	@Test func customNegativeVersions() {
-		#expect(CustomNegativeVersion.keyPrefix == -5)
-		#expect(CustomNegativeVersion.fieldsVersion == -10)
-	}
-
 }

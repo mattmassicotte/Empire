@@ -3,13 +3,13 @@ import Testing
 
 import Empire
 
-@IndexKeyRecord(keyPrefix: 4973231345230152924, fieldsVersion: 10, "key")
+@IndexKeyRecord(keyPrefix: 642254044, fieldsVersion: 10, "key")
 struct MismatchedKeyOnlyRecord: Hashable {
 	let key: UInt
 	let value: String
 }
 
-@IndexKeyRecord(keyPrefix: 4973231345230152924, fieldsVersion: 20, "key")
+@IndexKeyRecord(keyPrefix: 642254044, fieldsVersion: 20, "key")
 struct MigratableKeyOnlyRecord: Hashable {
 	let key: UInt
 	let value: String
@@ -19,7 +19,7 @@ struct MigratableKeyOnlyRecord: Hashable {
 
 extension MigratableKeyOnlyRecord {
 	// this is the code that actually checks for and peforms the migration
-	init(_ buffer: inout DeserializationBuffer, version: Int) throws {
+	init(_ buffer: inout DeserializationBuffer, version: IndexKeyRecordHash) throws {
 		switch version {
 		case KeyOnlyRecord.fieldsVersion:
 			let record = try KeyOnlyRecord(&buffer)

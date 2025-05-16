@@ -49,7 +49,7 @@ extension TransactionContext {
 	enum DeserializationResult<Record: IndexKeyRecord> {
 		case success(Record)
 		case migrated(Record)
-		case prefixMismatch(Int)
+		case prefixMismatch(IndexKeyRecordHash)
 		
 		var record: Record? {
 			switch self {
@@ -78,12 +78,12 @@ extension TransactionContext {
 	) throws -> DeserializationResult<Record> {
 		let prefix = Record.keyPrefix
 
-		let readPrefix = try Int(buffer: &buffer.keyBuffer)
+		let readPrefix = try IndexKeyRecordHash(buffer: &buffer.keyBuffer)
 		if prefix != readPrefix {
 			return .prefixMismatch(readPrefix)
 		}
 
-		let version = try Int(buffer: &buffer.valueBuffer)
+		let version = try IndexKeyRecordHash(buffer: &buffer.valueBuffer)
 		if version != Record.fieldsVersion {
 			// create the new migrated record
 			let newRecord = try Record(&buffer, version: version)
@@ -139,12 +139,12 @@ extension TransactionContext {
 					valueBuffer: UnsafeRawBufferPointer(valueBuffer)
 				)
 
-				let readPrefix = try Int(buffer: &localBuffer.keyBuffer)
+				let readPrefix = try IndexKeyRecordHash(buffer: &localBuffer.keyBuffer)
 				if prefix != readPrefix {
 					throw StoreError.recordPrefixMismatch(String(describing: Record.self), prefix, readPrefix)
 				}
 
-				let version = try Int(buffer: &localBuffer.valueBuffer)
+				let version = try IndexKeyRecordHash(buffer: &localBuffer.valueBuffer)
 				if version != Record.fieldsVersion {
 					throw StoreError.migrationUnsupported(String(describing: Record.self), Record.fieldsVersion, version)
 				}

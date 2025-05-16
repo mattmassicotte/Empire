@@ -25,10 +25,10 @@ enum IndexKeyRecordMacroError: Error, CustomStringConvertible {
 
 public enum RecordVersion {
 	case automatic
-	case custom(key: Int, fields: Int)
-	case customFields(Int)
-	case customKey(Int)
-	case validated(Int)
+	case custom(key: UInt32, fields: UInt32)
+	case customFields(UInt32)
+	case customKey(UInt32)
+	case validated(UInt32)
 }
 
 public struct IndexKeyRecordMacro: ExtensionMacro {
@@ -49,26 +49,20 @@ public struct IndexKeyRecordMacro: ExtensionMacro {
 		]
 	}
 
-	private static func decodeInteger(_ element: LabeledExprListSyntax.Element) -> Int? {
+	private static func decodeInteger(_ element: LabeledExprListSyntax.Element) -> UInt32? {
 		let prefixOp = element
 			.expression
 			.as(PrefixOperatorExprSyntax.self)
-		
-		let negation = prefixOp?.operator.tokenKind == .prefixOperator("-")
 		
 		let intExp = prefixOp?.expression ?? element.expression
 		
 		let value = intExp
 			.as(IntegerLiteralExprSyntax.self)
 			.flatMap {
-				Int($0.literal.text)
+				UInt32($0.literal.text)
 			}
 		
-		guard let value else {
-			return nil
-		}
-		
-		return negation ? value * -1 : value
+		return value
 	}
 	
 	private static func recordValidation(node: AttributeSyntax) throws -> RecordVersion {
@@ -79,9 +73,9 @@ public struct IndexKeyRecordMacro: ExtensionMacro {
 			throw IndexKeyRecordMacroError.invalidArguments
 		}
 
-		var validatedValue: Int?
-		var keyPrefixValue: Int?
-		var fieldsVersionValue: Int?
+		var validatedValue: UInt32?
+		var keyPrefixValue: UInt32?
+		var fieldsVersionValue: UInt32?
 		
 		for argument in arguments {
 			switch argument.label?.text {
@@ -141,7 +135,7 @@ extension IndexKeyRecordMacro {
 	) throws -> VariableDeclSyntax {
 		let output = argument.type.trimmedDescription
 
-		let schemaHash: Int
+		let schemaHash: UInt32
 		
 		switch version {
 		case .automatic, .validated, .customFields:
@@ -152,12 +146,12 @@ extension IndexKeyRecordMacro {
 			schemaHash = value
 		}
 
-		let literal = IntegerLiteralExprSyntax(schemaHash)
+		let literal = IntegerLiteralExprSyntax(Int(schemaHash))
 		
 		return try VariableDeclSyntax(
 			"""
 /// Input: "\(raw: output)"
-public static var keyPrefix: Int { \(literal) }
+public static var keyPrefix: IndexKeyRecordHash { \(literal) }
 """
 		)
 	}
@@ -169,7 +163,7 @@ public static var keyPrefix: Int { \(literal) }
 	) throws -> VariableDeclSyntax {
 		let output = argument.fieldMemberTypeNames.joined(separator: ",")
 
-		let schemaHash: Int
+		let schemaHash: UInt32
 		
 		switch version {
 		case .automatic, .customKey:
@@ -186,12 +180,12 @@ public static var keyPrefix: Int { \(literal) }
 			}
 		}
 
-		let literal = IntegerLiteralExprSyntax(schemaHash)
+		let literal = IntegerLiteralExprSyntax(Int(schemaHash))
 
 		return try VariableDeclSyntax(
 			"""
 /// Input: "\(raw: output)"
-public static var fieldsVersion: Int { \(literal) }
+public static var fieldsVersion: IndexKeyRecordHash { \(literal) }
 """
 		)
 	}
