@@ -42,6 +42,25 @@ struct PackedSerializeTests {
 		#expect(try Int(buffer: &outputBuffer) == (Int.min + 1))
 		#expect(try Int(buffer: &outputBuffer) == Int.max)
 	}
+	
+	@Test func serializeInt64() throws {
+		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
+		var inputBuffer = buffer
+
+		(-42).serialize(into: &inputBuffer)
+		42.serialize(into: &inputBuffer)
+		142.serialize(into: &inputBuffer)
+		(Int64.min + 1).serialize(into: &inputBuffer)
+		Int64.max.serialize(into: &inputBuffer)
+
+		var outputBuffer = UnsafeRawBufferPointer(buffer)
+
+		#expect(try Int(buffer: &outputBuffer) == -42)
+		#expect(try Int(buffer: &outputBuffer) == 42)
+		#expect(try Int(buffer: &outputBuffer) == 142)
+		#expect(try Int(buffer: &outputBuffer) == (Int64.min + 1))
+		#expect(try Int(buffer: &outputBuffer) == Int64.max)
+	}
 
 	@Test func serializeUInt8() throws {
 		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
@@ -192,14 +211,17 @@ extension PackedSerializeTests {
 		// rounding is important because this serialization only has precision to the millisecond
 		let dateA = Date(timeIntervalSince1970:Date.now.timeIntervalSince1970.rounded(.down))
 		let dateB = Date(timeIntervalSince1970: 0.0)
+		let dateC = Date.distantPast
 
 		dateA.serialize(into: &inputBuffer)
 		dateB.serialize(into: &inputBuffer)
+		dateC.serialize(into: &inputBuffer)
 
 		var outputBuffer = UnsafeRawBufferPointer(buffer)
 
 		#expect(try Date(buffer: &outputBuffer) == dateA)
 		#expect(try Date(buffer: &outputBuffer) == dateB)
+		#expect(try Date(buffer: &outputBuffer) == dateC)
 	}
 	
 	@Test func serializeEmptyValue() throws {
