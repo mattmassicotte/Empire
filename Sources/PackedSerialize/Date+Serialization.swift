@@ -2,8 +2,8 @@
 import Foundation
 
 extension Date: Serializable {
-	private var millisecondsSinceEpoch: Int {
-		Int(self.timeIntervalSince1970 * 1000.0)
+	private var millisecondsSinceEpoch: Int64 {
+		Int64(self.timeIntervalSince1970 * 1000.0)
 	}
 
 	public var serializedSize: Int {
@@ -17,7 +17,7 @@ extension Date: Serializable {
 
 extension Date: Deserializable {
 	public init(buffer: inout UnsafeRawBufferPointer) throws {
-		let millisecondsSinceEpoch = try Int(buffer: &buffer)
+		let millisecondsSinceEpoch = try Int64(buffer: &buffer)
 
 		self.init(timeIntervalSince1970: Double(millisecondsSinceEpoch) / 1000.0)
 	}
