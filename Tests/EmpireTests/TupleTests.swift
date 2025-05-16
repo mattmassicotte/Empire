@@ -14,6 +14,12 @@ struct TupleTests {
 
 		#expect(value.elements == EmptyValue())
 	}
+	
+	@Test func emptyTuple() throws {
+		let value = Tuple< >()
+
+		#expect(value.elements == ())
+	}
 }
 
 extension TupleTests {
