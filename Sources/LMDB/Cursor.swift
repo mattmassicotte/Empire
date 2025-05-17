@@ -1,42 +1,65 @@
 import CLMDB
 
 public enum ComparisonOperator {
-	case greater(MDB_val)
-	case greaterOrEqual(MDB_val)
-	case less(MDB_val)
-	case lessOrEqual(MDB_val)
-	case range(MDB_val, MDB_val, inclusive: Bool = false)
-
-	public var key: MDB_val {
-		switch self {
-		case let .greater(key):
-			key
-		case let .greaterOrEqual(key):
-			key
-		case let .less(key):
-			key
-		case let .lessOrEqual(key):
-			key
-		case let .range(start, _, _):
-			start
-		}
-	}
+	case greater(MDB_val?)
+	case greaterOrEqual(MDB_val?)
+	case less(MDB_val?)
+	case lessOrEqual(MDB_val?)
+	case range(MDB_val)
+	case closedRange(MDB_val)
 
 	public var forward: Bool {
 		switch self {
-		case .greater, .greaterOrEqual, .range:
+		case .greater, .greaterOrEqual, .range, .closedRange:
 			true
 		case .less, .lessOrEqual:
 			false
+		}
+	}
+	
+	public var startInclusive: Bool {
+		switch self {
+		case .range, .closedRange, .greaterOrEqual, .lessOrEqual:
+			true
+		default:
+			false
+		}
+	}
+	
+	public var endInclusive: Bool {
+		switch self {
+		case .closedRange, .greaterOrEqual, .lessOrEqual, .greater, .less:
+			true
+		default:
+			false
+		}
+	}
+	
+	public var endKey: MDB_val? {
+		switch self {
+		case let .greater(value):
+			value
+		case let .greaterOrEqual(value):
+			value
+		case let .less(value):
+			value
+		case let .lessOrEqual(value):
+			value
+		case let .range(value):
+			value
+		case let .closedRange(value):
+			value
 		}
 	}
 }
 
 public struct Query {
 	public let comparison: ComparisonOperator
+	public let key: MDB_val
 	public let limit: Int?
 
-	public init(comparison: ComparisonOperator, limit: Int? = nil) {
+	public init(comparison: ComparisonOperator, key: MDB_val, limit: Int? = nil) {
+		self.key = key
 		self.comparison = comparison
 		self.limit = limit
 	}
@@ -94,7 +117,7 @@ public struct Cursor: Sequence, IteratorProtocol {
 		let comparisonOp = query.comparison
 		let op = comparisonOp.forward ? MDB_NEXT : MDB_PREV
 		
-		return try get(key: comparisonOp.key, operation: op)
+		return try get(key: query.key, operation: op)
 	}
 
 	private func compare(keyA: MDB_val, keyB: MDB_val) -> Int {
@@ -109,45 +132,44 @@ public struct Cursor: Sequence, IteratorProtocol {
 	///
 	/// (included, keepGoing)
 	private func check(key: MDB_val) -> (Bool, Bool) {
-		let comparison = compare(keyA: key, keyB: query.comparison.key)
+		let comparison = compare(keyA: key, keyB: query.key)
 		
-		switch query.comparison {
-		case .greater:
-			return (comparison > 0, true)
-		case .greaterOrEqual:
-			return (comparison >= 0, true)
-		case .less:
-			return (comparison < 0, true)
-		case .lessOrEqual:
-			return (comparison <= 0, true)
-		case let .range(_, endKey, inclusive):
-			let forward = query.comparison.forward
-			if comparison < 0 && forward == true {
-				return (false, true)
-			}
-			
-			if comparison > 0 && forward == false {
-				return (false, true)
-			}
-			
-			let endComparison = compare(keyA: key, keyB: endKey)
-
-			if endComparison == 0 && inclusive == false {
-				return (false, false)
-			}
-
-			// a < b
-			if endComparison < 0 && forward == false {
-				return (false, true)
-			}
-
-			// a > b
-			if endComparison > 0 && forward == true {
-				return (false, true)
-			}
-
+		let startInclusive = query.comparison.startInclusive
+		let endInclusive = query.comparison.endInclusive
+		let forward = query.comparison.forward
+		if comparison < 0 && forward == true {
+			return (false, true)
+		}
+		
+		if comparison > 0 && forward == false {
+			return (false, true)
+		}
+		
+		if comparison == 0 && startInclusive == false {
+			return (false, true)
+		}
+		
+		guard let endKey = query.comparison.endKey else {
 			return (true, true)
 		}
+		
+		let endComparison = compare(keyA: key, keyB: endKey)
+		
+		if endComparison == 0 && endInclusive == false {
+			return (false, false)
+		}
+		
+		// a < b
+		if endComparison < 0 && forward == false {
+			return (false, true)
+		}
+		
+		// a > b
+		if endComparison > 0 && forward == true {
+			return (false, true)
+		}
+		
+		return (true, true)
 	}
 	
 	public mutating func next() -> Element? {

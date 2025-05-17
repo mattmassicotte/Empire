@@ -8,41 +8,41 @@ extension Query {
 			let key = Tuple(prefix, repeat each components, value)
 			let keyVal = try MDB_val(key, using: buffer.keyBuffer)
 
-			return LMDB.Query(comparison: .greaterOrEqual(keyVal), limit: limit)
+			return LMDB.Query(comparison: .greaterOrEqual(nil), key: keyVal, limit: limit)
 		case let .greaterThan(value):
 			let key = Tuple(prefix, repeat each components, value)
 			let keyVal = try MDB_val(key, using: buffer.keyBuffer)
 
-			return LMDB.Query(comparison: .greater(keyVal), limit: limit)
+			return LMDB.Query(comparison: .greater(nil), key: keyVal, limit: limit)
 		case let .greaterOrEqual(value):
 			let key = Tuple(prefix, repeat each components, value)
 			let keyVal = try MDB_val(key, using: buffer.keyBuffer)
 
-			return LMDB.Query(comparison: .greaterOrEqual(keyVal), limit: limit)
+			return LMDB.Query(comparison: .greaterOrEqual(nil), key: keyVal, limit: limit)
 		case let .lessThan(value):
 			let key = Tuple(prefix, repeat each components, value)
 			let keyVal = try MDB_val(key, using: buffer.keyBuffer)
 
-			return LMDB.Query(comparison: .less(keyVal), limit: limit)
+			return LMDB.Query(comparison: .less(nil), key: keyVal, limit: limit)
 		case let .lessOrEqual(value):
 			let key = Tuple(prefix, repeat each components, value)
 			let keyVal = try MDB_val(key, using: buffer.keyBuffer)
 
-			return LMDB.Query(comparison: .lessOrEqual(keyVal), limit: limit)
+			return LMDB.Query(comparison: .lessOrEqual(nil), key: keyVal, limit: limit)
 		case let .range(range):
 			let key = Tuple(prefix, repeat each components, range.lowerBound)
 			let keyVal = try MDB_val(key, using: buffer.keyBuffer)
 			let endKey = Tuple(prefix, repeat each components, range.upperBound)
 			let endKeyVal = try MDB_val(endKey, using: buffer.valueBuffer)
 
-			return LMDB.Query(comparison: .range(keyVal, endKeyVal, inclusive: false), limit: limit)
+			return LMDB.Query(comparison: .range(endKeyVal), key: keyVal, limit: limit)
 		case let .closedRange(range):
 			let key = Tuple(prefix, repeat each components, range.lowerBound)
 			let keyVal = try MDB_val(key, using: buffer.keyBuffer)
 			let endKey = Tuple(prefix, repeat each components, range.upperBound)
 			let endKeyVal = try MDB_val(endKey, using: buffer.valueBuffer)
 
-			return LMDB.Query(comparison: .range(keyVal, endKeyVal, inclusive: true), limit: limit)
+			return LMDB.Query(comparison: .closedRange(endKeyVal), key: keyVal, limit: limit)
 		case .within:
 			throw QueryError.unsupportedQuery
 		}

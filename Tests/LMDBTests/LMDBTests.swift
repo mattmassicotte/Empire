@@ -3,6 +3,21 @@ import Testing
 
 import LMDB
 
+extension Cursor {
+	func getStringValues() -> [(String, String)] {
+		compactMap {
+			guard
+				let key = String(mdbVal: $0.0),
+				let value = String(mdbVal: $0.1)
+			else {
+				return nil
+			}
+
+			return (key, value)
+		}
+	}
+}
+
 @Suite(.serialized)
 struct LMDBTests {
 	static let storeURL = URL(fileURLWithPath: "/tmp/store", isDirectory: true)
@@ -102,7 +117,7 @@ extension LMDBTests {
 			try txn.set(dbi: dbi, key: "b", value: "2")
 
 			try "a".withMDBVal { searchKey in
-				let query = Query(comparison: .greaterOrEqual(searchKey))
+				let query = Query(comparison: .greaterOrEqual(nil), key: searchKey)
 				let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
 
 				let values: [(String, String)] = cursor.compactMap {
@@ -124,6 +139,31 @@ extension LMDBTests {
 		}
 	}
 	
+	@Test func greaterOrEqualWithEnding() throws {
+		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
+
+		try Transaction.with(env: env) { txn in
+			let dbi = try txn.open(name: "mydb")
+
+			try txn.set(dbi: dbi, key: "c", value: "3")
+			try txn.set(dbi: dbi, key: "a", value: "1")
+			try txn.set(dbi: dbi, key: "b", value: "2")
+
+			try "a".withMDBVal { searchKey in
+				try "b".withMDBVal { endKey in
+					let query = Query(comparison: .greaterOrEqual(endKey), key: searchKey)
+					let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
+
+					let values = cursor.getStringValues()
+
+					try #require(values.count == 2)
+					#expect(values[0] == ("a", "1"))
+					#expect(values[1] == ("b", "2"))
+				}
+			}
+		}
+	}
+	
 	@Test func greater() throws {
 		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
 
@@ -134,19 +174,10 @@ extension LMDBTests {
 			try txn.set(dbi: dbi, key: "b", value: "2")
 
 			try "a".withMDBVal { searchKey in
-				let query = Query(comparison: .greater(searchKey))
+				let query = Query(comparison: .greater(nil), key: searchKey)
 				let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
 
-				let values: [(String, String)] = cursor.compactMap {
-					guard
-						let key = String(mdbVal: $0.0),
-						let value = String(mdbVal: $0.1)
-					else {
-						return nil
-					}
-
-					return (key, value)
-				}
+				let values = cursor.getStringValues()
 
 				try #require(values.count == 2)
 				#expect(values[0] == ("b", "2"))
@@ -154,7 +185,29 @@ extension LMDBTests {
 			}
 		}
 	}
+	
+	@Test func greaterWithEnding() throws {
+		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
 
+		try Transaction.with(env: env) { txn in
+			let dbi = try txn.open(name: "mydb")
+
+			try txn.set(dbi: dbi, key: "c", value: "3")
+			try txn.set(dbi: dbi, key: "b", value: "2")
+
+			try "a".withMDBVal { searchKey in
+				try "b".withMDBVal { endKey in
+					let query = Query(comparison: .greater(endKey), key: searchKey)
+					let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
+					
+					let values = cursor.getStringValues()
+					
+					try #require(values.count == 1)
+					#expect(values[0] == ("b", "2"))
+				}
+			}
+		}
+	}
 
 	@Test func greaterOrEqualWithLimit() throws {
 		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
@@ -167,7 +220,7 @@ extension LMDBTests {
 			try txn.set(dbi: dbi, key: "b", value: "2")
 
 			try "a".withMDBVal { searchKey in
-				let query = Query(comparison: .greaterOrEqual(searchKey), limit: 2)
+				let query = Query(comparison: .greaterOrEqual(nil), key: searchKey, limit: 2)
 				let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
 
 				let values: [(String, String)] = cursor.compactMap {
@@ -199,7 +252,7 @@ extension LMDBTests {
 			try txn.set(dbi: dbi, key: "b", value: "2")
 
 			try "a".withMDBVal { searchKey in
-				let query = Query(comparison: .greater(searchKey), limit: 2)
+				let query = Query(comparison: .greater(nil), key: searchKey, limit: 2)
 				let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
 
 				let values: [(String, String)] = cursor.compactMap {
@@ -220,6 +273,96 @@ extension LMDBTests {
 		}
 	}
 
+	@Test func less() throws {
+		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
+
+		try Transaction.with(env: env) { txn in
+			let dbi = try txn.open(name: "mydb")
+
+			try txn.set(dbi: dbi, key: "c", value: "3")
+			try txn.set(dbi: dbi, key: "b", value: "2")
+
+			try "d".withMDBVal { searchKey in
+				let query = Query(comparison: .less(nil), key: searchKey)
+				let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
+
+				let values = cursor.getStringValues()
+
+				try #require(values.count == 2)
+				#expect(values[0] == ("c", "3"))
+				#expect(values[1] == ("b", "2"))
+			}
+		}
+	}
+	
+	@Test func lessWithEnding() throws {
+		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
+
+		try Transaction.with(env: env) { txn in
+			let dbi = try txn.open(name: "mydb")
+
+			try txn.set(dbi: dbi, key: "c", value: "3")
+			try txn.set(dbi: dbi, key: "b", value: "2")
+
+			try "d".withMDBVal { searchKey in
+				try "c".withMDBVal { endKey in
+					let query = Query(comparison: .less(endKey), key: searchKey)
+					let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
+					
+					let values = cursor.getStringValues()
+					
+					try #require(values.count == 1)
+					#expect(values[0] == ("c", "3"))
+				}
+			}
+		}
+	}
+	
+	@Test func lessOrEqual() throws {
+		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
+
+		try Transaction.with(env: env) { txn in
+			let dbi = try txn.open(name: "mydb")
+
+			try txn.set(dbi: dbi, key: "c", value: "3")
+			try txn.set(dbi: dbi, key: "b", value: "2")
+
+			try "c".withMDBVal { searchKey in
+				let query = Query(comparison: .lessOrEqual(nil), key: searchKey)
+				let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
+
+				let values = cursor.getStringValues()
+
+				try #require(values.count == 2)
+				#expect(values[0] == ("c", "3"))
+				#expect(values[1] == ("b", "2"))
+			}
+		}
+	}
+	
+	@Test func lessOrEqualWithEnding() throws {
+		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
+
+		try Transaction.with(env: env) { txn in
+			let dbi = try txn.open(name: "mydb")
+
+			try txn.set(dbi: dbi, key: "c", value: "3")
+			try txn.set(dbi: dbi, key: "b", value: "2")
+
+			try "d".withMDBVal { searchKey in
+				try "c".withMDBVal { endKey in
+					let query = Query(comparison: .lessOrEqual(endKey), key: searchKey)
+					let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
+					
+					let values = cursor.getStringValues()
+					
+					try #require(values.count == 1)
+					#expect(values[0] == ("c", "3"))
+				}
+			}
+		}
+	}
+	
 	@Test func backwardsScanCursor() throws {
 		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
 
@@ -231,7 +374,7 @@ extension LMDBTests {
 			try txn.set(dbi: dbi, key: "b", value: "2")
 
 			try "b".withMDBVal { searchKey in
-				let query = Query(comparison: .less(searchKey))
+				let query = Query(comparison: .less(nil), key: searchKey)
 				let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
 
 				let values: [(String, String)] = cursor.compactMap {
@@ -265,7 +408,7 @@ extension LMDBTests {
 			
 			try "b".withMDBVal { searchKey in
 				try "c".withMDBVal { endKey in
-					let query = Query(comparison: .range(searchKey, endKey, inclusive: true))
+					let query = Query(comparison: .closedRange(endKey), key: searchKey)
 					let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
 					
 					let values: [(String, String)] = cursor.compactMap {
@@ -300,7 +443,7 @@ extension LMDBTests {
 
 			try "b".withMDBVal { searchKey in
 				try "c".withMDBVal { endKey in
-					let query = Query(comparison: .range(searchKey, endKey, inclusive: false))
+					let query = Query(comparison: .range(endKey), key: searchKey)
 					let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
 
 					let values: [(String, String)] = cursor.compactMap {
