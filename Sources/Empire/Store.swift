@@ -70,7 +70,6 @@ public final class Store {
 			keySize: environment.maximumKeySize,
 			valueSize: Self.minimumFieldBufferSize
 		)
-
 	}
 	
 	/// Create an instance with a path to the on-disk database file.
