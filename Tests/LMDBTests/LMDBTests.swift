@@ -261,9 +261,10 @@ extension LMDBTests {
 			try txn.set(dbi: dbi, key: "c", value: "3")
 			try txn.set(dbi: dbi, key: "a", value: "1")
 			try txn.set(dbi: dbi, key: "b", value: "2")
-
-			try "a".withMDBVal { searchKey in
-				try "b".withMDBVal { endKey in
+			try txn.set(dbi: dbi, key: "d", value: "4")
+			
+			try "b".withMDBVal { searchKey in
+				try "c".withMDBVal { endKey in
 					let query = Query(comparison: .range(searchKey, endKey, inclusive: true))
 					let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
 					
@@ -279,8 +280,8 @@ extension LMDBTests {
 					}
 					
 					try #require(values.count == 2)
-					#expect(values[0] == ("a", "1"))
-					#expect(values[1] == ("b", "2"))
+					#expect(values[0] == ("b", "2"))
+					#expect(values[1] == ("c", "3"))
 				}
 			}
 		}
@@ -295,9 +296,10 @@ extension LMDBTests {
 			try txn.set(dbi: dbi, key: "c", value: "3")
 			try txn.set(dbi: dbi, key: "a", value: "1")
 			try txn.set(dbi: dbi, key: "b", value: "2")
+			try txn.set(dbi: dbi, key: "d", value: "4")
 
-			try "a".withMDBVal { searchKey in
-				try "b".withMDBVal { endKey in
+			try "b".withMDBVal { searchKey in
+				try "c".withMDBVal { endKey in
 					let query = Query(comparison: .range(searchKey, endKey, inclusive: false))
 					let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
 
@@ -313,7 +315,7 @@ extension LMDBTests {
 					}
 
 					try #require(values.count == 1)
-					#expect(values[0] == ("a", "1"))
+					#expect(values[0] == ("b", "2"))
 				}
 			}
 		}

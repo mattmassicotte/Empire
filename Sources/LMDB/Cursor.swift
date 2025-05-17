@@ -105,6 +105,9 @@ public struct Cursor: Sequence, IteratorProtocol {
 		return Int(mdb_cmp(txn, dbi, &localKeyA, &localKeyB))
 	}
 	
+	/// Compare a key using the set comparision operator.
+	///
+	/// (included, keepGoing)
 	private func check(key: MDB_val) -> (Bool, Bool) {
 		let comparison = compare(keyA: key, keyB: query.comparison.key)
 		
@@ -118,8 +121,16 @@ public struct Cursor: Sequence, IteratorProtocol {
 		case .lessOrEqual:
 			return (comparison <= 0, true)
 		case let .range(_, endKey, inclusive):
-			let endComparison = compare(keyA: key, keyB: endKey)
 			let forward = query.comparison.forward
+			if comparison < 0 && forward == true {
+				return (false, true)
+			}
+			
+			if comparison > 0 && forward == false {
+				return (false, true)
+			}
+			
+			let endComparison = compare(keyA: key, keyB: endKey)
 
 			if endComparison == 0 && inclusive == false {
 				return (false, false)
