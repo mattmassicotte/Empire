@@ -123,6 +123,38 @@ extension LMDBTests {
 			}
 		}
 	}
+	
+	@Test func greater() throws {
+		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
+
+		try Transaction.with(env: env) { txn in
+			let dbi = try txn.open(name: "mydb")
+
+			try txn.set(dbi: dbi, key: "c", value: "3")
+			try txn.set(dbi: dbi, key: "b", value: "2")
+
+			try "a".withMDBVal { searchKey in
+				let query = Query(comparison: .greater(searchKey))
+				let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
+
+				let values: [(String, String)] = cursor.compactMap {
+					guard
+						let key = String(mdbVal: $0.0),
+						let value = String(mdbVal: $0.1)
+					else {
+						return nil
+					}
+
+					return (key, value)
+				}
+
+				try #require(values.count == 2)
+				#expect(values[0] == ("b", "2"))
+				#expect(values[1] == ("c", "3"))
+			}
+		}
+	}
+
 
 	@Test func greaterOrEqualWithLimit() throws {
 		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
@@ -156,8 +188,7 @@ extension LMDBTests {
 		}
 	}
 
-	@Test
-	func greaterWithLimit() throws {
+	@Test func greaterWithLimit() throws {
 		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
 
 		try Transaction.with(env: env) { txn in

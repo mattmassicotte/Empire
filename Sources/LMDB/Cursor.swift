@@ -46,16 +46,16 @@ public struct Cursor: Sequence, IteratorProtocol {
 	public typealias Element = (MDB_val, MDB_val)
 
 	private enum State: Hashable {
-		case notStarted
-		case started(Int)
+		case running(Int)
 		case completed
 	}
 
 	private let cursorPtr: OpaquePointer
 	private let dbi: MDB_dbi
-	let query: Query
-	private var state = State.notStarted
+	private var state = State.running(0)
 
+	let query: Query
+	
 	public init(transaction: Transaction, dbi: MDB_dbi, query: Query) throws {
 		var ptr: OpaquePointer? = nil
 		try MDBError.check { mdb_cursor_open(transaction.txn, dbi, &ptr) }
@@ -89,6 +89,13 @@ public struct Cursor: Sequence, IteratorProtocol {
 
 		return (localKey, value)
 	}
+	
+	private func get() throws -> (MDB_val, MDB_val)? {
+		let comparisonOp = query.comparison
+		let op = comparisonOp.forward ? MDB_NEXT : MDB_PREV
+		
+		return try get(key: comparisonOp.key, operation: op)
+	}
 
 	private func compare(keyA: MDB_val, keyB: MDB_val) -> Int {
 		var localKeyA = keyA
@@ -97,77 +104,77 @@ public struct Cursor: Sequence, IteratorProtocol {
 
 		return Int(mdb_cmp(txn, dbi, &localKeyA, &localKeyB))
 	}
+	
+	private func check(key: MDB_val) -> (Bool, Bool) {
+		let comparison = compare(keyA: key, keyB: query.comparison.key)
+		
+		switch query.comparison {
+		case .greater:
+			return (comparison > 0, true)
+		case .greaterOrEqual:
+			return (comparison >= 0, true)
+		case .less:
+			return (comparison < 0, true)
+		case .lessOrEqual:
+			return (comparison <= 0, true)
+		case let .range(_, endKey, inclusive):
+			let endComparison = compare(keyA: key, keyB: endKey)
+			let forward = query.comparison.forward
 
-	private func endConditionReached(key: MDB_val) -> Bool {
-		let op = query.comparison
-
-		guard case let .range(_, endKey, inclusive) = op else {
-			return false
-		}
-
-		let comparison = compare(keyA: key, keyB: endKey)
-
-		if comparison == 0 && inclusive == false {
-			return true
-		}
-
-		// a < b
-		if comparison < 0 && op.forward == false {
-			return true
-		}
-
-		// a > b
-		if comparison > 0 && op.forward == true {
-			return true
-		}
-
-		return false
-	}
-
-	public mutating func next() -> Element? {
-		let comparisonOp = query.comparison
-
-		do {
-			switch state {
-			case .completed:
-				break
-			case .notStarted:
-				let initial = try get(key: comparisonOp.key, operation: MDB_SET_RANGE)
-
-				switch comparisonOp {
-				case .less, .greater:
-					self.state = .started(0)
-					return next()
-				case .greaterOrEqual, .lessOrEqual, .range:
-					self.state = .started(1)
-					return initial
-				}
-			case let .started(count):
-				if let limit = query.limit, count == limit {
-					self.state = .completed
-					break
-				}
-
-				let op = comparisonOp.forward ? MDB_NEXT : MDB_PREV
-
-				guard let pair = try get(key: comparisonOp.key, operation: op) else {
-					self.state = .completed
-					break
-				}
-
-				if endConditionReached(key: pair.0) {
-					self.state = .completed
-					break
-				}
-
-				self.state = .started(count + 1)
-
-				return pair
+			if endComparison == 0 && inclusive == false {
+				return (false, false)
 			}
-		} catch {
-			self.state = .completed
-		}
 
-		return nil
+			// a < b
+			if endComparison < 0 && forward == false {
+				return (false, true)
+			}
+
+			// a > b
+			if endComparison > 0 && forward == true {
+				return (false, true)
+			}
+
+			return (true, true)
+		}
+	}
+	
+	public mutating func next() -> Element? {
+		// are we still executing?
+		guard case let .running(count) = state else {
+			return nil
+		}
+		
+		// have we hit our limit?
+		if let limit = query.limit, count >= limit {
+			self.state = .completed
+			return nil
+		}
+		
+		// do we have a valid next pair?
+		guard let pair = try? get() else {
+			self.state = .completed
+			return nil
+		}
+		
+		// is this value in our results?
+		let (included, keepGoing) = check(key: pair.0)
+		
+		switch (included, keepGoing) {
+		case (true, true):
+			self.state = .running(count + 1)
+			
+			return pair
+		case (true, false):
+			self.state = .completed
+			
+			return pair
+		case (false, true):
+			return next()
+		case (false, false):
+			self.state = .completed
+			
+			return nil
+		}
 	}
 }

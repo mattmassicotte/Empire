@@ -16,6 +16,9 @@ extension UInt32: IndexKeyComparable {
 extension Int: IndexKeyComparable {
 }
 
+extension Int64: IndexKeyComparable {
+}
+
 #if canImport(Foundation)
 import Foundation
 extension UUID: IndexKeyComparable {
