@@ -14,4 +14,12 @@ extension MDB_val {
 	public var bufferPointer: UnsafeRawBufferPointer {
 		UnsafeRawBufferPointer(start: mv_data, count: mv_size)
 	}
+	
+	func truncated(to size: Int) -> MDB_val? {
+		if mv_size < size {
+			return nil
+		}
+		
+		return MDB_val(mv_size: size, mv_data: mv_data)
+	}
 }

@@ -17,3 +17,14 @@ extension String {
 		}
 	}
 }
+
+#if canImport(Foundation)
+import Foundation
+
+extension Data {
+	public init(mdbVal: MDB_val) {
+		self.init(bytes: mdbVal.mv_data, count: mdbVal.mv_size)
+	}
+}
+
+#endif

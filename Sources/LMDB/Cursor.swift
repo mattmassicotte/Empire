@@ -57,11 +57,13 @@ public struct Query {
 	public let comparison: ComparisonOperator
 	public let key: MDB_val
 	public let limit: Int?
+	public let truncating: Bool
 
-	public init(comparison: ComparisonOperator, key: MDB_val, limit: Int? = nil) {
+	public init(comparison: ComparisonOperator, key: MDB_val, limit: Int? = nil, truncating: Bool = false) {
 		self.key = key
 		self.comparison = comparison
 		self.limit = limit
+		self.truncating = truncating
 	}
 }
 
@@ -131,8 +133,12 @@ public struct Cursor: Sequence, IteratorProtocol {
 	/// Compare a key using the set comparision operator.
 	///
 	/// (included, keepGoing)
-	private func check(key: MDB_val) -> (Bool, Bool) {
-		let comparison = compare(keyA: key, keyB: query.key)
+	private func check(key: MDB_val) -> (Bool, Bool)? {
+		guard let effectiveKey = query.truncating ? key.truncated(to: query.key.mv_size) : key else {
+			return (false, true)
+		}
+		
+		let comparison = compare(keyA: effectiveKey, keyB: query.key)
 		
 		let startInclusive = query.comparison.startInclusive
 		let endInclusive = query.comparison.endInclusive
@@ -153,7 +159,11 @@ public struct Cursor: Sequence, IteratorProtocol {
 			return (true, true)
 		}
 		
-		let endComparison = compare(keyA: key, keyB: endKey)
+		guard let effectiveEndKey = query.truncating ? key.truncated(to: endKey.mv_size) : key else {
+			return nil
+		}
+		
+		let endComparison = compare(keyA: effectiveEndKey, keyB: endKey)
 		
 		if endComparison == 0 && endInclusive == false {
 			return (false, false)
@@ -191,7 +201,10 @@ public struct Cursor: Sequence, IteratorProtocol {
 		}
 		
 		// is this value in our results?
-		let (included, keepGoing) = check(key: pair.0)
+		guard let (included, keepGoing) = check(key: pair.0) else {
+			self.state = .completed
+			return nil
+		}
 		
 		switch (included, keepGoing) {
 		case (true, true):

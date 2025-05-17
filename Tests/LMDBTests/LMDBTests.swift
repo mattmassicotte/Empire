@@ -209,6 +209,55 @@ extension LMDBTests {
 		}
 	}
 
+	@Test func greaterTruncation() throws {
+		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
+
+		try Transaction.with(env: env) { txn in
+			let dbi = try txn.open(name: "mydb")
+
+			try txn.set(dbi: dbi, key: "aa", value: "1")
+			try txn.set(dbi: dbi, key: "ab", value: "2")
+			try txn.set(dbi: dbi, key: "ba", value: "3")
+			try txn.set(dbi: dbi, key: "bb", value: "4")
+			try txn.set(dbi: dbi, key: "ca", value: "5")
+
+			try "b".withMDBVal { searchKey in
+				let query = Query(comparison: .greater(nil), key: searchKey, truncating: true)
+				let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
+
+				let values = cursor.getStringValues()
+
+				try #require(values.count == 1)
+				#expect(values[0] == ("ca", "5"))
+			}
+		}
+	}
+
+	@Test func greaterOrEqualWithEndingAndTruncation() throws {
+		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
+
+		try Transaction.with(env: env) { txn in
+			let dbi = try txn.open(name: "mydb")
+
+			try txn.set(dbi: dbi, key: "aa", value: "1")
+			try txn.set(dbi: dbi, key: "ab", value: "2")
+			try txn.set(dbi: dbi, key: "ba", value: "3")
+			try txn.set(dbi: dbi, key: "bb", value: "4")
+			try txn.set(dbi: dbi, key: "ca", value: "5")
+
+			try "b".withMDBVal { searchKey in
+				let query = Query(comparison: .greaterOrEqual(searchKey), key: searchKey, truncating: true)
+				let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
+
+				let values = cursor.getStringValues()
+
+				try #require(values.count == 2)
+				#expect(values[0] == ("ba", "3"))
+				#expect(values[1] == ("bb", "4"))
+			}
+		}
+	}
+
 	@Test func greaterOrEqualWithLimit() throws {
 		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
 
@@ -446,16 +495,7 @@ extension LMDBTests {
 					let query = Query(comparison: .range(endKey), key: searchKey)
 					let cursor = try Cursor(transaction: txn, dbi: dbi, query: query)
 
-					let values: [(String, String)] = cursor.compactMap {
-						guard
-							let key = String(mdbVal: $0.0),
-							let value = String(mdbVal: $0.1)
-						else {
-							return nil
-						}
-
-						return (key, value)
-					}
+					let values = cursor.getStringValues()
 
 					try #require(values.count == 1)
 					#expect(values[0] == ("b", "2"))

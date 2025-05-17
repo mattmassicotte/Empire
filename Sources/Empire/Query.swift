@@ -29,7 +29,6 @@ extension Date: IndexKeyComparable {
 #endif
 
 public enum ComparisonOperator<Value: IndexKeyComparable> {
-	case equals(Value)
 	case greaterThan(Value)
 	case greaterOrEqual(Value)
 	case lessThan(Value)
@@ -37,6 +36,10 @@ public enum ComparisonOperator<Value: IndexKeyComparable> {
 	case within([Value])
 	case range(Range<Value>)
 	case closedRange(ClosedRange<Value>)
+	
+	public static func equals(_ value: Value) -> Self {
+		Self.closedRange(value...value)
+	}
 }
 
 extension ComparisonOperator: Equatable {

@@ -163,98 +163,7 @@ extension TransactionContext {
 		let bufferPair = self.buffer
 
 		switch query.last {
-		case let .equals(value):
-			let key = Tuple(prefix, repeat each query.components, value)
-			
-			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
-			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
-
-			var records: [Record] = []
-			
-			for pair in cursor {
-				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
-				
-				let currentKey = try Tuple<IndexKeyRecordHash, repeat each Component, Last>(buffer: &localBuffer.keyBuffer)
-				
-				if currentKey > key {
-					return records
-				}
-
-				// reset the buffer
-				localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
-				
-				let result: DeserializationResult<Record> = try deserialize(keyValue: pair.0, buffer: &localBuffer)
-				
-				switch result {
-				case let .migrated(record), let .success(record):
-					records.append(record)
-				case .prefixMismatch:
-					return records
-				}
-			}
-			
-			return records
-		case .greaterThan:
-			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
-			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
-
-			var records: [Record] = []
-			
-			for pair in cursor {
-				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
-
-				let result: DeserializationResult<Record> = try deserialize(keyValue: pair.0, buffer: &localBuffer)
-				
-				switch result {
-				case let .migrated(record), let .success(record):
-					records.append(record)
-				case .prefixMismatch:
-					return records
-				}
-			}
-			
-			return records
-		case .greaterOrEqual:
-			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
-			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
-
-			var records: [Record] = []
-			
-			for pair in cursor {
-				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
-
-				let result: DeserializationResult<Record> = try deserialize(keyValue: pair.0, buffer: &localBuffer)
-				
-				switch result {
-				case let .migrated(record), let .success(record):
-					records.append(record)
-				case .prefixMismatch:
-					return records
-				}
-			}
-			
-			return records
-		case .lessThan:
-			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
-			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
-
-			var records: [Record] = []
-			
-			for pair in cursor {
-				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
-
-				let result: DeserializationResult<Record> = try deserialize(keyValue: pair.0, buffer: &localBuffer)
-				
-				switch result {
-				case let .migrated(record), let .success(record):
-					records.append(record)
-				case .prefixMismatch:
-					return records
-				}
-			}
-			
-			return records
-		case .lessOrEqual:
+		case .greaterThan, .greaterOrEqual, .lessThan, .lessOrEqual:
 			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
 
@@ -303,8 +212,6 @@ extension TransactionContext {
 				return record
 			}
 		}
-
-		return []
 	}
 }
 
