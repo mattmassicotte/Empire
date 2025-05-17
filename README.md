@@ -103,7 +103,8 @@ Your types **are** the schema. The type's data is serialized directly to a binar
 | `String`  | none |
 | `UInt8`   | none |
 | `UInt`    | none |
-| `Int`     | `(Int.min + 1)...(Int.max)` |
+| `Int`     | none |
+| `Int64`   | none |
 | `Bool`    | none |
 | `Optional`| none |
 | `Array`   | none |

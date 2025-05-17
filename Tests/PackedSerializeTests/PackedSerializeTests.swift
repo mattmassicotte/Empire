@@ -33,6 +33,7 @@ struct PackedSerializeTests {
 		142.serialize(into: &inputBuffer)
 		(Int.min + 1).serialize(into: &inputBuffer)
 		Int.max.serialize(into: &inputBuffer)
+		Int.min.serialize(into: &inputBuffer)
 
 		var outputBuffer = UnsafeRawBufferPointer(buffer)
 
@@ -41,6 +42,7 @@ struct PackedSerializeTests {
 		#expect(try Int(buffer: &outputBuffer) == 142)
 		#expect(try Int(buffer: &outputBuffer) == (Int.min + 1))
 		#expect(try Int(buffer: &outputBuffer) == Int.max)
+		#expect(try Int(buffer: &outputBuffer) == Int.min)
 	}
 	
 	@Test func serializeInt64() throws {
@@ -52,6 +54,7 @@ struct PackedSerializeTests {
 		142.serialize(into: &inputBuffer)
 		(Int64.min + 1).serialize(into: &inputBuffer)
 		Int64.max.serialize(into: &inputBuffer)
+		Int64.min.serialize(into: &inputBuffer)
 
 		var outputBuffer = UnsafeRawBufferPointer(buffer)
 
@@ -60,6 +63,7 @@ struct PackedSerializeTests {
 		#expect(try Int(buffer: &outputBuffer) == 142)
 		#expect(try Int(buffer: &outputBuffer) == (Int64.min + 1))
 		#expect(try Int(buffer: &outputBuffer) == Int64.max)
+		#expect(try Int(buffer: &outputBuffer) == Int64.min)
 	}
 
 	@Test func serializeUInt8() throws {
@@ -164,7 +168,6 @@ struct PackedSerializeTests {
 
 		#expect(try HasRawRep(buffer: &outputBuffer) == HasRawRep.two)
 		#expect(try HasRawRep(buffer: &outputBuffer) == HasRawRep.one)
-
 	}
 }
 
@@ -222,6 +225,16 @@ extension PackedSerializeTests {
 		#expect(try Date(buffer: &outputBuffer) == dateA)
 		#expect(try Date(buffer: &outputBuffer) == dateB)
 		#expect(try Date(buffer: &outputBuffer) == dateC)
+		
+		// check the encoding for ordering
+		var encodedOutputBuffer = UnsafeRawBufferPointer(buffer)
+		
+		let intA = try Int64(buffer: &encodedOutputBuffer)
+		let intB = try Int64(buffer: &encodedOutputBuffer)
+		let intC = try Int64(buffer: &encodedOutputBuffer)
+		
+		#expect(intA > intB)
+		#expect(intB > intC)
 	}
 	
 	@Test func serializeEmptyValue() throws {
