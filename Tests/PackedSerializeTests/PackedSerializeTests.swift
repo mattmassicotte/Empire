@@ -68,10 +68,7 @@ struct PackedSerializeTests {
 		#expect(try Int(buffer: &outputBuffer) == h)
 		
 		#expect([a,b,c,d,e,f,g,h].sorted() == [h,g,f,e,d,c,b,a])
-
-		withKnownIssue("encoding sorting is not right") {
-			#expect(ComparableData.sort([a,b,c,d,e,f,g,h]) == [h,g,f,e,d,c,b,a])
-		}
+		#expect(ComparableData.sort([a,b,c,d,e,f,g,h]) == [h,g,f,e,d,c,b,a])
 	}
 	
 	@Test func serializeInt64() throws {
@@ -108,9 +105,7 @@ struct PackedSerializeTests {
 		#expect(try Int64(buffer: &outputBuffer) == h)
 		
 		#expect([a,b,c,d,e,f,g,h].sorted() == [h,g,f,e,d,c,b,a])
-		withKnownIssue("encoding sorting is not right") {
-			#expect(ComparableData.sort([a,b,c,d,e,f,g,h]) == [h,g,f,e,d,c,b,a])
-		}
+		#expect(ComparableData.sort([a,b,c,d,e,f,g,h]) == [h,g,f,e,d,c,b,a])
 	}
 
 	@Test func serializeUInt8() throws {
@@ -278,9 +273,7 @@ extension PackedSerializeTests {
 		
 		// check the encoding for ordering
 		#expect([a,b,c,d].sorted() == [d,c,b,a])
-		withKnownIssue("encoding sorting is not right - fallout from Int64 I think") {
-			#expect(ComparableData.sort([a,b,c,d]) == [d,c,b,a])
-		}
+		#expect(ComparableData.sort([a,b,c,d]) == [d,c,b,a])
 	}
 	
 	@Test func serializeEmptyValue() throws {

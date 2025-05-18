@@ -1,6 +1,6 @@
 extension Int64: Serializable {
 	public var serializedSize: Int {
-		MemoryLayout<Self>.size
+		MemoryLayout<UInt64>.size
 	}
 
 	public func serialize(into buffer: inout UnsafeMutableRawBufferPointer) {

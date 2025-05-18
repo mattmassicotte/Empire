@@ -35,17 +35,15 @@ struct ComparableData<T: Serializable & Deserializable>: Comparable {
 			return false
 		}
 
-		var lessThan = false
-
 		for pair in zip(lhs.buffer, rhs.buffer) {
-			if pair.0 > pair.1 {
-				return false
+			if pair.0 == pair.1 {
+				continue
 			}
-			
-			lessThan = pair.0 != pair.1
+
+			return pair.0 < pair.1
 		}
 
-		return lessThan
+		return false
 	}
 	
 	static func sort(_ array: Array<T>) -> Array<T> {
