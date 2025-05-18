@@ -12,9 +12,9 @@ extension Int64: Serializable {
 		}
 
 		if self >= 0 {
-			shifted = UInt64(self) + UInt64(Int64.max) + 1
+			shifted = UInt64(self) + UInt64(Self.max) + 1
 		} else {
-			shifted = UInt64(self + Int64.max + 1)
+			shifted = UInt64(self + Self.max + 1)
 		}
 
 		shifted.serialize(into: &buffer)
@@ -30,7 +30,7 @@ extension Int64: Deserializable {
 			return
 		}
 		
-		let max = UInt64(Int64.max) + 1
+		let max = UInt64(Self.max) + 1
 
 		if shifted > max {
 			self = Int64(shifted - max)

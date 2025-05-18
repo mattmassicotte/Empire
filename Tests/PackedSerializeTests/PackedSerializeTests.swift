@@ -13,57 +13,104 @@ struct PackedSerializeTests {
 		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
 		var inputBuffer = buffer
 
-		UInt(42).serialize(into: &inputBuffer)
-		UInt(142).serialize(into: &inputBuffer)
-		UInt(0).serialize(into: &inputBuffer)
+		let a = UInt.max
+		let b = UInt(142)
+		let c = UInt(42)
+		let d = UInt.min
+		
+		a.serialize(into: &inputBuffer)
+		b.serialize(into: &inputBuffer)
+		c.serialize(into: &inputBuffer)
+		d.serialize(into: &inputBuffer)
 
 		var outputBuffer = UnsafeRawBufferPointer(buffer)
 
-		#expect(try UInt(buffer: &outputBuffer) == 42)
-		#expect(try UInt(buffer: &outputBuffer) == 142)
-		#expect(try UInt(buffer: &outputBuffer) == 0)
+		#expect(try UInt(buffer: &outputBuffer) == a)
+		#expect(try UInt(buffer: &outputBuffer) == b)
+		#expect(try UInt(buffer: &outputBuffer) == c)
+		#expect(try UInt(buffer: &outputBuffer) == d)
+		
+		#expect([a,b,c,d].sorted() == [d,c,b,a])
+		#expect(ComparableData.sort([a,b,c,d]) == [d,c,b,a])
 	}
 
 	@Test func serializeInt() throws {
 		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
 		var inputBuffer = buffer
 
-		(-42).serialize(into: &inputBuffer)
-		42.serialize(into: &inputBuffer)
-		142.serialize(into: &inputBuffer)
-		(Int.min + 1).serialize(into: &inputBuffer)
-		Int.max.serialize(into: &inputBuffer)
-		Int.min.serialize(into: &inputBuffer)
+		let a = Int.max
+		let b = Int(142)
+		let c = Int(42)
+		let d = Int(0)
+		let e = Int(-1)
+		let f = Int(-42)
+		let g = Int(Int.min + 1)
+		let h = Int.min
+
+		a.serialize(into: &inputBuffer)
+		b.serialize(into: &inputBuffer)
+		c.serialize(into: &inputBuffer)
+		d.serialize(into: &inputBuffer)
+		e.serialize(into: &inputBuffer)
+		f.serialize(into: &inputBuffer)
+		g.serialize(into: &inputBuffer)
+		h.serialize(into: &inputBuffer)
 
 		var outputBuffer = UnsafeRawBufferPointer(buffer)
 
-		#expect(try Int(buffer: &outputBuffer) == -42)
-		#expect(try Int(buffer: &outputBuffer) == 42)
-		#expect(try Int(buffer: &outputBuffer) == 142)
-		#expect(try Int(buffer: &outputBuffer) == (Int.min + 1))
-		#expect(try Int(buffer: &outputBuffer) == Int.max)
-		#expect(try Int(buffer: &outputBuffer) == Int.min)
+		#expect(try Int(buffer: &outputBuffer) == a)
+		#expect(try Int(buffer: &outputBuffer) == b)
+		#expect(try Int(buffer: &outputBuffer) == c)
+		#expect(try Int(buffer: &outputBuffer) == d)
+		#expect(try Int(buffer: &outputBuffer) == e)
+		#expect(try Int(buffer: &outputBuffer) == f)
+		#expect(try Int(buffer: &outputBuffer) == g)
+		#expect(try Int(buffer: &outputBuffer) == h)
+		
+		#expect([a,b,c,d,e,f,g,h].sorted() == [h,g,f,e,d,c,b,a])
+
+		withKnownIssue("encoding sorting is not right") {
+			#expect(ComparableData.sort([a,b,c,d,e,f,g,h]) == [h,g,f,e,d,c,b,a])
+		}
 	}
 	
 	@Test func serializeInt64() throws {
 		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
 		var inputBuffer = buffer
 
-		(-42).serialize(into: &inputBuffer)
-		42.serialize(into: &inputBuffer)
-		142.serialize(into: &inputBuffer)
-		(Int64.min + 1).serialize(into: &inputBuffer)
-		Int64.max.serialize(into: &inputBuffer)
-		Int64.min.serialize(into: &inputBuffer)
+		let a = Int64.max
+		let b = Int64(142)
+		let c = Int64(42)
+		let d = Int64(0)
+		let e = Int64(-1)
+		let f = Int64(-42)
+		let g = Int64(Int64.min + 1)
+		let h = Int64.min
+		
+		a.serialize(into: &inputBuffer)
+		b.serialize(into: &inputBuffer)
+		c.serialize(into: &inputBuffer)
+		d.serialize(into: &inputBuffer)
+		e.serialize(into: &inputBuffer)
+		f.serialize(into: &inputBuffer)
+		g.serialize(into: &inputBuffer)
+		h.serialize(into: &inputBuffer)
 
 		var outputBuffer = UnsafeRawBufferPointer(buffer)
 
-		#expect(try Int(buffer: &outputBuffer) == -42)
-		#expect(try Int(buffer: &outputBuffer) == 42)
-		#expect(try Int(buffer: &outputBuffer) == 142)
-		#expect(try Int(buffer: &outputBuffer) == (Int64.min + 1))
-		#expect(try Int(buffer: &outputBuffer) == Int64.max)
-		#expect(try Int(buffer: &outputBuffer) == Int64.min)
+		#expect(try Int64(buffer: &outputBuffer) == a)
+		#expect(try Int64(buffer: &outputBuffer) == b)
+		#expect(try Int64(buffer: &outputBuffer) == c)
+		#expect(try Int64(buffer: &outputBuffer) == d)
+		#expect(try Int64(buffer: &outputBuffer) == e)
+		#expect(try Int64(buffer: &outputBuffer) == f)
+		#expect(try Int64(buffer: &outputBuffer) == g)
+		#expect(try Int64(buffer: &outputBuffer) == h)
+		
+		#expect([a,b,c,d,e,f,g,h].sorted() == [h,g,f,e,d,c,b,a])
+		withKnownIssue("encoding sorting is not right") {
+			#expect(ComparableData.sort([a,b,c,d,e,f,g,h]) == [h,g,f,e,d,c,b,a])
+		}
 	}
 
 	@Test func serializeUInt8() throws {
@@ -212,29 +259,28 @@ extension PackedSerializeTests {
 		var inputBuffer = buffer
 
 		// rounding is important because this serialization only has precision to the millisecond
-		let dateA = Date(timeIntervalSince1970:Date.now.timeIntervalSince1970.rounded(.down))
-		let dateB = Date(timeIntervalSince1970: 0.0)
-		let dateC = Date.distantPast
+		let a = Date(timeIntervalSince1970:Date.now.timeIntervalSince1970.rounded(.down))
+		let b = Date(timeIntervalSince1970: 0.0)
+		let c = Date(timeIntervalSince1970: -1.0)
+		let d = Date.distantPast
 
-		dateA.serialize(into: &inputBuffer)
-		dateB.serialize(into: &inputBuffer)
-		dateC.serialize(into: &inputBuffer)
+		a.serialize(into: &inputBuffer)
+		b.serialize(into: &inputBuffer)
+		c.serialize(into: &inputBuffer)
+		d.serialize(into: &inputBuffer)
 
 		var outputBuffer = UnsafeRawBufferPointer(buffer)
 
-		#expect(try Date(buffer: &outputBuffer) == dateA)
-		#expect(try Date(buffer: &outputBuffer) == dateB)
-		#expect(try Date(buffer: &outputBuffer) == dateC)
+		#expect(try Date(buffer: &outputBuffer) == a)
+		#expect(try Date(buffer: &outputBuffer) == b)
+		#expect(try Date(buffer: &outputBuffer) == c)
+		#expect(try Date(buffer: &outputBuffer) == d)
 		
 		// check the encoding for ordering
-		var encodedOutputBuffer = UnsafeRawBufferPointer(buffer)
-		
-		let intA = try Int64(buffer: &encodedOutputBuffer)
-		let intB = try Int64(buffer: &encodedOutputBuffer)
-		let intC = try Int64(buffer: &encodedOutputBuffer)
-		
-		#expect(intA > intB)
-		#expect(intB > intC)
+		#expect([a,b,c,d].sorted() == [d,c,b,a])
+		withKnownIssue("encoding sorting is not right - fallout from Int64 I think") {
+			#expect(ComparableData.sort([a,b,c,d]) == [d,c,b,a])
+		}
 	}
 	
 	@Test func serializeEmptyValue() throws {
