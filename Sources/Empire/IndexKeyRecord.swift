@@ -70,3 +70,7 @@ extension IndexKeyRecord {
 		try Self.delete(in: context, key: indexKey)
 	}
 }
+
+extension IndexKeyRecord where IndexKey: Hashable {
+	public var id: IndexKey { indexKey }
+}

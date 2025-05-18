@@ -54,6 +54,13 @@ struct IndexKeyRecordTests {
 		#expect(TestRecord.keyPrefix - 1 == LessThanTestRecord.keyPrefix)
 		#expect(TestRecord.fieldsVersion == LessThanTestRecord.fieldsVersion)
 	}
+
+	@Test func identifiable() throws {
+		let record = TestRecord(a: "hello", b: 42, c: "goodbye")
+
+		#expect(record.id == record.indexKey)
+		#expect(record.id == Tuple("hello", 42))
+	}
 	
 	@Test func insertAndSelect() throws {
 		let record = TestRecord(a: "hello", b: 42, c: "goodbye")
