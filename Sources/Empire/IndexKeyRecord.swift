@@ -69,6 +69,16 @@ extension IndexKeyRecord {
 	public func delete(in context: TransactionContext) throws {
 		try Self.delete(in: context, key: indexKey)
 	}
+
+	public func insert(in context: TransactionContext) throws {
+		try context.insert(self)
+	}
+
+	public func insert(in store: Store) throws {
+		try store.withTransaction { ctx in
+			try ctx.insert(self)
+		}
+	}
 }
 
 extension IndexKeyRecord where IndexKey: Hashable {
