@@ -141,6 +141,7 @@ struct PackedSerializeTests {
 		d.serialize(into: &inputBuffer)
 		e.serialize(into: &inputBuffer)
 		f.serialize(into: &inputBuffer)
+		g.serialize(into: &inputBuffer)
 
 		var outputBuffer = UnsafeRawBufferPointer(buffer)
 
