@@ -11,6 +11,8 @@
 
 A record store for Swift
 
+Empire is a persistence system with an emphasis on low overhead. It is backed by a sorted key-value store that is far simpler than a full SQL database. SQL is very powerful, but for many problem domains you just don't need it.
+
 - Schema is defined by your types
 - Macro-based API that is both typesafe and low-overhead
 - Built for Swift 6
