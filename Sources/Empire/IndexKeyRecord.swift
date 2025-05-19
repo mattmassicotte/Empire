@@ -75,6 +75,9 @@ extension IndexKeyRecord {
 		try context.insert(self)
 	}
 
+	/// Insert a record directly into a `Store`.
+	///
+	/// This operation is wrapped in a transaction internally.
 	public func insert(in store: Store) throws {
 		try store.withTransaction { ctx in
 			try ctx.insert(self)
