@@ -1,6 +1,7 @@
 @_exported
 import PackedSerialize
 
+/// Adds conformance to the `IndexKeyRecord` protocol and associated query functions.
 @attached(
 	extension,
 	conformances: IndexKeyRecord,

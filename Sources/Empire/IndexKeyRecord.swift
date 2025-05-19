@@ -1,5 +1,6 @@
 import PackedSerialize
 
+/// A hash used for versioning serialized data.
 public typealias IndexKeyRecordHash = UInt32
 
 /// Requirements for a type stored in an Empire database.

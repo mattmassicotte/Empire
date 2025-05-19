@@ -1,6 +1,7 @@
 import LMDB
 import PackedSerialize
 
+/// A type that preserves ordering when serialized.
 public protocol IndexKeyComparable: Comparable {
 }
 
@@ -50,6 +51,7 @@ extension ComparisonOperator: Hashable where Value: Hashable {
 
 public typealias QueryComponent = IndexKeyComparable & Serializable & Deserializable
 
+/// A query operation that is not associated with a specific `IndexKeyRecord` type.
 public struct Query<each Component: QueryComponent, Last: QueryComponent> {
 	public let last: ComparisonOperator<Last>
 	public let components: (repeat each Component)
