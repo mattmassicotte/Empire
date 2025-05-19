@@ -101,3 +101,59 @@ enum MyEnum: Int, IndexKeyComparable, Serializable, Deserializable {
 ```
 
 Preserving the binary ordering semantics required isn't always straightforward. Adding a conformance to `IndexKeyComparable` should be done with care. An inappropriate binary representation will result in undefined querying behavior.
+
+## Manual Conformance
+
+The ``IndexKeyRecord(validated:keyPrefix:fieldsVersion:_:_:)`` macro expands to a conformance to the ``IndexKeyRecord`` protocol. You can use this directly, but it isn't easy. You have to handle binary serialization and deserialization of all your fields. It's also **critical** that you correctly version your type's schema.
+
+```swift
+@IndexKeyRecord("name")
+struct Person {
+    let name: String
+    let age: Int
+}
+
+// Equivalent to this:
+extension Person: IndexKeyRecord {
+    public typealias IndexKey = Tuple<String, Int>
+    public typealias Fields: Tuple<Int>
+
+    public static var keyPrefix: IndexKeyRecordHash {
+        1
+    }
+
+    public static var fieldsVersion: IndexKeyRecordHash {
+        1
+    }
+
+    public var indexKey: IndexKey {
+        Tuple(name)
+    }
+
+    public var fields: Fields {
+        Tuple(age)
+    }
+
+    public func serialize(into buffer: inout SerializationBuffer) {
+        name.serialize(into: &buffer.keyBuffer)
+        age.serialize(into: &buffer.valueBuffer)
+    }
+
+    public init(_ buffer: inout DeserializationBuffer) throws {
+        self.name = try String(buffer: &buffer.keyBuffer)
+        self.age = try UInt(buffer: &buffer.valueBuffer)
+    }
+}
+
+extension Person {
+    public static func select(in context: TransactionContext, limit: Int? = nil, name: ComparisonOperator<String>) throws -> [Self] {
+        try context.select(query: Query(last: name, limit: limit))
+    }
+    public static func select(in context: TransactionContext, limit: Int? = nil, name: String) throws -> [Self] {
+        try context.select(query: Query(last: .equals(name), limit: limit))
+    }
+    public static func delete(in context: TransactionContext, name: String) throws {
+        try context.delete(recordType: Self.self, key: Tuple(name))
+    }
+}
+```
