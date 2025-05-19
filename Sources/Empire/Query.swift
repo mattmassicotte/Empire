@@ -2,31 +2,22 @@ import LMDB
 import PackedSerialize
 
 /// A type that preserves ordering when serialized.
+///
+/// A comformance to this type asserts that when serialized, the comparison order is preserved when evaluating the binary representation from MSB to LSB.
 public protocol IndexKeyComparable: Comparable {
 }
 
-extension String: IndexKeyComparable {
-}
-
-extension UInt: IndexKeyComparable {
-}
-
-extension UInt32: IndexKeyComparable {
-}
-
-extension Int: IndexKeyComparable {
-}
-
-extension Int64: IndexKeyComparable {
-}
+extension Int: IndexKeyComparable {}
+extension Int64: IndexKeyComparable {}
+extension String: IndexKeyComparable {}
+extension UInt: IndexKeyComparable {}
+extension UInt32: IndexKeyComparable {}
+extension UInt64: IndexKeyComparable {}
 
 #if canImport(Foundation)
 import Foundation
-extension UUID: IndexKeyComparable {
-}
-
-extension Date: IndexKeyComparable {
-}
+extension Date: IndexKeyComparable {}
+extension UUID: IndexKeyComparable {}
 #endif
 
 public enum ComparisonOperator<Value: IndexKeyComparable> {

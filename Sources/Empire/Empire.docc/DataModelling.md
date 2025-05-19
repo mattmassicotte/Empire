@@ -64,3 +64,40 @@ struct PersonByAge {
     let firstName: String
 }
 ```
+
+## Type Constraints
+
+The properties of an ``IndexKeyRecord`` type are serialized directly to a binary form. To do this, their types must conform to both the ``Serialization`` and ``Deserialization`` protocols.
+
+However, there is an important additional constraint on types that compose an index key. All of these **must** also be sortable via direct binary comparison when serialized. This is not a property all types have, but can be expressed with a conformance to `IndexKeyComparable`.
+
+| Type | Key | Notes |
+| --- | --- | --- |
+| `Array`   | no | none |
+| `Bool`    | yes | none |
+| `Data`    | yes | none |
+| `Date`    | no | millisecond precision |
+| `Optional`| no | none |
+| `Int`     | yes | none |
+| `Int64`   | yes | none |
+| `RawRepresentable` | no | none |
+| `String`  | yes | none |
+| `UInt` | yes | none |
+| `UInt32` | yes | none |
+| `UUID`    | yes | none |
+
+It is possible to add support for custom types using these protocols.
+
+```swift
+enum MyEnum: Int, IndexKeyComparable, Serializable, Deserializable {
+    case a = 1
+    case b = 2
+    case c  = 3
+
+    static func < (lhs: Self, rhs: Self) -> Bool {
+        lhs.rawValue < rhs.rawValue
+    }
+}
+```
+
+Preserving the binary ordering sematics required isn't always straightforward. Adding a conformance to `IndexKeyComparable` should be done with care. An inappropriate binary representation will result in undefined querying behavior.
