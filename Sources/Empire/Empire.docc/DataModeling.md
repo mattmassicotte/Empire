@@ -1,18 +1,18 @@
-# Data Modelling
+# Data Modeling
 
 Understand how to model and query your data.
 
 ## Overview
 
-Empire stores records in an ordered-map structure. This has profound implications on query capabilities and how data is modelled. Ordered maps offer much less flexibility than the table-based system of an SQL database. Because of this, data modelling is very influenced by queries you need to support.
+Empire stores records in an ordered-map structure. This has profound implications on query capabilities and how data is modeled. Ordered maps offer much less flexibility than the table-based system of an SQL database. Because of this, data modeling is very influenced by queries you need to support.
 
 ## Record Structure
 
-Conceptionally, you can think of each record as being split into two components: the "index key" and "fields".
+Conceptually, you can think of each record as being split into two components: the "index key" and "fields".
 
 The "index key" component is the **only** means of retrieving data efficiently. It is **not possible** to run queries against values fields without doing a full scan of the data. This makes index keys a critical part of your design.
 
-Consider the following record defininion. It has a composite key, defined by the two arguments to the `@IndexKeyRecord` macro.
+Consider the following record definition. It has a composite key, defined by the two arguments to the `@IndexKeyRecord` macro.
 
 ```swift
 @IndexKeyRecord("lastName", "firstName")
@@ -54,7 +54,7 @@ The code generated for a `@IndexKeyRecord` type makes it a compile-time error to
 
 As a consequence of the limited query capability, you must model your data by starting with the queries you need to support. This isn't typically straightforward. One way to go about this is by writing out all of the possible queries your model needs.
 
-Many kinds of query patterns can require denormalization. For example, if we needed to support quering `Person` by age, a **second** entity would be necessary.
+Many kinds of query patterns can require denormalization. For example, if we needed to support querying `Person` by age, a **second** entity would be necessary.
 
 ```swift
 @IndexKeyRecord("age")
@@ -92,7 +92,7 @@ It is possible to add support for custom types using these protocols.
 enum MyEnum: Int, IndexKeyComparable, Serializable, Deserializable {
     case a = 1
     case b = 2
-    case c  = 3
+    case c = 3
 
     static func < (lhs: Self, rhs: Self) -> Bool {
         lhs.rawValue < rhs.rawValue
@@ -100,4 +100,4 @@ enum MyEnum: Int, IndexKeyComparable, Serializable, Deserializable {
 }
 ```
 
-Preserving the binary ordering sematics required isn't always straightforward. Adding a conformance to `IndexKeyComparable` should be done with care. An inappropriate binary representation will result in undefined querying behavior.
+Preserving the binary ordering semantics required isn't always straightforward. Adding a conformance to `IndexKeyComparable` should be done with care. An inappropriate binary representation will result in undefined querying behavior.

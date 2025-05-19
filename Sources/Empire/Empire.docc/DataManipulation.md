@@ -1,4 +1,4 @@
-# Data Manipuation
+# Data Manipulation
 
 Learn how to read and write data to a store.
 
