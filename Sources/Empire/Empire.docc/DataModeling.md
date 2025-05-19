@@ -67,7 +67,7 @@ struct PersonByAge {
 
 ## Type Constraints
 
-The properties of an ``IndexKeyRecord`` type are serialized directly to a binary form. To do this, their types must conform to both the ``Serialization`` and ``Deserialization`` protocols.
+The properties of an ``IndexKeyRecord`` type are serialized directly to a binary form. To do this, their types must conform to both the `Serialization` and `Deserialization` protocols.
 
 However, there is an important additional constraint on types that compose an index key. All of these **must** also be sortable via direct binary comparison when serialized. This is not a property all types have, but can be expressed with a conformance to `IndexKeyComparable`.
 
