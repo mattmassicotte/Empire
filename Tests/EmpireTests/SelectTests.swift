@@ -188,8 +188,8 @@ struct SelectTests {
 		}
 
 		let expected = [
-			CompoundKeyRecord(a: "hellp", b: 42, c: "c"),
 			CompoundKeyRecord(a: "helloo", b: 40, c: "a"),
+			CompoundKeyRecord(a: "hellp", b: 42, c: "c"),
 		]
 
 		#expect(records == expected)

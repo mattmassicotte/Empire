@@ -31,10 +31,6 @@ struct ComparableData<T: Serializable & Deserializable>: Comparable {
 	}
 	
 	static func < (lhs: ComparableData, rhs: ComparableData) -> Bool {
-		if lhs.buffer.count > rhs.buffer.count {
-			return false
-		}
-
 		for pair in zip(lhs.buffer, rhs.buffer) {
 			if pair.0 == pair.1 {
 				continue

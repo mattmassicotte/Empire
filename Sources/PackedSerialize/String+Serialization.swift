@@ -1,15 +1,10 @@
 extension String: Serializable {
 	public var serializedSize: Int {
-		let length = utf8.count
-
-		return UInt(length).serializedSize + length
+		utf8.count + 1
 	}
 
 	public func serialize(into buffer: inout UnsafeMutableRawBufferPointer) {
-		let length = utf8.count
-
-		// write the length
-		UInt(length).serialize(into: &buffer)
+		let length = serializedSize
 
 		// write the data
 		withCString { ptr in
@@ -23,26 +18,14 @@ extension String: Serializable {
 
 extension String: Deserializable {
 	public init(buffer: inout UnsafeRawBufferPointer) throws {
-		let codedLength = try UInt(buffer: &buffer)
-		if codedLength >= Int.max {
-			throw DeserializeError.invalidLength
+		let cStringPtr = buffer.assumingMemoryBound(to: CChar.self).baseAddress
+
+		guard let cStringPtr else {
+			throw DeserializeError.invalidValue
 		}
 
-		let length = Int(codedLength)
-		guard length >= 0 else {
-			throw DeserializeError.invalidLength
-		}
+		self.init(cString: cStringPtr)
 
-		let sourceBuffer = UnsafeRawBufferPointer(start: buffer.baseAddress, count: length)
-
-		self.init(unsafeUninitializedCapacity: length) { destBuffer in
-			let data = UnsafeMutableRawBufferPointer(start: destBuffer.baseAddress, count: length)
-
-			data.copyMemory(from: sourceBuffer)
-
-			buffer = UnsafeRawBufferPointer(rebasing: buffer[length...])
-
-			return length
-		}
+		buffer = UnsafeRawBufferPointer(rebasing: buffer[serializedSize...])
 	}
 }

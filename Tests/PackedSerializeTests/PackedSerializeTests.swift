@@ -127,13 +127,15 @@ struct PackedSerializeTests {
 		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
 		var inputBuffer = buffer
 
-		let a = "cccc"
-		let b = "ccc"
-		let c = "cca"
-		let d = "bcc"
-		let e = "acc"
-		let f = "aa"
-		let g = ""
+		let a = "ddd"
+		let b = "cccc"
+		let c = "ccc"
+		let d = "cca"
+		let e = "bcc"
+		let f = "acc"
+		let g = "aaa"
+		let h = "aa"
+		let i = ""
 
 		a.serialize(into: &inputBuffer)
 		b.serialize(into: &inputBuffer)
@@ -142,6 +144,8 @@ struct PackedSerializeTests {
 		e.serialize(into: &inputBuffer)
 		f.serialize(into: &inputBuffer)
 		g.serialize(into: &inputBuffer)
+		h.serialize(into: &inputBuffer)
+		i.serialize(into: &inputBuffer)
 
 		var outputBuffer = UnsafeRawBufferPointer(buffer)
 
@@ -152,24 +156,13 @@ struct PackedSerializeTests {
 		#expect(try String(buffer: &outputBuffer) == e)
 		#expect(try String(buffer: &outputBuffer) == f)
 		#expect(try String(buffer: &outputBuffer) == g)
+		#expect(try String(buffer: &outputBuffer) == h)
+		#expect(try String(buffer: &outputBuffer) == i)
 
-		#expect([a,b,c,d,e,f,g].sorted() == [g,f,e,d,c,b,a])
-		#expect(ComparableData.sort([a,b,c,d,e,f,g]) == [g,f,e,d,c,b,a])
+		#expect([a,b,c,d,e,f,g,h,i].sorted() == [i,h,g,f,e,d,c,b,a])
+		#expect(ComparableData.sort([a,b,c,d,e,f,g,h,i]) == [i,h,g,f,e,d,c,b,a])
 	}
 
-	@Test func deserializeStringWithInvalidLength() throws {
-		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
-		var inputBuffer = buffer
-
-		UInt.max.serialize(into: &inputBuffer)
-
-		var outputBuffer = UnsafeRawBufferPointer(buffer)
-
-		#expect(throws: (any Error).self, performing: {
-			try String(buffer: &outputBuffer)
-		})
-	}
-	
 	@Test func serializeBoolString() throws {
 		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 128, alignment: 8)
 		var inputBuffer = buffer
