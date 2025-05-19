@@ -53,7 +53,7 @@ public struct Database {
 	}
 }
 
-/// Interface to Empire database.
+/// Interface to an Empire database.
 ///
 /// The `Store` is the main interface to a single database file.
 public final class Store {
