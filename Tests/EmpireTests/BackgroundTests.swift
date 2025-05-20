@@ -22,7 +22,7 @@ struct BackgroundTests {
 
 		let store = BackgroundStore(database: database)
 
-		try await withThrowingTaskGroup { group in
+		try await withThrowingTaskGroup(of: Void.self) { group in
 			for i in 0..<50 {
 				group.addTask {
 					try await store.withTransaction { ctx in
@@ -47,11 +47,11 @@ struct BackgroundTests {
 
 		let store = BackgroundableStore(database: database)
 
-		let readTask = Task {
-			try await withThrowingTaskGroup { group in
+		let readTask = Task<Void, Error> {
+			try await withThrowingTaskGroup(of: Void.self) { group in
 				for _ in 0..<50 {
 					group.addTask {
-						try await store.background.withTransaction { ctx in
+						_ = try await store.background.withTransaction { ctx in
 							try BackgroundKeyOnlyRecord.select(in: ctx, key: .greaterOrEqual(0))
 						}
 					}
