@@ -9,8 +9,6 @@
 
 # Empire
 
-A record store for Swift
-
 Empire is a minimalistic local persistence system with an emphasis on type safety and low overhead. It is backed by a sorted key-value store that is far simpler than a full SQL database. SQL is very powerful, but for many problem domains you just don't need it.
 
 - Schema is defined by your types
@@ -35,7 +33,7 @@ struct Person {
 // create a local database
 let store = try Store(path: "/path/to/store")
 
-// interact with out using transactions
+// interact with it using transactions
 try store.withTransaction { context in
     try context.insert(Person(name: "Korben", age: 45))
     try context.insert(Person(name: "Leeloo", age: 2000))
@@ -59,7 +57,7 @@ dependencies: [
 
 ## Concept
 
-Empire stores records in a sorted-key index, which resembles a ordered-map data structure. This has profound implications on query capabilities and how data is modeled. Ordered maps offer much less flexibility than the table-based system of an SQL database. Because of this, the queries you need to support can heavily influence how you model your data.
+Empire stores records in a sorted-key index, which resembles an ordered-map data structure. This has profound implications on query capabilities and how data is modeled. Ordered maps offer much less flexibility than the table-based system of an SQL database. Because of this, the queries you need to support can heavily influence how you model your data.
 
 ### Record Structure
 

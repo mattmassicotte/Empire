@@ -4,7 +4,7 @@ Understand how to model and query your data.
 
 ## Overview
 
-Empire stores records in a sorted-key index, which resembles a ordered-map data structure. This has profound implications on query capabilities and how data is modeled. Ordered maps offer much less flexibility than the table-based system of an SQL database. Because of this, the queries you need to support can heavily influence how you model your data.
+Empire stores records in a sorted-key index, which resembles an ordered-map data structure. This has profound implications on query capabilities and how data is modeled. Ordered maps offer much less flexibility than the table-based system of an SQL database. Because of this, the queries you need to support can heavily influence how you model your data.
 
 ## Record Structure
 
