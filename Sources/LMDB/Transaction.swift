@@ -29,6 +29,8 @@ public struct Transaction {
 
 		do {
 			let value = try block(&transaction)
+
+			try Task.checkCancellation()
 			try transaction.commit()
 
 			return value

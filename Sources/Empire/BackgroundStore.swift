@@ -1,4 +1,5 @@
-actor BackgroundStore {
+/// Asynchronous interface to an Empire database that executes transactions on non-main threads.
+public actor BackgroundStore {
 	let store: Store
 
 	public init(database: LockingDatabase) {
@@ -12,9 +13,19 @@ actor BackgroundStore {
 	}
 
 #if compiler(>=6.1)
+	/// Execute a transation on a database.
 	public func withTransaction<T>(
 		_ block: (TransactionContext) throws -> sending T
 	) throws -> sending T {
+		try store.withTransaction { ctx in
+			try block(ctx)
+		}
+	}
+#else
+	/// Execute a transation on a database.
+	public func withTransaction<T: Sendable>(
+		_ block: (TransactionContext) throws -> sending T
+	) throws -> T {
 		try store.withTransaction { ctx in
 			try block(ctx)
 		}
@@ -31,8 +42,10 @@ struct MainActorStore {
 	}
 }
 
-struct BackgroundableStore: Sendable {
+/// An interface to an Empire database that supports both synchronous and asynchronous accesses.
+public final class BackgroundableStore: Sendable {
 	let mainStore: MainActorStore
+	/// A `Store` instance that executes transactions on non-main threads.
 	public let background: BackgroundStore
 
 	@MainActor
@@ -41,6 +54,7 @@ struct BackgroundableStore: Sendable {
 		self.background = BackgroundStore(database: database)
 	}
 
+	/// A `Store` instance that executes transactions on the `MainActor`.
 	@MainActor
 	public var main: Store {
 		mainStore.store
