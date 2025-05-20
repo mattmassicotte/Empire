@@ -67,7 +67,18 @@ Conceptually, you can think of each record as being split into two components: t
 
 The "index key" component is the **only** means of retrieving data efficiently. It is **not possible** to run queries against values fields without doing a full scan of the data. This makes index keys a critical part of your design.
 
-Consider the following record definition. It has a composite key, defined by the two arguments to the `@IndexKeyRecord` macro. The ordering of key components is very important. Only the last component of a query can be a non-equality comparison. If you want to look for a range of a key component, you must restrict all previous components.
+Consider the following record definition. It has a composite key, defined by the two arguments to the `@IndexKeyRecord` macro.
+
+```swift
+@IndexKeyRecord("lastName", "firstName")
+struct Person {
+    let lastName: String
+    let firstName: String
+    let age: Int
+}
+```
+
+These records are stored in order, first by `lastName` and then by `firstName`. The ordering of key components is very important. Only the last component of a query can be a non-equality comparison. If you want to look for a range of a key component, you must restrict all previous components.
 
 ```swift
 // scan query on the first component
