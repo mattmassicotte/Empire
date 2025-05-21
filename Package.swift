@@ -28,7 +28,11 @@ let package = Package(
 				"mdb.c",
 				"midl.c"
 			],
-			publicHeadersPath: "."
+			publicHeadersPath: ".",
+			cSettings: [
+				.define("MDB_USE_POSIX_MUTEX", to: "1"),
+				.define("MDB_USE_ROBUST", to: "0"),
+			]
 		),
 		.target(name: "LMDB", dependencies: ["CLMDB"]),
 		.testTarget(name: "LMDBTests", dependencies: ["LMDB"]),
