@@ -44,7 +44,7 @@ let records = try store.withTransaction { context in
     try Person.select(in: context, limit: 1, name: .lessThan("Zorg"))
 }
 
-print(record.first!) // Person(name: "Leeloo", age: 2000)
+print(records.first!) // Person(name: "Leeloo", age: 2000)
 ```
  
 ## Integration
@@ -115,9 +115,6 @@ await backgroundableStore.background.withTransaction { ... }
 You can also make your own arragements by either hanging onto a `Store` directly within an actor you control, or by creating and using the primitive `LockingDatabase` type directly.
 
 The transaction mechanism supports cancellation. If the executing `Task` is cancelled, a transaction will be aborted.
-
-> [!WARNING]
-> The `LockingDatabase` type does not currently support the macOS sandbox. I believe this is technically possible, but requires some non-trivial work within LMDB.
 
 ## Building
 
