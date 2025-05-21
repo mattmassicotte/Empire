@@ -1,6 +1,8 @@
 import PackedSerialize
 
 /// A hash used for versioning serialized data.
+///
+/// The built-in hash function used is SDBM. You can customize the schema versioning system either with macro arguments or with a manual conformance to the `IndexKeyRecord` protocol.
 public typealias IndexKeyRecordHash = UInt32
 
 /// Requirements for a type stored in an Empire database.

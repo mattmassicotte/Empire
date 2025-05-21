@@ -20,6 +20,7 @@ extension Date: IndexKeyComparable {}
 extension UUID: IndexKeyComparable {}
 #endif
 
+/// Expresses a query comparsion operation in terms of a type argument.
 public enum ComparisonOperator<Value: IndexKeyComparable> {
 	case greaterThan(Value)
 	case greaterOrEqual(Value)
