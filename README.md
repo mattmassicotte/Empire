@@ -125,6 +125,11 @@ This is only necessary if you are interested in working on the project yourself.
 - clone the repo
 - `git submodule update --init --recursive`
 
+To run the benchmarks:
+
+- `cd Benchmarks`
+- `swift package benchmark`
+
 ## Questions
 
 ### Why does this exist?
