@@ -10,7 +10,7 @@ Empire stores records in a sorted-key index, which resembles an ordered-map data
 
 Conceptually, you can think of each record as being split into two components: the "index key" and "fields".
 
-The "index key" component is the **only** means of retrieving data efficiently. It is **not possible** to run queries against values fields without doing a full scan of the data. This makes index keys a critical part of your design.
+The "index key" component is the **only** means of retrieving data efficiently. It is **not possible** to run queries against non-key fields without doing a full scan of the data. This makes index keys a critical part of your design.
 
 Consider the following record definition. It has a composite key, defined by the two arguments to the `@IndexKeyRecord` macro.
 
