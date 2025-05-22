@@ -74,6 +74,9 @@ struct BackgroundTests {
 		let store = BackgroundStore(database: database)
 
 		let task = Task {
+			// slow this task down a little so don't finish before cancelling
+			try await Task.sleep(for: .milliseconds(50))
+
 			try await store.withTransaction { ctx in
 				for i in 0..<50 {
 					try BackgroundKeyOnlyRecord(key: i).insert(in: ctx)
