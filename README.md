@@ -9,7 +9,11 @@
 
 # Empire
 
+It's a record store for Swift.
+
 Empire is a minimalistic local persistence system with an emphasis on type safety and low overhead. It is backed by a sorted key-value store that is far simpler than a full SQL database. SQL is very powerful, but for many problem domains you just don't need it.
+
+This might be appealing to you if need more than just a flat file, more than `UserDefaults`, but not an entire relational database.
 
 - Schema is defined by your types
 - Macro-based API that is both typesafe and low-overhead
