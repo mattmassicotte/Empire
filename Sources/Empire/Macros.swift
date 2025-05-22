@@ -26,6 +26,7 @@ public macro IndexKeyRecord(
 ) = #externalMacro(module: "EmpireMacros", type: "IndexKeyRecordMacro")
 
 #if canImport(CloudKit)
+/// Adds conformance to the `CloudKitRecord` protocol.
 @attached(
 	extension,
 	conformances: CloudKitRecord,
