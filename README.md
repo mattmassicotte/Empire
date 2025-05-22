@@ -35,20 +35,25 @@ struct Person {
 }
 
 // create a local database
-let store = try Store(path: "/path/to/store")
+let store = try BackgroundableStore(url: Self.storeURL)
 
 // interact with it using transactions
-try store.withTransaction { context in
+try store.main.withTransaction { context in
     try context.insert(Person(name: "Korben", age: 45))
     try context.insert(Person(name: "Leeloo", age: 2000))
 }
 
 // run queries
-let records = try store.withTransaction { context in
+let records = try store.main.withTransaction { context in
     try Person.select(in: context, limit: 1, name: .lessThan("Zorg"))
 }
 
 print(records.first!) // Person(name: "Leeloo", age: 2000)
+
+// move work to the background
+try await store.background.withTransaction { ctx in
+    try Person.delete(in: ctx, name: "Korben")
+}
 ```
  
 ## Integration
@@ -106,13 +111,11 @@ let store = try Store(path: "/path/to/store")
 // An actor-isolated and Sendable store
 let backgroundStore = try BackgroundStore(path: "/path/to/store")
 
-// A hybrid that is ...
+// A hybrid that is synchronously accessible from MainActor
+// and also supports executing transactions in the background
 let backgroundableStore = try BackgroundableStore(path: "/path/to/store")
 
-// synchronously accessible from MainActor
 backgroundableStore.main.withTransaction { ... }
-
-// and also supports executing transactions in the background
 await backgroundableStore.background.withTransaction { ... }
 ```
 

@@ -15,7 +15,7 @@ public actor BackgroundStore {
 #if compiler(>=6.1)
 	/// Execute a transation on a database.
 	public func withTransaction<T>(
-		_ block: (TransactionContext) throws -> sending T
+		_ block: sending (TransactionContext) throws -> sending T
 	) throws -> sending T {
 		try store.withTransaction { ctx in
 			try block(ctx)
@@ -24,7 +24,7 @@ public actor BackgroundStore {
 #else
 	/// Execute a transation on a database.
 	public func withTransaction<T: Sendable>(
-		_ block: (TransactionContext) throws -> sending T
+		_ block: sending (TransactionContext) throws -> sending T
 	) throws -> T {
 		try store.withTransaction { ctx in
 			try block(ctx)
@@ -54,9 +54,29 @@ public final class BackgroundableStore: Sendable {
 		self.background = BackgroundStore(database: database)
 	}
 
+	@MainActor
+	convenience init(path: String) throws {
+		let db = try LockingDatabase(path: path)
+
+		self.init(database: db)
+	}
+
 	/// A `Store` instance that executes transactions on the `MainActor`.
 	@MainActor
 	public var main: Store {
 		mainStore.store
 	}
 }
+
+#if canImport(Foundation)
+import Foundation
+
+extension BackgroundableStore {
+	@MainActor
+	public convenience init(url: URL) throws {
+		let db = try LockingDatabase(url: url)
+
+		self.init(database: db)
+	}
+}
+#endif
