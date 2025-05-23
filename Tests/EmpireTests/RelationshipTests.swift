@@ -8,6 +8,10 @@ fileprivate struct ParentRecord: Hashable {
 	let a: String
 	let b: Int
 	var c: String
+
+	func children(in context: TransactionContext) throws -> [ChildRecord] {
+		try ChildRecord.select(in: context, parentKey: self.indexKey)
+	}
 }
 
 @IndexKeyRecord("parentKey", "key")
@@ -62,5 +66,21 @@ struct RelationshipTests {
 		}
 
 		#expect(record == parent)
+	}
+
+	@Test func selectChildren() throws {
+		let parent = ParentRecord(a: "hello", b: 42, c: "goodbye")
+		let child = ChildRecord(parentKey: parent.indexKey, key: 1, value: "hello")
+
+		try store.withTransaction { ctx in
+			try ctx.insert(parent)
+			try ctx.insert(child)
+		}
+
+		let records = try store.withTransaction { ctx in
+			try parent.children(in: ctx)
+		}
+
+		#expect(records == [child])
 	}
 }
