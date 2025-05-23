@@ -21,6 +21,8 @@ This might be appealing to you if need more than just a flat file, more than `Us
 - Support for CloudKit's `CKRecord`
 - Backed by a sorted-key index data store ([LMDB][LMDB])
 
+The core LMDB support is also available as a standalone library within the package, just in case that's of interest as well.
+
 > [!WARNING]
 > This library is still pretty new and doesn't have great deal of real-world testing yet.
 
