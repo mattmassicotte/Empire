@@ -137,7 +137,8 @@ This is only necessary if you are interested in working on the project yourself.
 To run the benchmarks:
 
 - `cd Benchmarks`
-- `swift package benchmark`
+- `swift package --disable-sandbox benchmark --target CoreDataBenchmarks`
+- `swift package benchmark --target EmpireBenchmarks`
 
 ## Questions
 

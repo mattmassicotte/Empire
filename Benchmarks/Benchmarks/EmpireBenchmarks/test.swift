@@ -4,7 +4,7 @@ import Foundation
 import Empire
 
 @IndexKeyRecord("key")
-struct SmallRecord : Sendable {
+struct SmallRecord {
 	let key: Int
 	let value: String
 }
@@ -22,13 +22,13 @@ let benchmarks : @Sendable () -> Void = {
 		for i in 0..<1000 {
 			let record = SmallRecord(key: i, value: "\(i)")
 			
-			try await store.withTransaction { ctx in
+			try store.withTransaction { ctx in
 				try ctx.insert(record)
 			}
 		}
     }
 	
-	Benchmark("Insert records one transaction") { benchmark in
+	Benchmark("Insert records in transaction") { benchmark in
 		let storeURL = URL(fileURLWithPath: "/tmp/empire_benchmark_store", isDirectory: true)
 		try? FileManager.default.removeItem(at: storeURL)
 		try FileManager.default.createDirectory(at: storeURL, withIntermediateDirectories: false)
@@ -37,12 +37,34 @@ let benchmarks : @Sendable () -> Void = {
 		
 		benchmark.startMeasurement()
 		
-		try await store.withTransaction { ctx in
+		try store.withTransaction { ctx in
 			for i in 0..<1000 {
 				let record = SmallRecord(key: i, value: "\(i)")
 				
 				try ctx.insert(record)
 			}
+		}
+	}
+
+	Benchmark("Select records in transaction") { benchmark in
+		let storeURL = URL(fileURLWithPath: "/tmp/empire_benchmark_store", isDirectory: true)
+		try? FileManager.default.removeItem(at: storeURL)
+		try FileManager.default.createDirectory(at: storeURL, withIntermediateDirectories: false)
+
+		let store = try Store(url: storeURL)
+
+		try store.withTransaction { ctx in
+			for i in 0..<1000 {
+				let record = SmallRecord(key: i, value: "\(i)")
+
+				try ctx.insert(record)
+			}
+		}
+
+		benchmark.startMeasurement()
+
+		_ = try store.withTransaction { ctx in
+			try SmallRecord.select(in: ctx, key: .greaterOrEqual(0))
 		}
 	}
 }
