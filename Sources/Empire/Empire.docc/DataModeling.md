@@ -65,6 +65,62 @@ struct PersonByAge {
 }
 ```
 
+## Relationships
+
+Relationships are not as easy to model with a sorted-key index as they are with a relational database. Like with all other aspects of data modeling, index key selection is very important.
+
+With a sorted-key index, your models represent queries. This is a very important thing to keep in mind when working with relationships.
+
+Suppose we wanted to model both a `Person` and their relationship to a `Planet`.
+
+```swift
+@IndexKeyRecord("lastName", "firstName")
+struct Person {
+	let lastName: String
+	let firstName: String
+	let age: Int
+	let homePlanet: Planet.IndexKey
+}
+```
+
+```swift
+@IndexKeyRecord("name")
+struct Planet {
+	let name: String
+	let leader: Person.IndexKey
+}
+```
+
+This is a one-to-one relationship that supports querying the home planet of a `Person`, or the leader of a `Planet`. It does not, however, support finding all people on a given planet. That requires another record structure.
+
+```swift
+@IndexKeyRecord("planet", "lastName", "firstName")
+struct Inhabitant {
+	let planet: Planet.IndexKey
+	let lastName: String
+	let firstName: String
+	let age: Int
+}
+```
+
+Note here how the first element of the `Inhabitant` index key is `Planet.IndexKey`. This orders the data by planet and allows us to efficiently query for all the records that match.
+
+Perhaps, instead, we need to query for all the planets visited by a single person.
+
+```swift
+@IndexKeyRecord("lastName", "firstName", "planet")
+struct VisitedPlanets {
+	let lastName: String
+	let firstName: String
+	let planet: Planet.IndexKey
+    let age: Int
+}
+```
+
+This record permits efficiently querying the planets visited by a `lastName`-`firstName` pair.
+
+It is quite common to duplicate, or denormalize, data across records to support queries. How much denormalization you do comes with trade-offs in convenience and efficiency. Thinking carefully about the queries you need to support is critical.
+
 ## Type Constraints
 
 The properties of an ``IndexKeyRecord`` type are serialized directly to a binary form. To do this, their types must conform to both the `Serialization` and `Deserialization` protocols.
