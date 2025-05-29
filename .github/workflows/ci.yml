@@ -73,6 +73,8 @@ jobs:
           - '6.0.2'
           - '6.0.3'
           - '6.1.0'
+          - '6.1.1'
+          - '6.1.2'
         swift-syntax-version:
           - '600.0.0'
           - '600.0.1'
@@ -81,7 +83,7 @@ jobs:
         configuration:
           - "debug"
         include:
-          - swift-version: "6.1.0"
+          - swift-version: "6.1.2"
             swift-syntax-version: "601.0.1"
             configuration: "release"
     steps:
