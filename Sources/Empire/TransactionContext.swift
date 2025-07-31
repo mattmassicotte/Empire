@@ -221,11 +221,13 @@ extension TransactionContext {
 
 		try transaction.delete(dbi: dbi, key: keyVal)
 	}
-	
+
+	/// Delete this record using its `indexKey` property.
 	public func delete<Record: IndexKeyRecord>(_ record: Record) throws {
 		try delete(recordType: Record.self, key: record.indexKey)
 	}
-	
+
+	/// Delete a record type using its IndexKey.
 	public func delete<Record: IndexKeyRecord>(recordType: Record.Type, key: Record.IndexKey) throws {
 		let keyVal = try MDB_val(key, prefix: recordType.keyPrefix, using: buffer.keyBuffer)
 
