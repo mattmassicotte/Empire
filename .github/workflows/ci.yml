@@ -32,7 +32,7 @@ jobs:
           - "platform=iOS Simulator,name=iPhone 16"
           - "platform=tvOS Simulator,name=Apple TV"
           - "platform=watchOS Simulator,name=Apple Watch Series 10 (42mm)"
-          - "platform=visionOS Simulator,name=Apple Vision Pro"
+          - "platform=visionOS Simulator,name=Apple Vision Pro,OS=2.5"
         swift-syntax-version:
           - "601.0.1"
         configuration:
@@ -75,16 +75,19 @@ jobs:
           - '6.1.0'
           - '6.1.1'
           - '6.1.2'
+          - '6.1.3'
+          - '6.2.0'
         swift-syntax-version:
           - '600.0.0'
           - '600.0.1'
           - '601.0.0'
           - '601.0.1'
+          - '602.0.0'
         configuration:
           - "debug"
         include:
-          - swift-version: "6.1.2"
-            swift-syntax-version: "601.0.1"
+          - swift-version: "6.2.0"
+            swift-syntax-version: "602.0.0"
             configuration: "release"
     steps:
       - name: Checkout
