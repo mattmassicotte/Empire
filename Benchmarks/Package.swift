@@ -31,9 +31,6 @@ let package = Package(
 				.product(name: "Benchmark", package: "package-benchmark"),
 			],
 			path: "Benchmarks/CoreDataBenchmarks",
-			resources: [
-				.copy("TestData"),
-			],
 			plugins: [
 				.plugin(name: "BenchmarkPlugin", package: "package-benchmark"),
 			]
