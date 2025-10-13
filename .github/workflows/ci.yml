@@ -27,18 +27,18 @@ jobs:
     strategy:
       matrix:
         destination:
-          - "platform=macOS"
-          - "platform=macOS,variant=Mac Catalyst"
-          - "platform=iOS Simulator,name=iPhone 16e"
-          - "platform=tvOS Simulator,name=Apple TV"
-          - "platform=watchOS Simulator,name=Apple Watch Series 11 (42mm)"
+          - "platform=macOS,OS=26"
+          - "platform=macOS,variant=Mac Catalyst,OS=26"
+          - "platform=iOS Simulator,name=iPhone 16e,OS=26"
+          - "platform=tvOS Simulator,name=Apple TV,OS=26"
+          - "platform=watchOS Simulator,name=Apple Watch Series 11 (42mm),OS=26"
           - "platform=visionOS Simulator,name=Apple Vision Pro,OS=26"
         swift-syntax-version:
           - "602.0.0"
         configuration:
           - "debug"
         include:
-          - destination: "platform=macOS"
+          - destination: "platform=macOS,OS=26"
             swift-syntax-version: "602.0.0"
             configuration: "release"
     steps:
