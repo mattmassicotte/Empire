@@ -38,7 +38,7 @@ jobs:
         configuration:
           - "debug"
         include:
-          - destination: "platform=macOS,OS=26.0"
+          - destination: "platform=macOS"
             swift-syntax-version: "602.0.0"
             configuration: "release"
     steps:
