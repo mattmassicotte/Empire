@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.2
 
 import PackageDescription
 import CompilerPluginSupport
@@ -18,7 +18,7 @@ let package = Package(
 		.library(name: "LMDB", targets: ["LMDB"]),
 	],
 	dependencies: [
-		.package(url: "https://github.com/swiftlang/swift-syntax.git", "600.0.0"..<"603.0.0"),
+		.package(url: "https://github.com/swiftlang/swift-syntax.git", "602.0.0"..<"603.0.0"),
 	],
 	targets: [
 		.target(
