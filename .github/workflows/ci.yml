@@ -56,8 +56,8 @@ jobs:
           swift package resolve --version ${{ matrix.swift-syntax-version }} swift-syntax
           set -o pipefail && xcodebuild -scheme Empire-Package -destination "${{ matrix.destination }}" -configuration ${{ matrix.configuration }} test | xcbeautify
 
-  test:
-    name: Test 26
+  test26:
+    name: Test macOS 26
     runs-on: macos-26
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.0.app
