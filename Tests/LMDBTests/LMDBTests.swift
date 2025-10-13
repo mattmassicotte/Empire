@@ -573,3 +573,29 @@ extension LMDBTests {
 		#expect(strings.contains("goodbye"))
 	}
 }
+
+#if hasFeature(Lifetimes)
+@testable import LMDB
+
+extension LMDBTests {
+	@Test func readKeyWithSpan() throws {
+		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
+
+		try Transaction.with(env: env) { txn in
+			let dbi = try txn.open(name: "mydb")
+
+			try txn.set(dbi: dbi, key: "hello", value: "goodbye")
+
+			let value = try "hello".withMDBVal { key in
+				let span = try #require(try txn.get(dbi: dbi, key: key)).span
+
+				return span.withUnsafeBytes { buffer in
+					String(bytes: buffer, encoding: String.Encoding.utf8)
+				}
+			}
+
+			#expect(value == "goodbye")
+		}
+	}
+}
+#endif
