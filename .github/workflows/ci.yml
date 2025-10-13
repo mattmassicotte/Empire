@@ -27,8 +27,8 @@ jobs:
     strategy:
       matrix:
         destination:
-          - "platform=macOS,OS=26.0"
-          - "platform=macOS,variant=Mac Catalyst,OS=26.0"
+          - "platform=macOS"
+          - "platform=macOS,variant=Mac Catalyst"
           - "platform=iOS Simulator,name=iPhone 16e,OS=26.0"
           - "platform=tvOS Simulator,name=Apple TV,OS=26.0"
           - "platform=watchOS Simulator,name=Apple Watch Series 11 (42mm),OS=26.0"
@@ -47,6 +47,7 @@ jobs:
           submodules: true
       - name: Test platform ${{ matrix.destination }} / Xcode ${{ matrix.xcode-version }} / swift-syntax ${{ matrix.swift-syntax-version }} / ${{ matrix.configuration }}
         run: |
+          defaults write com.apple.dt.Xcode IDEPackageEnablePrebuilts NO
           swift --version
           swift package reset
           swift package resolve
