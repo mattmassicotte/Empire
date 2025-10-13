@@ -574,7 +574,6 @@ extension LMDBTests {
 	}
 }
 
-#if hasFeature(Lifetimes)
 @testable import LMDB
 
 extension LMDBTests {
@@ -598,4 +597,3 @@ extension LMDBTests {
 		}
 	}
 }
-#endif

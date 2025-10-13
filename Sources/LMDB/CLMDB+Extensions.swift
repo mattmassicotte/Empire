@@ -24,7 +24,6 @@ extension MDB_val {
 	}
 }
 
-#if hasFeature(Lifetimes)
 extension MDB_val {
 	var span: Span<UInt8> {
 		@_lifetime(borrow self)
@@ -47,4 +46,3 @@ extension MDB_val {
 		self = val
 	}
 }
-#endif

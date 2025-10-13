@@ -152,7 +152,6 @@ extension Transaction {
 	}
 }
 
-#if hasFeature(Lifetimes)
 extension Transaction {
 	@_lifetime(borrow self)
 	func get(dbi: MDB_dbi, key: Span<UInt8>) throws -> Span<UInt8>? {
@@ -180,4 +179,3 @@ extension Transaction {
 		try MDBError.check { mdb_put(txn, dbi, &localKey, &localValue, flags) }
 	}
 }
-#endif

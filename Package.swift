@@ -34,7 +34,11 @@ let package = Package(
 				.define("MDB_USE_ROBUST", to: "0"),
 			]
 		),
-		.target(name: "LMDB", dependencies: ["CLMDB"]),
+		.target(
+			name: "LMDB",
+			dependencies: ["CLMDB"],
+			swiftSettings: [.enableExperimentalFeature("Lifetimes")]
+		),
 		.testTarget(name: "LMDBTests", dependencies: ["LMDB"]),
 		.target(name: "PackedSerialize"),
 		.testTarget(name: "PackedSerializeTests", dependencies: ["PackedSerialize"]),
