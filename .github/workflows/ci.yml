@@ -54,7 +54,7 @@ jobs:
           swift package reset
           swift package resolve
           swift package resolve --version ${{ matrix.swift-syntax-version }} swift-syntax
-          set -o pipefail && xcodebuild -scheme Empire-Package -destination "${{ matrix.destination }}" -configuration ${{ matrix.configuration }} test | xcbeautify
+          set -o pipefail && OTHER_SWIFT_FLAGS="-enable-testing" xcodebuild -scheme Empire-Package -destination "${{ matrix.destination }}" -configuration ${{ matrix.configuration }} test | xcbeautify
 
   test26:
     name: Test macOS 26

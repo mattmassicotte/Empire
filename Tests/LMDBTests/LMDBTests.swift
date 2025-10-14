@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 
-import LMDB
+@testable import LMDB
 
 extension Cursor {
 	func getStringValues() -> [(String, String)] {
@@ -573,8 +573,6 @@ extension LMDBTests {
 		#expect(strings.contains("goodbye"))
 	}
 }
-
-@testable import LMDB
 
 extension LMDBTests {
 	@Test func readKeyWithSpan() throws {
