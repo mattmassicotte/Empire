@@ -26,20 +26,19 @@ extension Int: Serializable {
 }
 
 extension Int: Deserializable {
-	public init(buffer: inout UnsafeRawBufferPointer) throws {
-		let shifted = try UInt(buffer: &buffer)
-		
+	public static func unpack(with deserializer: inout Deserializer) throws(DeserializeError) -> sending Int {
+		let shifted = try UInt.unpack(with: &deserializer)
+
 		if shifted == 0 {
-			self = Self.min
-			return
+			return Self.min
 		}
-		
+
 		let max = UInt(Int.max) + 1
 
 		if shifted > max {
-			self = Int(shifted - max)
+			return Int(shifted - max)
 		} else {
-			self = Int(max - shifted) * -1
+			return Int(max - shifted) * -1
 		}
 	}
 }

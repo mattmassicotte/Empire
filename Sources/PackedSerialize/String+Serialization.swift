@@ -17,15 +17,21 @@ extension String: Serializable {
 }
 
 extension String: Deserializable {
-	public init(buffer: inout UnsafeRawBufferPointer) throws {
-		let cStringPtr = buffer.assumingMemoryBound(to: CChar.self).baseAddress
+	public static func unpack(with deserializer: inout Deserializer) throws(DeserializeError) -> sending Self {
+		let value: String? = deserializer.rawSpan.withUnsafeBytes { buffer in
+			guard let ptr = buffer.baseAddress?.assumingMemoryBound(to: CChar.self) else {
+				return nil
+			}
 
-		guard let cStringPtr else {
+			return String(cString: ptr, encoding: .utf8)
+		}
+
+		guard let value else {
 			throw DeserializeError.invalidValue
 		}
 
-		self.init(cString: cStringPtr)
+		try deserializer.advance(by: value.serializedSize)
 
-		buffer = UnsafeRawBufferPointer(rebasing: buffer[serializedSize...])
+		return value
 	}
 }

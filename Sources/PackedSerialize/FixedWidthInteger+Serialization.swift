@@ -9,26 +9,21 @@ extension FixedWidthInteger where Self.Magnitude: UnsignedInteger {
 			buffer = UnsafeMutableRawBufferPointer(rebasing: buffer[ptr.count...])
 		}
 	}
-	
-	public init(buffer: inout UnsafeRawBufferPointer) throws {
-		var value: Self = 0
-		let size = MemoryLayout<Self>.size
-
-		let data = UnsafeRawBufferPointer(start: buffer.baseAddress, count: size)
-
-		withUnsafeMutableBytes(of: &value) { ptr in
-			ptr.copyMemory(from: data)
-		}
-
-		buffer = UnsafeRawBufferPointer(rebasing: buffer[size...])
-
-		self.init(bigEndian: value)
-	}
 }
 
 extension UInt8: Serializable {}
 extension UInt8: Deserializable {}
 extension UInt32: Serializable {}
 extension UInt32: Deserializable {}
+extension UInt64: Serializable {}
+extension UInt64: Deserializable {}
 extension UInt: Serializable {}
 extension UInt: Deserializable {}
+
+extension FixedWidthInteger where Self: BitwiseCopyable & Sendable & UnsignedInteger {
+	public static func unpack(with deserializer: inout Deserializer) throws(DeserializeError) -> sending Self {
+		let value = try deserializer.unsafeLoad(of: Self.self, sized: MemoryLayout<Self>.size)
+
+		return Self.init(bigEndian: value)
+	}
+}

@@ -110,22 +110,6 @@ struct IndexKeyRecordTests {
 		#expect(output == record)
 	}
 	
-	@Test func insertAndSelectCopy() throws {
-		let record = TestRecord(a: "hello", b: 42, c: "goodbye")
-
-		let store = try Store(url: Self.storeURL)
-
-		try store.withTransaction { ctx in
-			try ctx.insert(record)
-		}
-
-		let output: TestRecord? = try store.withTransaction { ctx in
-			try ctx.selectCopy(key: TestRecord.IndexKey("hello", 42))
-		}
-
-		#expect(output == record)
-	}
-	
 	@Test func selectGreater() throws {
 		let store = try Store(url: Self.storeURL)
 

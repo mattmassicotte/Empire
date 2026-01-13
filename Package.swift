@@ -40,7 +40,10 @@ let package = Package(
 			swiftSettings: [.enableExperimentalFeature("Lifetimes")]
 		),
 		.testTarget(name: "LMDBTests", dependencies: ["LMDB"]),
-		.target(name: "PackedSerialize"),
+		.target(
+			name: "PackedSerialize",
+			swiftSettings: [.enableExperimentalFeature("Lifetimes")]
+		),
 		.testTarget(name: "PackedSerializeTests", dependencies: ["PackedSerialize"]),
 		.macro(
 			name: "EmpireMacros",
@@ -58,7 +61,8 @@ let package = Package(
 		),
 		.target(
 			name: "Empire",
-			dependencies: ["LMDB", "EmpireMacros", "PackedSerialize"]
+			dependencies: ["LMDB", "EmpireMacros", "PackedSerialize"],
+			swiftSettings: [.enableExperimentalFeature("Lifetimes")]
 		),
 		.testTarget(name: "EmpireTests", dependencies: ["Empire"]),
 		.target(name: "EmpireSwiftData", dependencies: ["Empire"]),

@@ -222,7 +222,20 @@ public static var fieldsVersion: IndexKeyRecordHash { \(literal) }
 
 		let fullInit = [keyInit, fieldsInit].joined(separator: "")
 		let fullSerialize = [keySerialize, fieldsSerialize].joined(separator: "")
-		
+
+		let keyUnpack = argument.primaryKeyTypeNamePairs
+			.map { "let \($0) = try \($1).unpack(with: &deserializer.keyDeserializer)" }
+			.joined(separator: "\n")
+		let fieldsUnpack = argument.fieldTypeNamePairs
+			.map { "let \($0) = try \($1).unpack(with: &deserializer.fieldsDeserializer)" }
+			.joined(separator: "\n")
+		let fullDeserialize = [keyUnpack, fieldsUnpack].joined(separator: "")
+		let keyUnpackInit = argument.primaryKeyTypeNamePairs
+			.map { "\($0.0): \($0.0)" }
+		let fieldsUnpackInit = argument.fieldTypeNamePairs
+			.map { "\($0.0): \($0.0)" }
+		let fullUnpackInit = (keyUnpackInit + fieldsUnpackInit).joined(separator: ",")
+
 		let serializeFunction = try FunctionDeclSyntax(
 """
 public func serialize(into buffer: inout SerializationBuffer) {
@@ -247,8 +260,10 @@ extension \(argument.type.trimmed): IndexKeyRecord {
 
 	\(serializeFunction)
 
-	public init(_ buffer: inout DeserializationBuffer) throws {
-		\(raw: fullInit)
+	public static func deserialize(with deserializer: consuming RecordDeserializer) throws(DeserializeError) -> sending Self {
+		\(raw: fullDeserialize)
+
+		return Self(\(raw: fullUnpackInit))
 	}
 }
 """

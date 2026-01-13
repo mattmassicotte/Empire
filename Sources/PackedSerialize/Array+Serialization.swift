@@ -13,15 +13,15 @@ extension Array: Serializable where Element: Serializable {
 }
 
 extension Array: Deserializable where Element: Deserializable {
-	public init(buffer: inout UnsafeRawBufferPointer) throws {
-		let count = try UInt(buffer: &buffer)
-		
+	public static func unpack(with deserializer: inout Deserializer) throws(DeserializeError) -> sending Array<Element> {
+		let count = try UInt.unpack(with: &deserializer)
+
 		var array: Self = []
-		
+
 		for _ in 0..<count {
-			array.append(try Element(buffer: &buffer))
+			array.append(try Element.unpack(with: &deserializer))
 		}
-		
-		self = array
+
+		return array
 	}
 }

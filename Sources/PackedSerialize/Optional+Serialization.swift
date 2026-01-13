@@ -20,14 +20,13 @@ extension Optional: Serializable where Wrapped: Serializable {
 }
 
 extension Optional: Deserializable where Wrapped: Deserializable {
-	public init(buffer: inout UnsafeRawBufferPointer) throws {
-		guard try Bool(buffer: &buffer) else {
-			self = .none
-			return
+	public static func unpack(with deserializer: inout Deserializer) throws(DeserializeError) -> sending Self {
+		guard try Bool.unpack(with: &deserializer) else {
+			return .none
 		}
-		
-		let value = try Wrapped(buffer: &buffer)
 
-		self = .some(value)
+		let value = try Wrapped.unpack(with: &deserializer)
+
+		return .some(value)
 	}
 }

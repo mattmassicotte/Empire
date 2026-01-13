@@ -1,6 +1,6 @@
 import PackedSerialize
 
-struct ComparableData<T: Serializable & Deserializable>: Comparable {
+struct ComparableData<T: Serializable & Deserializable & SendableMetatype>: Comparable {
 	let buffer: UnsafeMutableRawBufferPointer
 	let input: T
 	

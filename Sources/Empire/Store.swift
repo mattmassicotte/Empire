@@ -143,10 +143,10 @@ extension Store {
 	/// This is currently implemented with a `selectCopy` internally.
 	public func select<Record: IndexKeyRecord>(
 		key: Record.IndexKey
-	) throws -> Record? {
+	) throws -> sending Record? {
 		try withTransaction { ctx in
 			// this must be a copy to work around sending the result
-			try ctx.selectCopy(key: key)
+			try ctx.select(key: key)
 		}
 	}
 #else

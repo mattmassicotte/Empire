@@ -25,18 +25,18 @@ extension MDB_val {
 }
 
 extension MDB_val {
-	var span: Span<UInt8> {
+	public var span: RawSpan {
 		@_lifetime(borrow self)
 		borrowing get {
 			let ptr = mv_data.assumingMemoryBound(to: UInt8.self)
-			let span = Span(_unsafeStart: ptr, count: mv_size)
+			let span = RawSpan(_unsafeStart: ptr, count: mv_size)
 
 			return _overrideLifetime(span, borrowing: self)
 		}
 	}
 
 	@_lifetime(borrow span)
-	init(_ span: Span<UInt8>) {
+	init(_ span: RawSpan) {
 		let val = span.withUnsafeBytes { buffer in
 			let unsafePtr = UnsafeMutableRawPointer(mutating: buffer.baseAddress)
 

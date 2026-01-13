@@ -7,6 +7,10 @@ public struct Tuple<each Element> {
 	public init(_ value: repeat each Element) {
 		self.elements = (repeat each value)
 	}
+
+	public init(_ value: (repeat each Element)) {
+		self.elements = value
+	}
 }
 
 extension Tuple: Equatable where repeat each Element: Equatable {
@@ -51,8 +55,8 @@ extension Tuple: Serializable where repeat each Element: Serializable {
 }
 
 extension Tuple: Deserializable where repeat each Element: Deserializable {
-	public init(buffer: inout UnsafeRawBufferPointer) throws {
-		self.elements = (repeat try (each Element).init(buffer: &buffer))
+	public static func unpack(with deserializer: inout Deserializer) throws(DeserializeError) -> sending Self {
+		Self(repeat try (each Element).unpack(with: &deserializer))
 	}
 }
 

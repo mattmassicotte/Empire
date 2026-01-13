@@ -50,8 +50,10 @@ extension KeyOnlyRecord: IndexKeyRecord {
 		key.serialize(into: &buffer.keyBuffer)
 	}
 
-	public init(_ buffer: inout DeserializationBuffer) throws {
-		self.key = try Int(buffer: &buffer.keyBuffer)
+	public static func deserialize(with deserializer: consuming RecordDeserializer) throws(DeserializeError) -> sending Self {
+		let key = try Int.unpack(with: &deserializer.keyDeserializer)
+
+		return Self(key: key)
 	}
 }
 
@@ -116,9 +118,11 @@ extension KeyFieldRecord: IndexKeyRecord {
 		value.serialize(into: &buffer.valueBuffer)
 	}
 
-	public init(_ buffer: inout DeserializationBuffer) throws {
-		self.key = try Int(buffer: &buffer.keyBuffer)
-		self.value = try Int(buffer: &buffer.valueBuffer)
+	public static func deserialize(with deserializer: consuming RecordDeserializer) throws(DeserializeError) -> sending Self {
+		let key = try Int.unpack(with: &deserializer.keyDeserializer)
+		let value = try Int.unpack(with: &deserializer.fieldsDeserializer)
+
+		return Self(key: key, value: value)
 	}
 }
 
@@ -186,10 +190,12 @@ extension KeyFieldsRecord: IndexKeyRecord {
 	b.serialize(into: &buffer.valueBuffer)
 	}
 
-	public init(_ buffer: inout DeserializationBuffer) throws {
-		self.key = try Int(buffer: &buffer.keyBuffer)
-		self.a = try Int(buffer: &buffer.valueBuffer)
-		self.b = try String(buffer: &buffer.valueBuffer)
+	public static func deserialize(with deserializer: consuming RecordDeserializer) throws(DeserializeError) -> sending Self {
+		let key = try Int.unpack(with: &deserializer.keyDeserializer)
+		let a = try Int.unpack(with: &deserializer.fieldsDeserializer)
+		let b = try String.unpack(with: &deserializer.fieldsDeserializer)
+
+		return Self(key: key, a: a, b: b)
 	}
 }
 
@@ -253,8 +259,10 @@ extension KeyOnlyRecord: IndexKeyRecord {
 		key.serialize(into: &buffer.keyBuffer)
 	}
 
-	public init(_ buffer: inout DeserializationBuffer) throws {
-		self.key = try Int(buffer: &buffer.keyBuffer)
+	public static func deserialize(with deserializer: consuming RecordDeserializer) throws(DeserializeError) -> sending Self {
+		let key = try Int.unpack(with: &deserializer.keyDeserializer)
+
+		return Self(key: key)
 	}
 }
 
@@ -322,10 +330,12 @@ extension Record: IndexKeyRecord {
 	c.serialize(into: &buffer.keyBuffer)
 	}
 
-	public init(_ buffer: inout DeserializationBuffer) throws {
-		self.a = try Int(buffer: &buffer.keyBuffer)
-		self.b = try String(buffer: &buffer.keyBuffer)
-		self.c = try UUID(buffer: &buffer.keyBuffer)
+	public static func deserialize(with deserializer: consuming RecordDeserializer) throws(DeserializeError) -> sending Self {
+		let a = try Int.unpack(with: &deserializer.keyDeserializer)
+		let b = try String.unpack(with: &deserializer.keyDeserializer)
+		let c = try UUID.unpack(with: &deserializer.keyDeserializer)
+
+		return Self(a: a, b: b, c: c)
 	}
 }
 

@@ -71,40 +71,42 @@ extension TransactionContext {
 			}
 		}
 	}
-	
-	private func deserialize<Record: IndexKeyRecord>(
+
+	private func deserializeSpan<Record: IndexKeyRecord>(
 		keyValue: MDB_val,
 		buffer: inout DeserializationBuffer
-	) throws -> DeserializationResult<Record> {
+	) throws -> sending DeserializationResult<Record> {
 		let prefix = Record.keyPrefix
+		var keyDeserializer = Deserializer(span: keyValue.span)
 
-		let readPrefix = try IndexKeyRecordHash(buffer: &buffer.keyBuffer)
+		let readPrefix = try IndexKeyRecordHash.unpack(with: &keyDeserializer)
 		if prefix != readPrefix {
-			return .prefixMismatch(readPrefix)
+			throw StoreError.recordPrefixMismatch(String(describing: Record.self), prefix, readPrefix)
 		}
 
-		let version = try IndexKeyRecordHash(buffer: &buffer.valueBuffer)
+		var valueDeserializer = Deserializer(_unsafeBytes: buffer.valueBuffer)
+		let version = try IndexKeyRecordHash.unpack(with: &valueDeserializer)
+		let deserializer = RecordDeserializer(keyDeserializer: keyDeserializer, fieldsDeserializer: valueDeserializer)
 		if version != Record.fieldsVersion {
 			// create the new migrated record
-			let newRecord = try Record(&buffer, version: version)
+
+			nonisolated(unsafe) let newRecord = try Record.deserialize(with: deserializer, version: version)
 
 			// delete the existing record
 			try transaction.delete(dbi: dbi, key: keyValue)
 
-			// insert the new one
+			// insert the new one, in a way that does not hold onto newRecord in any way
 			try insert(newRecord)
 
 			return .migrated(newRecord)
 		}
 
-		let record = try Record(&buffer)
-		
-		return .success(record)
+		return .success(try Record.deserialize(with: deserializer))
 	}
 }
 
 extension TransactionContext {
-	public func select<Record: IndexKeyRecord>(key: some Serializable) throws -> Record? {
+	public func select<Record: IndexKeyRecord>(key: some Serializable) throws -> sending Record? {
 		let prefix = Record.keyPrefix
 
 		let keyVal = try MDB_val(key, prefix: prefix, using: buffer.keyBuffer)
@@ -115,50 +117,19 @@ extension TransactionContext {
 
 		var localBuffer = DeserializationBuffer(key: keyVal, value: valueVal)
 
-		return try deserialize(keyValue: keyVal, buffer: &localBuffer).recordIfMatching
+		return try deserializeSpan(keyValue: keyVal, buffer: &localBuffer).recordIfMatching
 	}
 
-	/// Perform a select and copy the resulting data into a new Record.
-	///
-	/// This version is useful if the underlying IndexKeyRecord is not Sendable but you want to transfer it out of a transaction context.
+	@available(*, deprecated, message: "This is no longer necessary, please use select directly instead.")
 	public func selectCopy<Record: IndexKeyRecord>(key: some Serializable) throws -> sending Record? {
-		let prefix = Record.keyPrefix
-		let keyVal = try MDB_val(key, prefix: prefix, using: buffer.keyBuffer)
-
-		guard let valueVal = try transaction.get(dbi: dbi, key: keyVal) else {
-			return nil
-		}
-
-		let keyData = keyVal.bufferPointer.copyToByteArray()
-		let valueData = valueVal.bufferPointer.copyToByteArray()
-
-		return try keyData.withUnsafeBufferPointer { keyBuffer in
-			try valueData.withUnsafeBufferPointer { valueBuffer in
-				var localBuffer = DeserializationBuffer(
-					keyBuffer: UnsafeRawBufferPointer(keyBuffer),
-					valueBuffer: UnsafeRawBufferPointer(valueBuffer)
-				)
-
-				let readPrefix = try IndexKeyRecordHash(buffer: &localBuffer.keyBuffer)
-				if prefix != readPrefix {
-					throw StoreError.recordPrefixMismatch(String(describing: Record.self), prefix, readPrefix)
-				}
-
-				let version = try IndexKeyRecordHash(buffer: &localBuffer.valueBuffer)
-				if version != Record.fieldsVersion {
-					throw StoreError.migrationUnsupported(String(describing: Record.self), Record.fieldsVersion, version)
-				}
-
-				return try Record(&localBuffer)
-			}
-		}
+		try select(key: key)
 	}
 
 	// I think this can be further improved with a copying version. But, that may also be affected by:
 	// https://github.com/swiftlang/swift/issues/74845
 	public func select<Record: IndexKeyRecord, each Component: QueryComponent, Last: QueryComponent>(
 		query: Query<repeat each Component, Last>
-	) throws -> sending [Record] where Record: Sendable {
+	) throws -> sending [Record] {
 		let prefix = Record.keyPrefix
 		let bufferPair = self.buffer
 
@@ -172,8 +143,8 @@ extension TransactionContext {
 			for pair in cursor {
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
-				let result: DeserializationResult<Record> = try deserialize(keyValue: pair.0, buffer: &localBuffer)
-				
+				let result: DeserializationResult<Record> = try deserializeSpan(keyValue: pair.0, buffer: &localBuffer)
+
 				switch result {
 				case let .migrated(record), let .success(record):
 					records.append(record)
@@ -187,22 +158,22 @@ extension TransactionContext {
 			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
 
-			return try cursor.map { pair in
+			return try cursor.sendingMap { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
-				return try deserialize(keyValue: pair.0, buffer: &localBuffer).recordIfMatching
+				return try deserializeSpan(keyValue: pair.0, buffer: &localBuffer).recordIfMatching
 			}
 		case .closedRange:
 			let lmdbQuery = try query.buildLMDDBQuery(buffer: bufferPair, prefix: prefix)
 			let cursor = try Cursor(transaction: transaction, dbi: dbi, query: lmdbQuery)
 
-			return try cursor.map { pair in
+			return try cursor.sendingMap { pair in
 				var localBuffer = DeserializationBuffer(key: pair.0, value: pair.1)
 
-				return try deserialize(keyValue: pair.0, buffer: &localBuffer).recordIfMatching
+				return try deserializeSpan(keyValue: pair.0, buffer: &localBuffer).recordIfMatching
 			}
 		case let .within(values):
-			return try values.map { value in
+			return try values.sendingMap { value in
 				let key = Tuple(repeat each query.components, value)
 
 				guard let record: Record = try select(key: key) else {
@@ -212,6 +183,18 @@ extension TransactionContext {
 				return record
 			}
 		}
+	}
+}
+
+extension Sequence {
+	func sendingMap<T, E>(_ transform: (Self.Element) throws(E) -> sending T) throws(E) -> sending [T] where E : Error {
+		var newValue = [T]()
+
+		for value in self {
+			try newValue.append(transform(value))
+		}
+
+		return newValue
 	}
 }
 

@@ -32,17 +32,17 @@ public protocol IndexKeyRecord {
 	func serialize(into buffer: inout SerializationBuffer)
 
 	/// Creates a new instance from the data in a buffer.
-	/// 
-	/// - Parameter buffer: The buffer that holds the raw data within the backing storage.
-	init(_ buffer: inout DeserializationBuffer) throws
+	///
+	/// - Parameter deserializer: The buffer that holds the raw data within the backing storage.
+	static func deserialize(with deserializer: consuming RecordDeserializer) throws(DeserializeError) -> sending Self
 
 	/// Create an instance with data that requires a migration.
 	///
 	/// This intializer is used if the `fieldsVersion` value in storage does not match the current value for the type. When these values do match, `init(_ buffer:)` is used instead.
 	///
-	/// - Parameter buffer: A buffer to the seralized field data.
+	/// - Parameter deserializer: A buffer to the seralized field data.
 	/// - Parameter version: The `fieldsVersion` value for the serialized data.
-	init(_ buffer: inout DeserializationBuffer, version: IndexKeyRecordHash) throws
+	static func deserialize(with deserializer: consuming RecordDeserializer, version: IndexKeyRecordHash) throws -> sending Self
 }
 
 extension IndexKeyRecord {
@@ -50,12 +50,12 @@ extension IndexKeyRecord {
 	///
 	/// By default, this initializer will throw `StoreError.migrationUnsupported`.
 	///
-	/// - Parameter buffer: The buffer that holds the raw data within the backing storage.
+	/// - Parameter deserializer: The buffer that holds the raw data within the backing storage.
 	/// - Parameter version: The `fieldsVersion` value corresponding to the undering raw data currently in storage.
-	public init(_ buffer: inout DeserializationBuffer, version: IndexKeyRecordHash) throws {
+	public static func deserialize(with deserializer: consuming RecordDeserializer, version: IndexKeyRecordHash) throws -> sending Self {
 		throw Self.unsupportedMigrationError(for: version)
 	}
-	
+
 	/// Create a new `StoreError.migrationUnsupported` corresponding to `Self` and the current `fieldsVersion`.
 	public static func unsupportedMigrationError(for version: IndexKeyRecordHash) -> StoreError {
 		StoreError.migrationUnsupported(String(describing: Self.self), Self.fieldsVersion, version)

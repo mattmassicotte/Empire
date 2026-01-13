@@ -154,7 +154,7 @@ extension Transaction {
 
 extension Transaction {
 	@_lifetime(borrow self)
-	func get(dbi: MDB_dbi, key: Span<UInt8>) throws -> Span<UInt8>? {
+	func get(dbi: MDB_dbi, key: RawSpan) throws -> RawSpan? {
 		var localKey = MDB_val(key)
 		var localVal = MDB_val()
 
@@ -171,7 +171,7 @@ extension Transaction {
 		return _overrideLifetime(localVal.span, borrowing: self)
 	}
 
-	func set(dbi: MDB_dbi, key: Span<UInt8>, value: Span<UInt8>) throws  {
+	func set(dbi: MDB_dbi, key: RawSpan, value: RawSpan) throws  {
 		let flags = UInt32(0)
 		var localKey = MDB_val(key)
 		var localValue = MDB_val(value)

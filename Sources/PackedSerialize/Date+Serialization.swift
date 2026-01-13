@@ -16,10 +16,10 @@ extension Date: Serializable {
 }
 
 extension Date: Deserializable {
-	public init(buffer: inout UnsafeRawBufferPointer) throws {
-		let millisecondsSinceEpoch = try Int64(buffer: &buffer)
+	public static func unpack(with deserializer: inout Deserializer) throws(DeserializeError) -> sending Date {
+		let millisecondsSinceEpoch = try Int64.unpack(with: &deserializer)
 
-		self.init(timeIntervalSince1970: Double(millisecondsSinceEpoch) / 1000.0)
+		return Date(timeIntervalSince1970: Double(millisecondsSinceEpoch) / 1000.0)
 	}
 }
 #endif

@@ -22,20 +22,19 @@ extension Int64: Serializable {
 }
 
 extension Int64: Deserializable {
-	public init(buffer: inout UnsafeRawBufferPointer) throws {
-		let shifted = try UInt64(buffer: &buffer)
-		
+	public static func unpack(with deserializer: inout Deserializer) throws(DeserializeError) -> sending Int64 {
+		let shifted = try UInt64.unpack(with: &deserializer)
+
 		if shifted == 0 {
-			self = Self.min
-			return
+			return Self.min
 		}
-		
+
 		let max = UInt64(Self.max) + 1
 
 		if shifted > max {
-			self = Int64(shifted - max)
+			return Int64(shifted - max)
 		} else {
-			self = Int64(max - shifted) * -1
+			return Int64(max - shifted) * -1
 		}
 	}
 }

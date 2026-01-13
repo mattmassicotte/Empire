@@ -6,14 +6,15 @@ extension RawRepresentable where RawValue: Serializable {
 	}
 }
 
-extension RawRepresentable where RawValue: Deserializable {
-	public init(buffer: inout UnsafeRawBufferPointer) throws {
-		let value = try RawValue(buffer: &buffer)
-		
+extension RawRepresentable where RawValue: Deserializable, Self: Sendable {
+	public static func unpack(with deserializer: inout Deserializer) throws(DeserializeError) -> sending Self {
+		let value = try RawValue.unpack(with: &deserializer)
+
 		guard let rawRep = Self(rawValue: value) else {
 			throw DeserializeError.invalidValue
 		}
-		
-		self = rawRep
+
+		return rawRep
 	}
 }
+

@@ -15,19 +15,13 @@ extension UUID: Serializable {
 }
 
 extension UUID: Deserializable {
-	public init(buffer: inout UnsafeRawBufferPointer) throws {
+	public static func unpack(with deserializer: inout Deserializer) throws(DeserializeError) -> sending UUID {
 		var value: uuid_t = (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
 		let size = MemoryLayout<uuid_t>.size
 
-		let data = UnsafeRawBufferPointer(start: buffer.baseAddress, count: size)
+		value = try deserializer.unsafeLoad(of: uuid_t.self, sized: size)
 
-		withUnsafeMutableBytes(of: &value) { ptr in
-			ptr.copyMemory(from: data)
-		}
-
-		buffer = UnsafeRawBufferPointer(rebasing: buffer[size...])
-
-		self.init(uuid: value)
+		return UUID(uuid: value)
 	}
 }
 #endif

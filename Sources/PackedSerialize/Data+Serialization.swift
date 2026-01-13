@@ -19,13 +19,16 @@ extension Data: Serializable {
 }
 
 extension Data: Deserializable {
-	public init(buffer: inout UnsafeRawBufferPointer) throws {
-		let size = try UInt(buffer: &buffer)
-		let dataPtr = UnsafeRawBufferPointer(start: buffer.baseAddress, count: Int(size))
+	public static func unpack(with deserializer: inout Deserializer) throws(DeserializeError) -> sending Data {
+		let size: Int = Int(try UInt.unpack(with: &deserializer))
 
-		self.init(dataPtr)
+		let data = deserializer.rawSpan.extracting(first: size).withUnsafeBytes { buffer in
+			Data(buffer)
+		}
 
-		buffer = UnsafeRawBufferPointer(rebasing: buffer[count...])
+		try deserializer.advance(by: size)
+
+		return data
 	}
 }
 #endif

@@ -3,10 +3,10 @@ import Testing
 
 import Empire
 
-@IndexKeyRecord("key")
-fileprivate struct DateKeyRecord: Hashable {
-	let key: Date
-}
+//@IndexKeyRecord("key")
+//fileprivate struct DateKeyRecord: Hashable {
+//	let key: Date
+//}
 
 @IndexKeyRecord("a", "b")
 fileprivate struct CompoundKeyRecord: Hashable {

@@ -33,9 +33,9 @@ extension TupleTests {
 
 		value.serialize(into: &output)
 
-		var input = UnsafeRawBufferPointer(start: buffer.baseAddress, count: value.serializedSize)
+		var deserializer = Deserializer(_unsafeBytes: buffer)
 
-		let result = try Tuple<String, UInt>(buffer: &input)
+		let result = try Tuple<String, UInt>.unpack(with: &deserializer)
 
 		#expect(result.elements.0 == "Korben")
 		#expect(result.elements.1 == 45)

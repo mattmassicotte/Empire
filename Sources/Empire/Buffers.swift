@@ -32,3 +32,20 @@ public struct DeserializationBuffer {
 		self.valueBuffer = value.bufferPointer
 	}
 }
+
+public struct RecordDeserializer: ~Copyable, ~Escapable {
+	public var keyDeserializer: Deserializer
+	public var fieldsDeserializer: Deserializer
+
+	@_lifetime(borrow keyBuffer, borrow valueBuffer)
+	init(keyBuffer: UnsafeRawBufferPointer, valueBuffer: UnsafeRawBufferPointer) {
+		self.keyDeserializer = Deserializer(_unsafeBytes: keyBuffer)
+		self.fieldsDeserializer = Deserializer(_unsafeBytes: valueBuffer)
+	}
+
+	@_lifetime(copy keyDeserializer, copy fieldsDeserializer)
+	init(keyDeserializer: consuming Deserializer, fieldsDeserializer: consuming Deserializer) {
+		self.keyDeserializer = keyDeserializer
+		self.fieldsDeserializer = fieldsDeserializer
+	}
+}

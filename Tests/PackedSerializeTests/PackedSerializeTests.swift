@@ -1,6 +1,6 @@
 import Testing
 
-import PackedSerialize
+@testable import PackedSerialize
 
 enum HasRawRep: Int {
 	case one
@@ -23,13 +23,13 @@ struct PackedSerializeTests {
 		c.serialize(into: &inputBuffer)
 		d.serialize(into: &inputBuffer)
 
-		var outputBuffer = UnsafeRawBufferPointer(buffer)
+		var deserialier = Deserializer(_unsafeBytes: buffer)
 
-		#expect(try UInt(buffer: &outputBuffer) == a)
-		#expect(try UInt(buffer: &outputBuffer) == b)
-		#expect(try UInt(buffer: &outputBuffer) == c)
-		#expect(try UInt(buffer: &outputBuffer) == d)
-		
+		#expect(try UInt.unpack(with: &deserialier) == a)
+		#expect(try UInt.unpack(with: &deserialier) == b)
+		#expect(try UInt.unpack(with: &deserialier) == c)
+		#expect(try UInt.unpack(with: &deserialier) == d)
+
 		#expect([a,b,c,d].sorted() == [d,c,b,a])
 		#expect(ComparableData.sort([a,b,c,d]) == [d,c,b,a])
 	}
@@ -56,17 +56,17 @@ struct PackedSerializeTests {
 		g.serialize(into: &inputBuffer)
 		h.serialize(into: &inputBuffer)
 
-		var outputBuffer = UnsafeRawBufferPointer(buffer)
+		var deserialier = Deserializer(_unsafeBytes: buffer)
 
-		#expect(try Int(buffer: &outputBuffer) == a)
-		#expect(try Int(buffer: &outputBuffer) == b)
-		#expect(try Int(buffer: &outputBuffer) == c)
-		#expect(try Int(buffer: &outputBuffer) == d)
-		#expect(try Int(buffer: &outputBuffer) == e)
-		#expect(try Int(buffer: &outputBuffer) == f)
-		#expect(try Int(buffer: &outputBuffer) == g)
-		#expect(try Int(buffer: &outputBuffer) == h)
-		
+		#expect(try Int.unpack(with: &deserialier) == a)
+		#expect(try Int.unpack(with: &deserialier) == b)
+		#expect(try Int.unpack(with: &deserialier) == c)
+		#expect(try Int.unpack(with: &deserialier) == d)
+		#expect(try Int.unpack(with: &deserialier) == e)
+		#expect(try Int.unpack(with: &deserialier) == f)
+		#expect(try Int.unpack(with: &deserialier) == g)
+		#expect(try Int.unpack(with: &deserialier) == h)
+
 		#expect([a,b,c,d,e,f,g,h].sorted() == [h,g,f,e,d,c,b,a])
 		#expect(ComparableData.sort([a,b,c,d,e,f,g,h]) == [h,g,f,e,d,c,b,a])
 	}
@@ -93,17 +93,17 @@ struct PackedSerializeTests {
 		g.serialize(into: &inputBuffer)
 		h.serialize(into: &inputBuffer)
 
-		var outputBuffer = UnsafeRawBufferPointer(buffer)
+		var deserialier = Deserializer(_unsafeBytes: buffer)
 
-		#expect(try Int64(buffer: &outputBuffer) == a)
-		#expect(try Int64(buffer: &outputBuffer) == b)
-		#expect(try Int64(buffer: &outputBuffer) == c)
-		#expect(try Int64(buffer: &outputBuffer) == d)
-		#expect(try Int64(buffer: &outputBuffer) == e)
-		#expect(try Int64(buffer: &outputBuffer) == f)
-		#expect(try Int64(buffer: &outputBuffer) == g)
-		#expect(try Int64(buffer: &outputBuffer) == h)
-		
+		#expect(try Int64.unpack(with: &deserialier) == a)
+		#expect(try Int64.unpack(with: &deserialier) == b)
+		#expect(try Int64.unpack(with: &deserialier) == c)
+		#expect(try Int64.unpack(with: &deserialier) == d)
+		#expect(try Int64.unpack(with: &deserialier) == e)
+		#expect(try Int64.unpack(with: &deserialier) == f)
+		#expect(try Int64.unpack(with: &deserialier) == g)
+		#expect(try Int64.unpack(with: &deserialier) == h)
+
 		#expect([a,b,c,d,e,f,g,h].sorted() == [h,g,f,e,d,c,b,a])
 		#expect(ComparableData.sort([a,b,c,d,e,f,g,h]) == [h,g,f,e,d,c,b,a])
 	}
@@ -116,11 +116,11 @@ struct PackedSerializeTests {
 		UInt8(142).serialize(into: &inputBuffer)
 		UInt8(0).serialize(into: &inputBuffer)
 
-		var outputBuffer = UnsafeRawBufferPointer(buffer)
+		var deserialier = Deserializer(_unsafeBytes: buffer)
 
-		#expect(try UInt8(buffer: &outputBuffer) == 42)
-		#expect(try UInt8(buffer: &outputBuffer) == 142)
-		#expect(try UInt8(buffer: &outputBuffer) == 0)
+		#expect(try UInt8.unpack(with: &deserialier) == 42)
+		#expect(try UInt8.unpack(with: &deserialier) == 142)
+		#expect(try UInt8.unpack(with: &deserialier) == 0)
 	}
 	
 	@Test func serializeString() throws {
@@ -147,17 +147,17 @@ struct PackedSerializeTests {
 		h.serialize(into: &inputBuffer)
 		i.serialize(into: &inputBuffer)
 
-		var outputBuffer = UnsafeRawBufferPointer(buffer)
+		var deserialier = Deserializer(_unsafeBytes: buffer)
 
-		#expect(try String(buffer: &outputBuffer) == a)
-		#expect(try String(buffer: &outputBuffer) == b)
-		#expect(try String(buffer: &outputBuffer) == c)
-		#expect(try String(buffer: &outputBuffer) == d)
-		#expect(try String(buffer: &outputBuffer) == e)
-		#expect(try String(buffer: &outputBuffer) == f)
-		#expect(try String(buffer: &outputBuffer) == g)
-		#expect(try String(buffer: &outputBuffer) == h)
-		#expect(try String(buffer: &outputBuffer) == i)
+		#expect(try String.unpack(with: &deserialier) == a)
+		#expect(try String.unpack(with: &deserialier) == b)
+		#expect(try String.unpack(with: &deserialier) == c)
+		#expect(try String.unpack(with: &deserialier) == d)
+		#expect(try String.unpack(with: &deserialier) == e)
+		#expect(try String.unpack(with: &deserialier) == f)
+		#expect(try String.unpack(with: &deserialier) == g)
+		#expect(try String.unpack(with: &deserialier) == h)
+		#expect(try String.unpack(with: &deserialier) == i)
 
 		#expect([a,b,c,d,e,f,g,h,i].sorted() == [i,h,g,f,e,d,c,b,a])
 		#expect(ComparableData.sort([a,b,c,d,e,f,g,h,i]) == [i,h,g,f,e,d,c,b,a])
@@ -170,10 +170,10 @@ struct PackedSerializeTests {
 		true.serialize(into: &inputBuffer)
 		false.serialize(into: &inputBuffer)
 
-		var outputBuffer = UnsafeRawBufferPointer(buffer)
+		var deserialier = Deserializer(_unsafeBytes: buffer)
 
-		#expect(try Bool(buffer: &outputBuffer) == true)
-		#expect(try Bool(buffer: &outputBuffer) == false)
+		#expect(try Bool.unpack(with: &deserialier) == true)
+		#expect(try Bool.unpack(with: &deserialier) == false)
 	}
 	
 	@Test func deserializeBoolWithInvalidValue() throws {
@@ -182,10 +182,10 @@ struct PackedSerializeTests {
 
 		UInt8(4).serialize(into: &inputBuffer)
 
-		var outputBuffer = UnsafeRawBufferPointer(buffer)
+		var deserialier = Deserializer(_unsafeBytes: buffer)
 
-		#expect(throws: (any Error).self, performing: {
-			try Bool(buffer: &outputBuffer)
+		#expect(throws: DeserializeError.invalidValue, performing: {
+			try Bool.unpack(with: &deserialier)
 		})
 	}
 	
@@ -196,10 +196,10 @@ struct PackedSerializeTests {
 		Optional<String>.some("hello").serialize(into: &inputBuffer)
 		Optional<String>.some("goodbye").serialize(into: &inputBuffer)
 
-		var outputBuffer = UnsafeRawBufferPointer(buffer)
+		var deserialier = Deserializer(_unsafeBytes: buffer)
 
-		#expect(try String?(buffer: &outputBuffer) == "hello")
-		#expect(try String?(buffer: &outputBuffer) == "goodbye")
+		#expect(try String?.unpack(with: &deserialier) == "hello")
+		#expect(try String?.unpack(with: &deserialier) == "goodbye")
 	}
 	
 	@Test func serializeStringArray() throws {
@@ -208,9 +208,9 @@ struct PackedSerializeTests {
 
 		["1", "2", "3"].serialize(into: &inputBuffer)
 
-		var outputBuffer = UnsafeRawBufferPointer(buffer)
+		var deserialier = Deserializer(_unsafeBytes: buffer)
 
-		#expect(try [String](buffer: &outputBuffer) == ["1", "2", "3"])
+		#expect(try [String].unpack(with: &deserialier) == ["1", "2", "3"])
 	}
 	
 	@Test func rawRepresentable() throws {
@@ -220,10 +220,10 @@ struct PackedSerializeTests {
 		HasRawRep.two.serialize(into: &inputBuffer)
 		HasRawRep.one.serialize(into: &inputBuffer)
 
-		var outputBuffer = UnsafeRawBufferPointer(buffer)
+		var deserialier = Deserializer(_unsafeBytes: buffer)
 
-		#expect(try HasRawRep(buffer: &outputBuffer) == HasRawRep.two)
-		#expect(try HasRawRep(buffer: &outputBuffer) == HasRawRep.one)
+		#expect(try HasRawRep.unpack(with: &deserialier) == HasRawRep.two)
+		#expect(try HasRawRep.unpack(with: &deserialier) == HasRawRep.one)
 	}
 }
 
@@ -241,10 +241,10 @@ extension PackedSerializeTests {
 		uuidA.serialize(into: &inputBuffer)
 		uuidB.serialize(into: &inputBuffer)
 
-		var outputBuffer = UnsafeRawBufferPointer(buffer)
+		var deserialier = Deserializer(_unsafeBytes: buffer)
 
-		#expect(try UUID(buffer: &outputBuffer) == uuidA)
-		#expect(try UUID(buffer: &outputBuffer) == uuidB)
+		#expect(try UUID.unpack(with: &deserialier) == uuidA)
+		#expect(try UUID.unpack(with: &deserialier) == uuidB)
 	}
 
 	@Test func serializeData() throws {
@@ -257,10 +257,10 @@ extension PackedSerializeTests {
 		dataA.serialize(into: &inputBuffer)
 		dataB.serialize(into: &inputBuffer)
 
-		var outputBuffer = UnsafeRawBufferPointer(buffer)
+		var deserialier = Deserializer(_unsafeBytes: buffer)
 
-		#expect(try Data(buffer: &outputBuffer) == dataA)
-		#expect(try Data(buffer: &outputBuffer) == dataB)
+		#expect(try Data.unpack(with: &deserialier) == dataA)
+		#expect(try Data.unpack(with: &deserialier) == dataB)
 	}
 
 	@Test func serializeDate() throws {
@@ -278,13 +278,13 @@ extension PackedSerializeTests {
 		c.serialize(into: &inputBuffer)
 		d.serialize(into: &inputBuffer)
 
-		var outputBuffer = UnsafeRawBufferPointer(buffer)
+		var deserialier = Deserializer(_unsafeBytes: buffer)
 
-		#expect(try Date(buffer: &outputBuffer) == a)
-		#expect(try Date(buffer: &outputBuffer) == b)
-		#expect(try Date(buffer: &outputBuffer) == c)
-		#expect(try Date(buffer: &outputBuffer) == d)
-		
+		#expect(try Date.unpack(with: &deserialier) == a)
+		#expect(try Date.unpack(with: &deserialier) == b)
+		#expect(try Date.unpack(with: &deserialier) == c)
+		#expect(try Date.unpack(with: &deserialier) == d)
+
 		// check the encoding for ordering
 		#expect([a,b,c,d].sorted() == [d,c,b,a])
 		#expect(ComparableData.sort([a,b,c,d]) == [d,c,b,a])

@@ -4,10 +4,13 @@ public protocol Serializable {
 }
 
 public protocol Deserializable {
-	init(buffer: inout UnsafeRawBufferPointer) throws
+//	init(buffer: inout UnsafeRawBufferPointer) throws
+
+	static func unpack(with deserializer: inout Deserializer) throws(DeserializeError) -> sending Self
 }
 
-enum DeserializeError: Error {
+public enum DeserializeError: Error, Equatable {
 	case invalidLength
 	case invalidValue
+	case endOfBufferReached(Int, Int)
 }

@@ -23,7 +23,21 @@ struct SelectTests {
 		try? FileManager.default.removeItem(at: Self.storeURL)
 		try FileManager.default.createDirectory(at: Self.storeURL, withIntermediateDirectories: false)
 	}
-	
+
+	@Test func selectWithinTransaction() throws {
+		let store = try Store(url: Self.storeURL)
+		let record = CompoundKeyRecord(a: "hello", b: 42, c: "goodbye")
+		try store.withTransaction { ctx in
+			try ctx.insert(record)
+		}
+
+		let records: [CompoundKeyRecord] = try store.withTransaction { ctx in
+			try CompoundKeyRecord.select(in: ctx, a: "hello", b: .greaterOrEqual(0))
+		}
+
+		#expect(records == [record])
+	}
+
 	@Test func selectDateGreaterThanDistantFuture() throws {
 		let store = try Store(url: Self.storeURL)
 		

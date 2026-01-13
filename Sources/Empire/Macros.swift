@@ -11,7 +11,7 @@ import PackedSerialize
 		named(indexKey),
 		named(fields),
 		named(serialize),
-		named(init),
+		named(deserialize(with:)),
 		named(fieldsVersion),
 		named(keyPrefix),
 		named(select),

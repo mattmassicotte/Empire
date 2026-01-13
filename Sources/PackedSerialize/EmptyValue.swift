@@ -16,6 +16,7 @@ extension EmptyValue: Serializable {
 }
 
 extension EmptyValue: Deserializable {
-	public init(buffer: inout UnsafeRawBufferPointer) throws {
+	public static func unpack(with deserializer: inout Deserializer) throws(DeserializeError) -> sending EmptyValue {
+		EmptyValue()
 	}
 }

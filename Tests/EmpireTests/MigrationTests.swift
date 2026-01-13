@@ -19,13 +19,15 @@ struct MigratableKeyOnlyRecord: Hashable {
 
 extension MigratableKeyOnlyRecord {
 	// this is the code that actually checks for and peforms the migration
-	init(_ buffer: inout DeserializationBuffer, version: IndexKeyRecordHash) throws {
+	public static func deserialize(with deserializer: consuming RecordDeserializer, version: IndexKeyRecordHash) throws -> sending MigratableKeyOnlyRecord {
 		switch version {
 		case KeyOnlyRecord.fieldsVersion:
-			let record = try KeyOnlyRecord(&buffer)
-			self.key = record.key
-			
-			self.value = Self.valuePlaceholder
+			let record = try KeyOnlyRecord.deserialize(with: deserializer)
+
+			return MigratableKeyOnlyRecord(
+				key: record.key,
+				value: Self.valuePlaceholder
+			)
 		default:
 			throw Self.unsupportedMigrationError(for: version)
 		}

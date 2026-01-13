@@ -11,14 +11,14 @@ extension Bool: Serializable {
 }
 
 extension Bool: Deserializable {
-	public init(buffer: inout UnsafeRawBufferPointer) throws {
-		let value = try UInt8(buffer: &buffer)
-		
+	public static func unpack(with deserializer: inout Deserializer) throws(DeserializeError) -> sending Bool {
+		let value = try UInt8.unpack(with: &deserializer)
+
 		switch value {
 		case 0:
-			self = false
+			return false
 		case 1:
-			self = true
+			return true
 		default:
 			throw DeserializeError.invalidValue
 		}
