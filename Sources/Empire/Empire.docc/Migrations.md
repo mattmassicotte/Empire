@@ -13,18 +13,20 @@ Because the database schema is defined by your types, any changes to these types
 
 The only factors that affect data compatibility are definition order and data type.
 
-To support migration, you must implement a custom initializer.
+To support migration, you must implement a custom static factory method.
 
 ```swift
 extension struct Person {
-    init(_ buffer: inout DeserializationBuffer, version: Int) throws {
+	static func deserialize(with deserializer: consuming RecordDeserializer, version: IndexKeyRecordHash) throws -> sending Self {
         // `version` here is the `fieldVersion` of the data actually serialized in storage
         switch version {
         case 1:
             // this version didn't support the `age` field
-            self.lastName = try String(buffer: &buffer.keyBuffer)
-            self.firstName = try String(buffer: &buffer.keyBuffer)
-            self.age = 0 // a reasonable placeholder I guess?
+            let lastName = try String.unpack(with: &deserializer.keyDeserializer)
+            let firstName = try String.unpack(with: &deserializer.keyDeserializer)
+
+            // a reasonable placeholder I guess?
+            return Person(lastName: lastName, firstName: firstName, age: 0)
         default:
             throw Self.unsupportedMigrationError(for: version)
         }
@@ -62,23 +64,17 @@ extension MyRecord {
     }
 
     // implement the migration initializer
-    public init(_ buffer: inout DeserializationBuffer, version: IndexKeyRecordHash) throws {
+    public static func deserialize(with deserializer: consuming RecordDeserializer, version: IndexKeyRecordHash) throws -> sending Self {
         // switch over the possible previous field versions and migrate as necessary
         switch version {
         case MyRecord1.fieldsVersion:
-            let record1 = try MyRecord1(&buffer)
+            let record1 = try MyRecord1.deserialize(with: &deserializer)
 
-            self.key = record1.key
-            self.a = record1.a
-            self.b = ""
-            self.c = ""
+            return Record(key: record1.key, a: record1.a, b: "", c: "")
         case MyRecord2.fieldsVersion:
-            let record2 = try MyRecord2(&buffer)
+            let record2 = try MyRecord2.deserialize(with: &deserializer)
 
-            self.key = record2.key
-            self.a = record2.a
-            self.b = record2.b
-            self.c = ""
+            return Record(key: record2.key, a: record2.a, b: record2.b, c: "")
         default:
             throw Self.unsupportedMigrationError(for: version)
         }
