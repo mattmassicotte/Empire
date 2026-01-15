@@ -1,6 +1,6 @@
 import Testing
 
-@testable import PackedSerialize
+import PackedSerialize
 
 enum HasRawRep: Int {
 	case one

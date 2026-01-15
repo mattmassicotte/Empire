@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 
-@testable import LMDB
+import LMDB
 
 extension Cursor {
 	func getStringValues() -> [(String, String)] {
