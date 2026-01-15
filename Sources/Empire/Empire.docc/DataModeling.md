@@ -195,9 +195,11 @@ extension Person: IndexKeyRecord {
         age.serialize(into: &buffer.valueBuffer)
     }
 
-    public init(_ buffer: inout DeserializationBuffer) throws {
-        self.name = try String(buffer: &buffer.keyBuffer)
-        self.age = try UInt(buffer: &buffer.valueBuffer)
+    public static func deserialize(with deserializer: consuming RecordDeserializer) throws(DeserializeError) -> sending Self {
+        let name = try String.unpack(with: &deserializer.keyDeserializer)
+        let age = try Int.unpack(with: &deserializer.keyDeserializer)
+
+        return Self(name: name, age: age)
     }
 }
 
