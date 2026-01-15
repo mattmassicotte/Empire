@@ -32,7 +32,7 @@ jobs:
           - "platform=iOS Simulator,name=iPhone 16e"
           - "platform=tvOS Simulator,name=Apple TV"
           - "platform=watchOS Simulator,name=Apple Watch Series 11 (42mm),OS=26.0"
-          - "platform=visionOS Simulator,name=Apple Vision Pro,OS=2.5"
+          - "platform=visionOS Simulator,name=Apple Vision Pro"
         swift-syntax-version:
           - "600.0.0"
           - "601.0.0"
