@@ -95,9 +95,10 @@ public final class Store {
 #if compiler(>=6.1)
 	/// Execute a transation on a database.
 	public func withTransaction<T>(
+		readOnly: Bool = false,
 		_ block: (TransactionContext) throws -> sending T
 	) throws -> sending T {
-		let value = try Transaction.with(env: environment) { txn in
+		let value = try Transaction.with(env: environment, readOnly: readOnly) { txn in
 			let context = TransactionContext(
 				transaction: txn,
 				dbi: dbi,
