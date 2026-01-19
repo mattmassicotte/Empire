@@ -9,8 +9,6 @@ fixing it requires migrations. These are run incrementally as mismatches are det
 
 ## Migrating Data
 
-Because the database schema is defined by your types, any changes to these types will invalidate the data within the storage. This is detected using the `fieldsVersion` property, and fixing it requires migrations. These are run incrementally as mismatches are detected on load.
-
 The only factors that affect data compatibility are definition order and data type.
 
 To support migration, you must implement a custom static factory method.
@@ -105,4 +103,11 @@ struct ManuallyVersionedRecord: Sendable {
 }
 ```
 
-For reference, the hash algorithm used by the automated system is [sdbm](https://www.partow.net/programming/hashfunctions/#SDBMHashFunction).
+For reference, the hash algorithm used by the automated system is [sdbm](https://www.partow.net/programming/hashfunctions/#SDBMHashFunction). You can find the string input that goes into this function by examing the macro output.
+
+```swift
+/// Input: "Int,String"
+public static var fieldsVersion: IndexKeyRecordHash {
+    3722219886
+}
+```
