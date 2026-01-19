@@ -52,11 +52,18 @@ public final class Environment: Sendable {
 			try setMaxDatabases(max)
 		}
 
+		// this is totally arbitrary and should be better tuned
+		try setMaxDatabaseSize(4096*4096*16)
+
 		try open(path: path, locking: locking)
 	}
 
 	deinit {
 		mdb_env_close(internalEnv.pointer)
+	}
+
+	public func setMaxDatabaseSize(_ value: Int) throws {
+		try MDBError.check { mdb_env_set_mapsize(internalEnv.pointer, value) }
 	}
 
 	public func setMaxDatabases(_ value: Int) throws {

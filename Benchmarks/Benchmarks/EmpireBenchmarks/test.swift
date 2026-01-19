@@ -66,7 +66,7 @@ let benchmarks : @Sendable () -> Void = {
 		}
 	}
 
-	Benchmark("Select records in transaction") { benchmark in
+	Benchmark("Select 1000/1000 records in transaction") { benchmark in
 		let storeURL = URL(fileURLWithPath: "/tmp/empire_benchmark_store", isDirectory: true)
 		try? FileManager.default.removeItem(at: storeURL)
 		try FileManager.default.createDirectory(at: storeURL, withIntermediateDirectories: false)
@@ -85,6 +85,28 @@ let benchmarks : @Sendable () -> Void = {
 
 		_ = try store.withTransaction { ctx in
 			try SmallRecord.select(in: ctx, key: .greaterOrEqual(0))
+		}
+	}
+
+	Benchmark("Select 1000/1_000_000 records in transaction") { benchmark in
+		let storeURL = URL(fileURLWithPath: "/tmp/empire_benchmark_store", isDirectory: true)
+		try? FileManager.default.removeItem(at: storeURL)
+		try FileManager.default.createDirectory(at: storeURL, withIntermediateDirectories: false)
+
+		let store = try Store(url: storeURL)
+
+		try store.withTransaction { ctx in
+			for i in 0..<1_000_000 {
+				let record = SmallRecord(key: i, value: "\(i)")
+
+				try ctx.insert(record)
+			}
+		}
+
+		benchmark.startMeasurement()
+
+		_ = try store.withTransaction { ctx in
+			try SmallRecord.select(in: ctx, key: .range(0..<1000))
 		}
 	}
 }

@@ -21,10 +21,18 @@ func configureCoreDataStack() -> NSManagedObjectContext {
 	valueAttribute.attributeType = .stringAttributeType
 	valueAttribute.isOptional = false
 
+	let keyIndex = NSFetchIndexElementDescription(property: keyAttribute, collationType: .binary)
+	keyIndex.isAscending = true
+
 	let smallModelEntity = NSEntityDescription()
 	smallModelEntity.name = "SmallRecord"
 	smallModelEntity.managedObjectClassName = NSStringFromClass(SmallRecord.self)
 	smallModelEntity.properties = [keyAttribute, valueAttribute]
+	smallModelEntity.indexes = [
+		NSFetchIndexDescription(name: "small_record_by_key", elements: [
+			keyIndex
+		])
+	]
 
 	let model = NSManagedObjectModel()
 
@@ -78,7 +86,7 @@ let benchmarks : @Sendable () -> Void = {
 		try context.save()
 	}
 
-	Benchmark("CoreData Select records") { benchmark in
+	Benchmark("CoreData Select 1000/1000 records") { benchmark in
 		let context = configureCoreDataStack()
 
 		let description = NSEntityDescription.entity(forEntityName: "SmallRecord", in: context)!
@@ -101,5 +109,27 @@ let benchmarks : @Sendable () -> Void = {
 		let _ = try context.fetch(request)
 	}
 
+	Benchmark("CoreData Select 1000/1_000_000 records") { benchmark in
+		let context = configureCoreDataStack()
+
+		let description = NSEntityDescription.entity(forEntityName: "SmallRecord", in: context)!
+
+		for i in 0..<1_000_000 {
+			let record = SmallRecord(entity: description, insertInto: context)
+
+			record.key = i
+			record.value = "\(i)"
+		}
+
+		try context.save()
+
+		benchmark.startMeasurement()
+
+		let request = NSFetchRequest<SmallRecord>(entityName: "SmallRecord")
+		request.predicate = NSPredicate(format: "(key >= 0) AND (key < 1000)")
+		request.sortDescriptors = [NSSortDescriptor(keyPath: \SmallRecord.key, ascending: true)]
+
+		let _ = try context.fetch(request)
+	}
 }
 #endif
