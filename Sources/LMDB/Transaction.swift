@@ -10,22 +10,23 @@ public struct Transaction {
 	var txn: OpaquePointer?
 	private let env: Environment
 
-	public init(env: Environment, readOnly: Bool = false) throws {
+	public init(env: Environment, parent: Transaction? = nil, readOnly: Bool = false) throws {
 		self.env = env
 		
 		let flags: UInt32 = readOnly ? UInt32(MDB_RDONLY) : 0
 
-		try MDBError.check { mdb_txn_begin(env.internalEnv.pointer, nil, flags, &txn) }
+		try MDBError.check { mdb_txn_begin(env.internalEnv.pointer, parent?.txn, flags, &txn) }
 
 		guard txn != nil else { throw MDBError.problem }
 	}
 
 	public static func with<T>(
 		env: Environment,
+		parent: Transaction? = nil,
 		readOnly: Bool = false,
 		block: (inout Transaction) throws -> sending T
 	) throws -> sending T {
-		var transaction = try Transaction(env: env, readOnly: readOnly)
+		var transaction = try Transaction(env: env, parent: parent, readOnly: readOnly)
 
 		do {
 			let value = try block(&transaction)
@@ -45,7 +46,7 @@ public struct Transaction {
 		try MDBError.check { mdb_txn_commit(txn) }
 	}
 
-	public func abort() {
+	func abort() {
 		mdb_txn_abort(txn)
 	}
 

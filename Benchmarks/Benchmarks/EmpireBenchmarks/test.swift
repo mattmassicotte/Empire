@@ -36,12 +36,32 @@ let benchmarks : @Sendable () -> Void = {
 		let store = try Store(url: storeURL)
 		
 		benchmark.startMeasurement()
-		
+
 		try store.withTransaction { ctx in
 			for i in 0..<1000 {
 				let record = SmallRecord(key: i, value: "\(i)")
 				
 				try ctx.insert(record)
+			}
+		}
+	}
+
+	Benchmark("Insert records in nested transaction") { benchmark in
+		let storeURL = URL(fileURLWithPath: "/tmp/empire_benchmark_store", isDirectory: true)
+		try? FileManager.default.removeItem(at: storeURL)
+		try FileManager.default.createDirectory(at: storeURL, withIntermediateDirectories: false)
+
+		let store = try Store(url: storeURL)
+
+		benchmark.startMeasurement()
+
+		try store.withTransaction { parentCtx in
+			try store.withTransaction(parent: parentCtx) { ctx in
+				for i in 0..<1000 {
+					let record = SmallRecord(key: i, value: "\(i)")
+					
+					try ctx.insert(record)
+				}
 			}
 		}
 	}

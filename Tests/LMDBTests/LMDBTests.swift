@@ -528,7 +528,56 @@ extension LMDBTests {
 			}
 		}
 	}
-	
+
+	@Test func abortTransaction() throws {
+		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
+
+		#expect(throws: CancellationError.self) {
+			try Transaction.with(env: env) { txn in
+				let dbi = try txn.open(name: "mydb")
+
+				try txn.set(dbi: dbi, key: "hello", value: "goodbye")
+
+				throw CancellationError()
+			}
+		}
+
+		let value = try Transaction.with(env: env) { txn in
+			let dbi = try txn.open(name: "mydb")
+
+			return try txn.getString(dbi: dbi, key: "hello")
+		}
+
+		#expect(value == nil)
+	}
+
+	@Test func nestedTransaction() throws {
+		let env = try Environment(url: Self.storeURL, maxDatabases: 1)
+
+		// the database must exist before trying a read-only transaction
+		try Transaction.with(env: env) { txn in
+			let dbi = try txn.open(name: "mydb")
+
+			try txn.set(dbi: dbi, key: "hello", value: "goodbye")
+
+			#expect(throws: CancellationError.self) {
+				try Transaction.with(env: env, parent: txn) { txn in
+					try txn.set(dbi: dbi, key: "hello", value: "hello")
+					
+					let value = try txn.getString(dbi: dbi, key: "hello")
+					
+					#expect(value == "hello")
+					
+					throw CancellationError()
+				}
+			}
+
+			let value = try txn.getString(dbi: dbi, key: "hello")
+
+			#expect(value == "goodbye")
+		}
+	}
+
 	@Test func concurrentAccess() async throws {
 		let env = try Environment(url: Self.storeURL, maxDatabases: 1, locking: true)
 		let count = 100
