@@ -19,33 +19,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test15:
-    name: Test macOS 15
-    runs-on: macos-15
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_26.3.app
-    strategy:
-      matrix:
-        destination:
-          - "platform=macOS"
-          - "platform=iOS Simulator,name=iPhone 16e"
-        swift-syntax-version:
-          - "602.0.0"
-        configuration:
-          - "debug"
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          submodules: true
-      - name: Test platform ${{ matrix.destination }} / Xcode ${{ matrix.xcode-version }} / swift-syntax ${{ matrix.swift-syntax-version }} / ${{ matrix.configuration }}
-        run: |
-          defaults write com.apple.dt.Xcode IDEPackageEnablePrebuilts NO
-          swift --version
-          swift package reset
-          swift package resolve
-          swift package resolve --version ${{ matrix.swift-syntax-version }} swift-syntax
-          set -o pipefail && OTHER_SWIFT_FLAGS="-enable-testing" xcodebuild -scheme Empire-Package -destination "${{ matrix.destination }}" -configuration ${{ matrix.configuration }} test | xcbeautify
-
   test26:
     name: Test macOS 26
     runs-on: macos-26
