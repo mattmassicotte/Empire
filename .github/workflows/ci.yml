@@ -19,8 +19,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: Test
+  test15:
+    name: Test macOS 15
     runs-on: macos-15
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.0.app
@@ -34,7 +34,7 @@ jobs:
         configuration:
           - "debug"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: true
       - name: Test platform ${{ matrix.destination }} / Xcode ${{ matrix.xcode-version }} / swift-syntax ${{ matrix.swift-syntax-version }} / ${{ matrix.configuration }}
@@ -55,23 +55,13 @@ jobs:
       matrix:
         destination:
           - "platform=macOS"
-          - "platform=macOS,variant=Mac Catalyst"
           - "platform=iOS Simulator,name=iPhone 16e"
-          - "platform=tvOS Simulator,name=Apple TV,OS=26.0"
-          - "platform=watchOS Simulator,name=Apple Watch Series 11 (42mm)"
-          - "platform=visionOS Simulator,name=Apple Vision Pro"
         swift-syntax-version:
-          - "600.0.0"
-          - "601.0.0"
           - "602.0.0"
         configuration:
           - "debug"
-        include:
-          - destination: "platform=macOS"
-            swift-syntax-version: "602.0.0"
-            configuration: "release"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: true
       - name: Test platform ${{ matrix.destination }} / Xcode ${{ matrix.xcode-version }} / swift-syntax ${{ matrix.swift-syntax-version }} / ${{ matrix.configuration }}
@@ -107,7 +97,7 @@ jobs:
             swift-syntax-version: "604.0.0"
             configuration: "release"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: true
       - name: Test platform ${{ matrix.destination }} / Xcode ${{ matrix.xcode-version }} / swift-syntax ${{ matrix.swift-syntax-version }} / ${{ matrix.configuration }}
@@ -142,6 +132,9 @@ jobs:
             swift-syntax-version: "604.0.0"
             configuration: "release"
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - run: swift --version
       - name: Test Swift ${{ matrix.swift-version }} / swift-syntax ${{ matrix.swift-syntax-version }} / ${{ matrix.configuration }}
         run: |
           swift --version
