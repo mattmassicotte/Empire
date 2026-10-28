@@ -23,7 +23,7 @@ jobs:
     name: Test macOS 15
     runs-on: macos-15
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.0.app
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app
     strategy:
       matrix:
         destination:
@@ -50,7 +50,7 @@ jobs:
     name: Test macOS 26
     runs-on: macos-26
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.0.app
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app
     strategy:
       matrix:
         destination:
@@ -76,7 +76,7 @@ jobs:
     name: Test macOS 27
     runs-on: xcode-27
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.0.app
+      DEVELOPER_DIR: /Applications/Xcode_27.0.app
     strategy:
       matrix:
         destination:
