@@ -8,7 +8,7 @@ public struct Tuple<each Element> {
 		self.elements = (repeat each value)
 	}
 
-	public init(_ value: (repeat each Element)) {
+	public init(value: (repeat each Element)) {
 		self.elements = value
 	}
 }
