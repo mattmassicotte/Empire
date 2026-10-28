@@ -28,7 +28,7 @@ jobs:
       matrix:
         destination:
           - "platform=macOS"
-          - "platform=iOS Simulator,name=iPhone 16e"
+          - "platform=iOS Simulator,name=iPhone 17e"
         swift-syntax-version:
           - "602.0.0"
         configuration:
@@ -56,7 +56,7 @@ jobs:
           - "platform=macOS"
           - "platform=macOS,variant=Mac Catalyst"
           - "platform=iOS Simulator,name=iPhone 17e"
-          - "platform=tvOS Simulator,name=Apple TV,OS=27.0"
+          - "platform=tvOS Simulator,name=Apple TV 4K (3rd generation)"
           - "platform=watchOS Simulator,name=Apple Watch Series 12 (42mm)"
           - "platform=visionOS Simulator,name=Apple Vision Pro"
         swift-syntax-version:
