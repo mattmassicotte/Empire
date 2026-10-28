@@ -35,7 +35,6 @@ extension MDB_val {
 		}
 	}
 
-	@_lifetime(borrow span)
 	init(_ span: RawSpan) {
 		let val = span.withUnsafeBytes { buffer in
 			let unsafePtr = UnsafeMutableRawPointer(mutating: buffer.baseAddress)

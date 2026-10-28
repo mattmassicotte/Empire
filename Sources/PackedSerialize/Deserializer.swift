@@ -19,7 +19,6 @@ public struct Deserializer: ~Copyable, ~Escapable, Sendable {
 		self.offset = 0
 	}
 
-	@_lifetime(&self)
 	public mutating func unsafeLoad<T>(
 		of t: T.Type,
 		sized size: Int
@@ -42,7 +41,6 @@ public struct Deserializer: ~Copyable, ~Escapable, Sendable {
 		}
 	}
 
-	@_lifetime(&self)
 	public mutating func advance(by amount: Int) throws(DeserializeError) {
 		try checkOffset(amount)
 
