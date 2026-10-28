@@ -82,33 +82,65 @@ jobs:
           swift package resolve
           swift package resolve --version ${{ matrix.swift-syntax-version }} swift-syntax
           set -o pipefail && xcodebuild -scheme Empire-Package -destination "${{ matrix.destination }}" -configuration ${{ matrix.configuration }} test | xcbeautify
+  test27:
+    name: Test macOS 27
+    runs-on: xcode-27
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.0.app
+    strategy:
+      matrix:
+        destination:
+          - "platform=macOS"
+          - "platform=macOS,variant=Mac Catalyst"
+          - "platform=iOS Simulator,name=iPhone 17e"
+          - "platform=tvOS Simulator,name=Apple TV,OS=27.0"
+          - "platform=watchOS Simulator,name=Apple Watch Series 12 (42mm)"
+          - "platform=visionOS Simulator,name=Apple Vision Pro"
+        swift-syntax-version:
+          - "602.0.0"
+          - "603.0.0"
+          - "604.0.0"
+        configuration:
+          - "debug"
+        include:
+          - destination: "platform=macOS"
+            swift-syntax-version: "604.0.0"
+            configuration: "release"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Test platform ${{ matrix.destination }} / Xcode ${{ matrix.xcode-version }} / swift-syntax ${{ matrix.swift-syntax-version }} / ${{ matrix.configuration }}
+        run: |
+          defaults write com.apple.dt.Xcode IDEPackageEnablePrebuilts NO
+          swift --version
+          swift package reset
+          swift package resolve
+          swift package resolve --version ${{ matrix.swift-syntax-version }} swift-syntax
+          set -o pipefail && xcodebuild -scheme Empire-Package -destination "${{ matrix.destination }}" -configuration ${{ matrix.configuration }} test | xcbeautify
 
   linux_test:
     name: Test Linux
     runs-on: ubuntu-latest
+    container:
+      image: swift:${{matrix.swift-version}}
+    timeout-minutes: 30
     strategy:
       matrix:
         swift-version:
-          - '6.2.0'
+          - '6.4.0'
         swift-syntax-version:
           - '600.0.0'
           - '601.0.0'
           - '602.0.0'
+          - '603.0.0'
+          - '604.0.0'
         configuration:
           - "debug"
         include:
-          - swift-version: "6.2.0"
-            swift-syntax-version: "602.0.0"
+          - swift-version: "6.4.0"
+            swift-syntax-version: "604.0.0"
             configuration: "release"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-      - name: Swiftly
-        uses: vapor/swiftly-action@v0.2.0
-        with:
-          toolchain: ${{ matrix.swift-version }}
       - name: Test Swift ${{ matrix.swift-version }} / swift-syntax ${{ matrix.swift-syntax-version }} / ${{ matrix.configuration }}
         run: |
           swift --version
