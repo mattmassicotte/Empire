@@ -141,6 +141,7 @@ jobs:
           - swift-version: "6.4.0"
             swift-syntax-version: "604.0.0"
             configuration: "release"
+    steps:
       - name: Test Swift ${{ matrix.swift-version }} / swift-syntax ${{ matrix.swift-syntax-version }} / ${{ matrix.configuration }}
         run: |
           swift --version
